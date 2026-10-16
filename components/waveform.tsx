@@ -38,7 +38,13 @@ export function Waveform({ mode, className }: { mode: WaveMode; className?: stri
       const barWidth = 3
       const gap = 3
       const count = Math.max(12, Math.floor((width + gap) / (barWidth + gap)))
-      if (heights.length !== count) heights = new Array(count).fill(0)
+      if (heights.length !== count) {
+        // Start at the idle shape, so the first paint is final (better Speed Index).
+        heights = Array.from({ length: count }, (_, i) => {
+          const fromCenter = Math.abs(i - (count - 1) / 2) / ((count - 1) / 2)
+          return 0.06 + 0.22 * Math.cos(fromCenter * Math.PI * 0.5) ** 1.4
+        })
+      }
       const offsetX = (width - (count * (barWidth + gap) - gap)) / 2
       const mid = (count - 1) / 2
       const current = modeRef.current

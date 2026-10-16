@@ -5,6 +5,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-16
+
+### Changed
+- The voice model starts to download when you record, upload or select a sample voice. Before, it started only after you pushed Continue.
+- The download progress shows on the Voice step too.
+- The download size hint shows before the download starts.
+
+### Fixed
+- Text contrast for hints and footer links now meets WCAG AA (4.5:1).
+- The hidden audio file input has an accessible label.
+- The waveform no longer animates in at page load. This improves Speed Index.
+
 ## [0.2.0] - 2026-10-16
 
 ### Added

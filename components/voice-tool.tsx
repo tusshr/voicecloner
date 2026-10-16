@@ -91,7 +91,11 @@ export function VoiceTool({ ui, lang, homeHref }: { ui: UI; lang: Locale; homeHr
     setClip(target, { audio: length > MAX_SECONDS ? audio.slice(0, MAX_SECONDS * SAMPLE_RATE) : audio, source, preset })
   }
 
+  /** Start the ~150 MB model download as soon as the person starts on a voice, so it is ready sooner. */
+  const warmUp = () => { void loadModel() }
+
   const startRecording = async (target: Target) => {
+    warmUp()
     setVoiceError(null)
     player.stop()
     let stream: MediaStream
@@ -136,6 +140,7 @@ export function VoiceTool({ ui, lang, homeHref }: { ui: UI; lang: Locale; homeHr
   const stopRecording = () => { if (recorderRef.current?.state === 'recording') recorderRef.current.stop() }
 
   const pickFile = (target: Target) => {
+    warmUp()
     fileTargetRef.current = target
     fileInputRef.current?.click()
   }
@@ -156,6 +161,7 @@ export function VoiceTool({ ui, lang, homeHref }: { ui: UI; lang: Locale; homeHr
   }
 
   const pickPreset = async (preset: Preset) => {
+    warmUp()
     setVoiceError(null)
     setDecoding('base')
     try {
@@ -277,7 +283,7 @@ export function VoiceTool({ ui, lang, homeHref }: { ui: UI; lang: Locale; homeHr
     if (recording) return { mode: 'live', text: <><span className="rec-dot" />{recording.target === 'base' ? ui.recording : fmt(ui.recordingMood, { mood: ui.moods[recording.target].toLowerCase() })} {formatTime(recording.elapsed)}</> }
     if (playback.playingId) return { mode: 'live', text: <>{formatTime(playback.position)} / {formatTime(playback.duration)}</> }
     if (decoding) return { mode: 'working', text: ui.readingAudio }
-    if (step === 'speak' && model === 'loading') {
+    if (model === 'loading') {
       const p = loadProgress
       if (!p) return { mode: 'working', text: ui.starting }
       if (p.phase === 'init') return { mode: 'working', text: ui.modelInit }
@@ -318,7 +324,7 @@ export function VoiceTool({ ui, lang, homeHref }: { ui: UI; lang: Locale; homeHr
         </nav>
       )}
 
-      <input ref={fileInputRef} type="file" accept="audio/*" className="sr-only" tabIndex={-1}
+      <input ref={fileInputRef} type="file" accept="audio/*" className="sr-only" tabIndex={-1} aria-label={ui.upload}
         onChange={(event) => { void onFile(event.target.files?.[0]); event.target.value = '' }} />
 
       {step === 'voice' && (
@@ -335,7 +341,7 @@ export function VoiceTool({ ui, lang, homeHref }: { ui: UI; lang: Locale; homeHr
                   <button className="btn btn-primary" onClick={() => startRecording('base')} disabled={voiceBlocked || !env.recordable}><Mic size={18} /> {ui.record}</button>
                   <button className="btn btn-outline" onClick={() => pickFile('base')} disabled={voiceBlocked}><Upload size={18} /> {ui.upload}</button>
                 </div>
-                <p className="hint">{ui.sampleHint}</p>
+                <p className="hint">{ui.sampleHint} {ui.firstRun}</p>
                 <div className="samples">
                   <p className="hint">{ui.sampleIntro}</p>
                   <div className="pills">
