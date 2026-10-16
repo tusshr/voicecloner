@@ -1,0 +1,30 @@
+import { CHROME } from '@/content/pages'
+import { UI_STRINGS } from '@/content/ui'
+import { LANGUAGE_NAMES, LOCALES, localePath, type Locale } from '@/lib/i18n'
+
+/** `page` is the current page slug when it exists in every language, so the switcher keeps you on it. */
+export function SiteFooter({ lang, page = '' }: { lang: Locale; page?: string }) {
+  const chrome = CHROME[lang]
+  // Privacy and terms are English only; other languages link to them.
+  const legal = (slug: 'privacy' | 'terms') => localePath('en', slug)
+  return (
+    <footer className="footer">
+      <p>{UI_STRINGS[lang].privacyLine}</p>
+      <p>{chrome.credits}</p>
+      <nav className="footer-nav" aria-label="Site">
+        <a href={localePath(lang, 'about')}>{chrome.about}</a>
+        <a href={localePath(lang, 'contact')}>{chrome.contact}</a>
+        <a href={legal('privacy')} hrefLang={lang === 'en' ? undefined : 'en'}>{chrome.privacy}</a>
+        <a href={legal('terms')} hrefLang={lang === 'en' ? undefined : 'en'}>{chrome.terms}</a>
+      </nav>
+      <nav className="footer-nav" aria-label={chrome.language}>
+        {LOCALES.map((locale) => (
+          <a key={locale} href={localePath(locale, page)} hrefLang={locale} lang={locale}
+            aria-current={locale === lang ? 'page' : undefined}>
+            {LANGUAGE_NAMES[locale]}
+          </a>
+        ))}
+      </nav>
+    </footer>
+  )
+}
