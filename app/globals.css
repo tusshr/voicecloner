@@ -164,8 +164,11 @@ body {
   white-space: pre-wrap; overflow-wrap: break-word; word-break: break-word;
 }
 .editor-backdrop { position: absolute; inset: 0; overflow: hidden; color: transparent; pointer-events: none; }
+/* Same gutter on both layers, so tag highlights stay aligned when the field scrolls. */
+.editor-backdrop, .editor-input { scrollbar-gutter: stable; }
 .editor-input {
-  position: relative; display: block; width: 100%; min-height: 200px; resize: vertical;
+  position: relative; display: block; width: 100%; min-height: 168px; max-height: min(45vh, 360px);
+  resize: none; overflow-y: auto;
   background: transparent; color: var(--ink); caret-color: var(--ink); outline: none;
 }
 .editor-input:disabled { opacity: 0.6; }
@@ -262,3 +265,13 @@ a.wordmark { color: inherit; text-decoration: none; }
   background: var(--card); border: 1px solid var(--hairline); box-shadow: 0 8px 30px rgb(0 0 0 / 0.12);
   display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: var(--body);
 }
+
+/* ---------- header language switcher ---------- */
+.topbar-actions { display: flex; align-items: center; gap: 4px; }
+.lang {
+  position: relative; display: inline-flex; align-items: center; gap: 6px;
+  height: 36px; padding: 0 12px; border-radius: 999px;
+  font-size: 14px; font-weight: 500; color: var(--ink); background: var(--surface-strong);
+}
+.lang select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; font-size: 16px; }
+.lang:focus-within { outline: 2px solid var(--ink); outline-offset: 2px; }

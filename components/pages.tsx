@@ -47,7 +47,7 @@ export function HomePage({ lang }: { lang: Locale }) {
   ]
   return (
     <main className="shell">
-      <VoiceTool ui={UI_STRINGS[lang]} lang={lang} homeHref={localePath(lang)} />
+      <VoiceTool ui={UI_STRINGS[lang]} lang={lang} homeHref={localePath(lang)} languageLabel={CHROME[lang].language} />
       <HomeArticle content={content} />
       <SiteFooter lang={lang} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />

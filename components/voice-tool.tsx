@@ -13,6 +13,7 @@ import { ENGINE_LANGUAGE, fmt, type Locale } from '@/lib/i18n'
 import { PRESETS, type Preset } from '@/lib/voices'
 import type { UI } from '@/content/ui'
 import { SITE_NAME } from '@/lib/site'
+import { LanguageSwitcher } from '@/components/language-switcher'
 const MIN_SECONDS = 5
 const MAX_SECONDS = 20 // recording cap; only the clearest 10 s is used for cloning
 const SCRIPT_LIMIT = 700
@@ -34,7 +35,7 @@ function friendlyError(error: unknown, ui: UI) {
 const seconds = (audio: Float32Array) => audio.length / SAMPLE_RATE
 const presetLabel = (preset: Preset, ui: UI) => `${preset.name}, ${ui.styles[preset.style]}`
 
-export function VoiceTool({ ui, lang, homeHref }: { ui: UI; lang: Locale; homeHref: string }) {
+export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang: Locale; homeHref: string; languageLabel: string }) {
   const [step, setStep] = useState<'voice' | 'speak'>('voice')
   const [env, setEnv] = useState({ supported: true, recordable: true, lowPower: false })
 
@@ -302,9 +303,12 @@ export function VoiceTool({ ui, lang, homeHref }: { ui: UI; lang: Locale; homeHr
     <div className="tool">
       <header className="topbar">
         <a className="wordmark" href={homeHref}>{SITE_NAME}</a>
-        {base && (
-          <button className="btn btn-ghost" onClick={startOver} disabled={!!busy || voiceBlocked}><RotateCcw size={16} /> {ui.startOver}</button>
-        )}
+        <div className="topbar-actions">
+          {base && (
+            <button className="btn btn-ghost" onClick={startOver} disabled={!!busy || voiceBlocked}><RotateCcw size={16} /> {ui.startOver}</button>
+          )}
+          <LanguageSwitcher lang={lang} label={languageLabel} />
+        </div>
       </header>
 
       <h1 className={base ? 'sr-only' : 'headline'}>{ui.headline}</h1>

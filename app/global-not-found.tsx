@@ -14,7 +14,7 @@ export default function GlobalNotFound() {
   return (
     <RootDocument lang="en">
       <main className="shell">
-        <SiteHeader homeHref="/" />
+        <SiteHeader lang="en" />
         <section className="article prose">
           <h1 className="page-title">{chrome.notFoundTitle}</h1>
           <p className="lede">{chrome.notFoundText}</p>

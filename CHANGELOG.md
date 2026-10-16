@@ -5,6 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-16
+
+### Added
+- Language switcher in the header, with a globe icon. On phones it opens the native picker.
+
+### Changed
+- The script field grows with the text up to a maximum height, then it scrolls. You cannot resize it by hand.
+
 ## [0.2.1] - 2026-10-16
 
 ### Changed
