@@ -5,6 +5,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-16
+
+### Added
+- Install button in the header. In Chrome and Edge it opens the install dialog with the screenshots. On iPhone and iPad it tells you how to add the app to the home screen.
+
+### Changed
+- Progress shows as a border around the item that is busy, not as text in the waveform box. The voice card shows the model download. The Generate button shows the model download or the generation.
+- The waveform box shows only recording and playback time.
+
 ## [0.5.0] - 2026-10-16
 
 ### Added

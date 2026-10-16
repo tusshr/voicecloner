@@ -22,8 +22,12 @@ export function RootDocument({ lang, children }: { lang: Locale; children: React
     <html lang={lang} className={`${display.variable} ${body.variable}`}>
       <body>
         {children}
-        {/* Service worker: makes the site installable and lets it open without a connection. */}
-        <script dangerouslySetInnerHTML={{ __html: "if('serviceWorker' in navigator)addEventListener('load',function(){navigator.serviceWorker.register('/sw.js')})" }} />
+        {/* Service worker (install and offline start), and keep the install prompt for the install button. */}
+        <script dangerouslySetInnerHTML={{ __html: [
+          "if('serviceWorker' in navigator)addEventListener('load',function(){navigator.serviceWorker.register('/sw.js')});",
+          "addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.installPrompt=e;dispatchEvent(new Event('installready'))});",
+          "addEventListener('appinstalled',function(){window.installPrompt=null});",
+        ].join('') }} />
         {GA_ID && <Analytics id={GA_ID} text={chrome.cookieText} accept={chrome.accept} decline={chrome.decline} />}
       </body>
     </html>

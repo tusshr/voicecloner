@@ -14,6 +14,7 @@ import { PRESETS, type Preset } from '@/lib/voices'
 import type { UI } from '@/content/ui'
 import { SITE_NAME } from '@/lib/site'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { InstallButton } from '@/components/install-button'
 const MIN_SECONDS = 5
 const MAX_SECONDS = 20 // recording cap; only the clearest 10 s is used for cloning
 const SCRIPT_LIMIT = 700
@@ -305,22 +306,19 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   }
 
   /* ---------------- stage ---------------- */
-  type StageView = { mode: WaveMode; text: React.ReactNode; progress?: number; error?: boolean }
+  // The stage only talks about audio (recording time, playback time). Progress shows as a ring on the element it belongs to.
+  type StageView = { mode: WaveMode; text: React.ReactNode }
   const stage: StageView = (() => {
     if (recording) return { mode: 'live', text: <><span className="rec-dot" />{recording.target === 'base' ? ui.recording : fmt(ui.recordingMood, { mood: ui.moods[recording.target].toLowerCase() })} {formatTime(recording.elapsed)}</> }
     if (playback.playingId) return { mode: 'live', text: <>{formatTime(playback.position)} / {formatTime(playback.duration)}</> }
-    if (decoding) return { mode: 'working', text: ui.readingAudio }
-    if (model === 'loading') {
-      const p = loadProgress
-      if (!p) return { mode: 'working', text: ui.starting }
-      if (p.phase === 'init') return { mode: 'working', text: ui.modelInit }
-      const template = p.label === 'Loading model from cache' ? ui.loadingCached : ui.downloadingModel
-      return { mode: 'working', text: fmt(template, { loaded: Math.round(p.loadedMB), total: Math.round(p.totalMB) }), progress: p.pct / 100 }
-    }
-    if (step === 'speak' && model === 'failed') return { mode: 'idle', text: fmt(ui.modelFailed, { error: modelError ?? '' }), error: true }
-    if (busy) return { mode: 'working', text: busy.label, progress: busy.progress }
+    if (decoding || busy || model === 'loading') return { mode: 'working', text: null }
     return { mode: 'idle', text: null }
   })()
+
+  /** Model download as ring progress: a value from 0 to 1, or undefined while the size is not known. */
+  const modelProgress: Progress | undefined = model !== 'loading' ? undefined
+    : !loadProgress || loadProgress.phase === 'init' ? { label: ui.modelInit }
+    : { label: fmt(ui.preparing, { pct: loadProgress.pct }), value: loadProgress.pct / 100 }
 
   /* ---------------- render ---------------- */
   const clipTitle = (clip: Clip) => (clip.preset ? presetLabel(clip.preset, ui) : ui.yourVoice)
@@ -333,6 +331,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
           {base && (
             <button className="btn btn-ghost" onClick={startOver} disabled={!!busy || voiceBlocked}><RotateCcw size={16} /> {ui.startOver}</button>
           )}
+          <InstallButton ui={ui} />
           <LanguageSwitcher lang={lang} label={languageLabel} />
         </div>
       </header>
@@ -341,8 +340,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
       <section className="stage" aria-live="polite">
         <Waveform mode={stage.mode} className="stage-wave" />
-        <div className={stage.error ? 'stage-status is-error' : 'stage-status'}>{stage.text}</div>
-        {stage.progress !== undefined && <div className="stage-progress" style={{ width: `${Math.max(2, stage.progress * 100)}%` }} />}
+        <div className="stage-status">{stage.text}</div>
       </section>
 
       {!env.supported && <p className="note is-error">{ui.unsupported}</p>}
@@ -363,7 +361,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
             {recording?.target === 'base' ? (
               <RecordingPanel ui={ui} text={ui.readAloud.base} elapsed={recording.elapsed} onStop={stopRecording} />
             ) : base ? (
-              <ClipRow ui={ui} id="clip-base" title={clipTitle(base)} audio={base.audio}
+              <ClipRow ui={ui} id="clip-base" title={clipTitle(base)} audio={base.audio} progress={modelProgress}
                 playback={playback} onRemove={() => setClip('base', null)} disabled={voiceBlocked} />
             ) : (
               <>
@@ -446,12 +444,24 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
           <section className="section">
             {busy ? (
-              <button className="btn btn-outline btn-wide" onClick={stopGenerating}><Square size={16} /> {ui.stop}</button>
+              <>
+                <button className={ringClass('btn btn-outline btn-wide', busy.progress)} style={ringStyle(busy.progress)} onClick={stopGenerating}>
+                  <Square size={16} /> {ui.stop}
+                </button>
+                <p className="hint hint-center" aria-live="polite">{busy.label}</p>
+              </>
             ) : model === 'failed' ? (
-              <button className="btn btn-primary btn-wide" onClick={() => void loadModel()}><RotateCcw size={16} /> {ui.retryModel}</button>
+              <>
+                <button className="btn btn-primary btn-wide" onClick={() => void loadModel()}><RotateCcw size={16} /> {ui.retryModel}</button>
+                <p className="note is-error" role="alert">{fmt(ui.modelFailed, { error: modelError ?? '' })}</p>
+              </>
+            ) : modelProgress ? (
+              <button className={ringClass('btn btn-outline btn-wide is-waiting', modelProgress.value)} style={ringStyle(modelProgress.value)} disabled aria-live="polite">
+                {modelProgress.label}
+              </button>
             ) : (
               <button className="btn btn-primary btn-wide" onClick={generate} disabled={model !== 'ready' || parsed.spokenLength === 0}>
-                {model === 'ready' ? ui.generate : ui.loadingModel}
+                {ui.generate}
               </button>
             )}
             {genError && <p className="note is-error" role="alert">{fmt(ui.genFailed, { error: genError })}</p>}
@@ -547,15 +557,21 @@ function PlayButton({ ui, id, audio, playback, primary }: { ui: UI; id: string; 
   )
 }
 
-function ClipRow({ ui, id, title, audio, playback, onRemove, disabled }: {
-  ui: UI; id: string; title: string; audio: Float32Array; playback: Playback; onRemove: () => void; disabled?: boolean
+type Progress = { label: string; value?: number }
+
+/** Border progress, like a file upload: `value` 0–1 fills the border, undefined spins. */
+const ringClass = (base: string, value?: number) => `${base} ring${value === undefined ? ' is-indeterminate' : ''}`
+const ringStyle = (value?: number) => (value === undefined ? undefined : ({ '--p': Math.max(0.02, value) } as React.CSSProperties))
+
+function ClipRow({ ui, id, title, audio, playback, onRemove, disabled, progress }: {
+  ui: UI; id: string; title: string; audio: Float32Array; playback: Playback; onRemove: () => void; disabled?: boolean; progress?: Progress
 }) {
   return (
-    <div className="row">
+    <div className={progress ? ringClass('row', progress.value) : 'row'} style={progress ? ringStyle(progress.value) : undefined}>
       <PlayButton ui={ui} id={id} audio={audio} playback={playback} />
       <div className="row-main">
         <div className="row-title">{title}</div>
-        <div className="row-sub">{fmt(ui.seconds, { n: seconds(audio).toFixed(1) })}</div>
+        <div className="row-sub" aria-live="polite">{progress ? progress.label : fmt(ui.seconds, { n: seconds(audio).toFixed(1) })}</div>
       </div>
       <button className="icon-btn" aria-label={fmt(ui.remove, { title: title.toLowerCase() })} onClick={onRemove} disabled={disabled}><X size={18} /></button>
     </div>
