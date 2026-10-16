@@ -161,14 +161,40 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
     }
   }
 
+  const presetAudioRef = useRef(new Map<string, Float32Array>())
+
+  /** Fetch and decode a sample voice once, then reuse it for preview and cloning. */
+  const loadPresetAudio = async (preset: Preset) => {
+    const cached = presetAudioRef.current.get(preset.id)
+    if (cached) return cached
+    const response = await fetch(preset.url)
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const audio = await decodeToMono24k(await response.blob())
+    presetAudioRef.current.set(preset.id, audio)
+    return audio
+  }
+
+  const previewPreset = async (preset: Preset) => {
+    const id = `preset-${preset.id}`
+    if (playback.playingId === id) { player.stop(); return }
+    setVoiceError(null)
+    if (!presetAudioRef.current.has(preset.id)) setDecoding('base')
+    try {
+      player.play(id, await loadPresetAudio(preset))
+    } catch (error) {
+      console.error('[vocalis] sample preview', error)
+      setVoiceError(ui.errSample)
+    } finally {
+      setDecoding(null)
+    }
+  }
+
   const pickPreset = async (preset: Preset) => {
     warmUp()
     setVoiceError(null)
     setDecoding('base')
     try {
-      const response = await fetch(preset.url)
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      acceptAudio('base', await decodeToMono24k(await response.blob()), 'preset', preset)
+      acceptAudio('base', await loadPresetAudio(preset), 'preset', preset)
     } catch (error) {
       console.error('[vocalis] sample voice', error)
       setVoiceError(ui.errSample)
@@ -345,17 +371,9 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
                   <button className="btn btn-primary" onClick={() => startRecording('base')} disabled={voiceBlocked || !env.recordable}><Mic size={18} /> {ui.record}</button>
                   <button className="btn btn-outline" onClick={() => pickFile('base')} disabled={voiceBlocked}><Upload size={18} /> {ui.upload}</button>
                 </div>
-                <p className="hint">{ui.sampleHint} {ui.firstRun}</p>
-                <div className="samples">
-                  <p className="hint">{ui.sampleIntro}</p>
-                  <div className="pills">
-                    {PRESETS.map((preset) => (
-                      <button key={preset.id} className="pill pill-sample" disabled={voiceBlocked} onClick={() => void pickPreset(preset)}>
-                        {preset.name} <span className="pill-sub">{ui.styles[preset.style]}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <p className="hint">{ui.sampleHint}</p>
+                <PresetList ui={ui} playback={playback} disabled={voiceBlocked}
+                  onPreview={(preset) => void previewPreset(preset)} onUse={(preset) => void pickPreset(preset)} />
               </>
             )}
             {voiceError && <p className="note is-error" role="alert">{voiceError}</p>}
@@ -458,6 +476,43 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 }
 
 /* ---------------- pieces ---------------- */
+
+const FIRST_PRESETS = 4
+
+function PresetList({ ui, playback, disabled, onPreview, onUse }: {
+  ui: UI; playback: Playback; disabled: boolean; onPreview: (preset: Preset) => void; onUse: (preset: Preset) => void
+}) {
+  const [showAll, setShowAll] = useState(false)
+  const shown = showAll ? PRESETS : PRESETS.slice(0, FIRST_PRESETS)
+  return (
+    <section className="presets" aria-labelledby="presets-title">
+      <h2 id="presets-title" className="section-title">{ui.sampleTitle}</h2>
+      <ul className="preset-list">
+        {shown.map((preset, index) => {
+          const playing = playback.playingId === `preset-${preset.id}`
+          const label = `${preset.name}, ${ui.styles[preset.style]}`
+          return (
+            <li key={preset.id} className="preset">
+              <button className={`preset-avatar tone-${index % 4}`} onClick={() => onPreview(preset)} disabled={disabled}
+                aria-label={`${playing ? ui.pause : ui.play}: ${label}`}>
+                {playing ? <Pause size={16} /> : <Play size={16} />}
+              </button>
+              <div className="preset-main">
+                <span className="preset-name">{preset.name}</span>
+                <span className="preset-tag">{ui.styles[preset.style]}</span>
+              </div>
+              <button className="btn btn-outline btn-small" onClick={() => onUse(preset)} disabled={disabled}
+                aria-label={`${ui.use}: ${label}`}>{ui.use}</button>
+            </li>
+          )
+        })}
+      </ul>
+      {!showAll && (
+        <button className="btn btn-ghost btn-more" onClick={() => setShowAll(true)}>{ui.showAll}</button>
+      )}
+    </section>
+  )
+}
 
 function usePlayback() {
   const stateRef = useRef({ playingId: null as string | null, position: 0, duration: 0 })

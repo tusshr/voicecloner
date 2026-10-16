@@ -5,6 +5,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-16
+
+### Added
+- Sample voices show as a list. Each voice has a play button to listen before you use it.
+- The list shows four voices first. "Show all voices" shows the other four.
+
+### Changed
+- The recording hint is shorter. It does not mention the model download.
+- The first four sample voices are four different speakers.
+
 ## [0.3.0] - 2026-10-16
 
 ### Added
