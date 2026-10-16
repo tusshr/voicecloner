@@ -10,6 +10,8 @@ const body = Inter({ subsets: ['latin'], variable: '--font-body', display: 'swap
 
 export const viewport: Viewport = {
   colorScheme: 'light dark',
+  // Edge-to-edge: the page draws behind Android's navigation bar, so the bar takes the page color in light and dark mode.
+  viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#f5f5f5' },
     { media: '(prefers-color-scheme: dark)', color: '#0c0a09' },

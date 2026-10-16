@@ -52,7 +52,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.shell { max-width: 560px; margin: 0 auto; padding: 20px 20px 40px; display: flex; flex-direction: column; gap: 24px; }
+.shell {
+  max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;
+  /* Safe areas keep content clear of the status bar, notch and navigation bar (0 on most desktops). */
+  padding: calc(20px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) calc(20px + env(safe-area-inset-left));
+}
 
 .topbar { display: flex; align-items: center; justify-content: space-between; height: 40px; }
 .wordmark { font-family: var(--font-display), Georgia, serif; font-weight: 400; font-size: 22px; letter-spacing: -0.01em; }
@@ -275,7 +279,7 @@ a.wordmark { color: inherit; text-decoration: none; }
 
 /* ---------- analytics consent ---------- */
 .consent {
-  position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 20;
+  position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 20;
   max-width: 520px; margin: 0 auto; padding: 16px; border-radius: 20px;
   background: var(--card); border: 1px solid var(--hairline); box-shadow: 0 8px 30px rgb(0 0 0 / 0.12);
   display: flex; flex-direction: column; gap: 12px; font-size: 14px; color: var(--body);

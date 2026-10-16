@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-10-16
+
+### Fixed
+- Android showed a white navigation bar in dark mode. The page now draws edge-to-edge (`viewport-fit=cover`), so the bar takes the page color. Content stays clear of system bars with safe-area padding.
+
 ## [0.6.0] - 2026-10-16
 
 ### Added
