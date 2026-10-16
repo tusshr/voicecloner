@@ -5,6 +5,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-16
+
+### Added
+- Installable app (PWA): service worker, app ID, categories and iOS home screen support.
+- Store-style screenshots in the install dialog: three for phones, one for desktop.
+- The site opens without a connection after the first visit.
+
+### Fixed
+- Share previews (WhatsApp, X, Facebook) had no image. The image and canonical links used the old domain. Without `NEXT_PUBLIC_SITE_URL`, Vercel builds now use the project's production address.
+
 ## [0.4.0] - 2026-10-16
 
 ### Added

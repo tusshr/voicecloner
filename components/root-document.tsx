@@ -22,6 +22,8 @@ export function RootDocument({ lang, children }: { lang: Locale; children: React
     <html lang={lang} className={`${display.variable} ${body.variable}`}>
       <body>
         {children}
+        {/* Service worker: makes the site installable and lets it open without a connection. */}
+        <script dangerouslySetInnerHTML={{ __html: "if('serviceWorker' in navigator)addEventListener('load',function(){navigator.serviceWorker.register('/sw.js')})" }} />
         {GA_ID && <Analytics id={GA_ID} text={chrome.cookieText} accept={chrome.accept} decline={chrome.decline} />}
       </body>
     </html>

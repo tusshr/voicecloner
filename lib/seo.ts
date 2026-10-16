@@ -48,5 +48,6 @@ export const baseMetadata: Metadata = {
     apple: '/apple-touch-icon.png',
   },
   manifest: '/manifest.webmanifest',
+  appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: 'default' },
   formatDetection: { telephone: false },
 }
