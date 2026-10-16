@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.0.0-rc.2] - 2026-10-16
+
+### Fixed
+- iPhone and iPad (Safari): the model did not load ("Maximum call stack size exceeded"). The tokenizer file was converted to Base64 in one function call with about 59,000 arguments. The conversion now uses small chunks.
+
 ## [1.0.0-rc.1] - 2026-10-16
 
 Release candidate. The final 1.0.0 comes after the domain is live and indexing is on.

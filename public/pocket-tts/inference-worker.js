@@ -534,6 +534,16 @@ function precomputeFlowBuffers() {
     }
 }
 
+// Base64 in small chunks. Spreading a large array into one call (String.fromCharCode(...bytes))
+// overflows the call stack in Safari ("Maximum call stack size exceeded").
+function bytesToBase64(bytes) {
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    }
+    return btoa(binary);
+}
+
 async function fetchModelWithProgress(urls) {
     // Downloads all model files, reporting combined progress. Uses Cache API when available.
     let cache = null;
@@ -682,7 +692,7 @@ async function loadBundle(language, { initialLoad = false } = {}) {
         throw new Error(`Failed to load tokenizer for ${language}`);
     }
     const tokenizerBuffer = await tokenizerResponse.arrayBuffer();
-    tokenizerModelB64 = btoa(String.fromCharCode(...new Uint8Array(tokenizerBuffer)));
+    tokenizerModelB64 = bytesToBase64(new Uint8Array(tokenizerBuffer));
     // Hugging Face serves .js with a non-JS MIME type, so load it as text and import via a Blob URL.
     const spResponse = await fetch(SENTENCEPIECE_URL);
     if (!spResponse.ok) {
