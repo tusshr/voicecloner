@@ -556,19 +556,33 @@ async function fetchModelWithProgress(urls) {
                 return buf;
             }
         }
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Failed to download ${name} (HTTP ${res.status})`);
-        totals[i] = Number(res.headers.get("content-length")) || 0;
-        const reader = res.body.getReader();
+        // Slow or unstable connections: retry up to 5 times and continue from the last byte (HTTP Range).
         const chunks = [];
         let received = 0;
-        for (;;) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            chunks.push(value);
-            received += value.byteLength;
-            loaded[i] = received;
-            report(`Downloading ${name}`);
+        for (let attempt = 0; ; attempt++) {
+            try {
+                const res = await fetch(url, received ? { headers: { Range: `bytes=${received}-` } } : undefined);
+                if (!res.ok) {
+                    const error = new Error(`Failed to download ${name} (HTTP ${res.status})`);
+                    if (res.status < 500 && res.status !== 408 && res.status !== 429) error.final = true;
+                    throw error;
+                }
+                if (received && res.status !== 206) { chunks.length = 0; received = 0; } // no resume support: start again
+                if (!totals[i]) totals[i] = received + (Number(res.headers.get("content-length")) || 0);
+                const reader = res.body.getReader();
+                for (;;) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    chunks.push(value);
+                    received += value.byteLength;
+                    loaded[i] = received;
+                    report(`Downloading ${name}`);
+                }
+                break;
+            } catch (err) {
+                if (err.final || attempt >= 4) throw err;
+                await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** attempt));
+            }
         }
         const buf = new Uint8Array(received);
         let offset = 0;

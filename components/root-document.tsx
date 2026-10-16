@@ -29,6 +29,7 @@ export function RootDocument({ lang, children }: { lang: Locale; children: React
           "if('serviceWorker' in navigator)addEventListener('load',function(){navigator.serviceWorker.register('/sw.js')});",
           "addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.installPrompt=e;dispatchEvent(new Event('installready'))});",
           "addEventListener('appinstalled',function(){window.installPrompt=null});",
+          "if(matchMedia('(prefers-color-scheme: dark)').matches){var m=document.querySelector('link[rel=manifest]');if(m)m.href='/manifest-dark.webmanifest'}",
         ].join('') }} />
         {GA_ID && <Analytics id={GA_ID} text={chrome.cookieText} accept={chrome.accept} decline={chrome.decline} />}
       </body>

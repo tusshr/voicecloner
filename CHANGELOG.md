@@ -5,6 +5,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.0.0-rc.1] - 2026-10-16
+
+Release candidate. The final 1.0.0 comes after the domain is live and indexing is on.
+
+### Added
+- Share button on the newest take (phones): sends the WAV file to other apps.
+- Ctrl+Enter or Cmd+Enter in the script field generates.
+- The script stays after a page reload (saved in the browser, per language).
+- The installed app asks the browser to keep the model files.
+
+### Changed
+- The recording hint starts with a bold "Tip:".
+- "Start again" asks for confirmation when you have your own recording or generated audio.
+- Downloaded files have a name from the first words of the script, for example `voice-clone-hello-i-recorded-this.wav`.
+- The newest take scrolls into view.
+
+### Fixed
+- Installed app on Android: the navigation bar and launch screen were light in dark mode. There are now two manifests (light and dark), and the page picks the one that matches the phone.
+- Model download on slow or unstable connections: each file retries up to 5 times and continues from the last byte, not from the start.
+
 ## [0.6.1] - 2026-10-16
 
 ### Fixed

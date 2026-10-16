@@ -2,7 +2,7 @@
 
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { Check, Download, Mic, Pause, Play, Plus, RotateCcw, Square, Upload, X } from 'lucide-react'
+import { Check, Download, Mic, Pause, Play, Plus, RotateCcw, Share2, Square, Upload, X } from 'lucide-react'
 import { Waveform, type WaveMode } from '@/components/waveform'
 import { ScriptEditor } from '@/components/script-editor'
 import { attachMic, decodeToMono24k, detachMic, encodeWav, formatTime, player, SAMPLE_RATE } from '@/lib/audio-stage'
@@ -53,6 +53,13 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   const [modelError, setModelError] = useState<string | null>(null)
 
   const [script, setScript] = useState(ui.defaultScript)
+  const scriptKey = `script:${lang}`
+  useEffect(() => {
+    try { const saved = localStorage.getItem(scriptKey); if (saved) setScript(saved) } catch {}
+  }, [scriptKey])
+  useEffect(() => {
+    try { if (script === ui.defaultScript) localStorage.removeItem(scriptKey); else localStorage.setItem(scriptKey, script) } catch {}
+  }, [script, scriptKey, ui.defaultScript])
   const [busy, setBusy] = useState<Busy>(null)
   const [genError, setGenError] = useState<string | null>(null)
   const [stopped, setStopped] = useState(false)
@@ -215,6 +222,8 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
     try {
       await getEngine().loadModel(setLoadProgress, ENGINE_LANGUAGE[lang])
       setModel('ready')
+      // Installed apps ask the browser to keep the ~140 MB model (browsers can clear caches under storage pressure).
+      if (matchMedia('(display-mode: standalone)').matches) void navigator.storage?.persist?.()
     } catch (error) {
       console.error('[vocalis] load', error)
       engineRef.current?.terminate()
@@ -282,6 +291,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
       const take: Take = { id: crypto.randomUUID(), text: script.trim(), audio: limitPeak(concat(parts)) }
       setTakes((current) => [take, ...current].slice(0, 5))
+      requestAnimationFrame(() => document.getElementById('latest-take')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }))
       setBusy(null)
       player.play(take.id, take.audio)
     } catch (error) {
@@ -298,6 +308,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   }
 
   const startOver = () => {
+    if ((takes.length > 0 || usesOwnAudio) && !window.confirm(ui.confirmStartAgain)) return
     stopGenerating()
     player.stop()
     setBase(null); setMoods({}); setOpenMood(null); setConsent(false)
@@ -369,7 +380,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
                   <button className="btn btn-primary" onClick={() => startRecording('base')} disabled={voiceBlocked || !env.recordable}><Mic size={18} /> {ui.record}</button>
                   <button className="btn btn-outline" onClick={() => pickFile('base')} disabled={voiceBlocked}><Upload size={18} /> {ui.upload}</button>
                 </div>
-                <p className="hint">{ui.sampleHint}</p>
+                <p className="hint"><strong className="tip">{ui.tip}:</strong> {ui.sampleHint}</p>
                 <PresetList ui={ui} playback={playback} disabled={voiceBlocked}
                   onPreview={(preset) => void previewPreset(preset)} onUse={(preset) => void pickPreset(preset)} />
               </>
@@ -428,7 +439,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
       {step === 'speak' && (
         <>
           <section className="section">
-            <ScriptEditor ui={ui} value={script} onChange={setScript} disabled={!!busy} maxLength={SCRIPT_LIMIT}
+            <ScriptEditor ui={ui} value={script} onChange={setScript} disabled={!!busy} maxLength={SCRIPT_LIMIT} onSubmit={() => void generate()}
               moodsWithClips={MOODS.filter((mood) => moods[mood])} />
             <div className="meta">
               <span>{script !== ui.defaultScript && <button className="underline" onClick={() => setScript(ui.defaultScript)} disabled={!!busy}>{ui.resetExample}</button>}</span>
@@ -470,7 +481,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
           {takes.length > 0 && (
             <section className="section">
-              <TakeRow ui={ui} take={takes[0]} playback={playback} primary />
+              <div id="latest-take"><TakeRow ui={ui} take={takes[0]} playback={playback} primary /></div>
               {takes.length > 1 && (
                 <div className="history">
                   <h2 className="hint">{ui.earlier}</h2>
@@ -486,6 +497,13 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 }
 
 /* ---------------- pieces ---------------- */
+
+/** "voice-clone-hello-i-recorded-this.wav": the first words of the script, without tags. */
+function fileName(text: string) {
+  const words = text.replace(/\[[^\]]*\]/g, ' ').toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []
+  const slug = words.slice(0, 5).join('-').slice(0, 40)
+  return `voice-clone${slug ? `-${slug}` : ''}.wav`
+}
 
 const FIRST_PRESETS = 4
 
@@ -582,13 +600,24 @@ function TakeRow({ ui, take, playback, primary }: { ui: UI; take: Take; playback
   const duration = seconds(take.audio)
   const fraction = playback.playingId === take.id && playback.duration ? playback.position / playback.duration : 0
 
+  const name = fileName(take.text)
   const download = () => {
     const url = URL.createObjectURL(encodeWav(take.audio))
     const link = document.createElement('a')
     link.href = url
-    link.download = 'voice-clone.wav'
+    link.download = name
     link.click()
     setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+  // Phones can send the file straight to WhatsApp, Telegram and other apps.
+  const shareable = typeof navigator !== 'undefined' && !!navigator.canShare
+    && navigator.canShare({ files: [new File([], name, { type: 'audio/wav' })] })
+  const share = async () => {
+    try {
+      await navigator.share({ files: [new File([encodeWav(take.audio)], name, { type: 'audio/wav' })] })
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === 'AbortError')) download()
+    }
   }
 
   if (!primary) {
@@ -616,6 +645,7 @@ function TakeRow({ ui, take, playback, primary }: { ui: UI; take: Take; playback
         <div className="track-bar"><div className="track-fill" style={{ width: `${fraction * 100}%` }} /></div>
       </div>
       <span className="time">{formatTime(playback.playingId === take.id ? playback.position : duration)}</span>
+      {shareable && <button className="icon-btn" aria-label={ui.share} onClick={() => void share()}><Share2 size={18} /></button>}
       <button className="icon-btn" aria-label={ui.downloadWav} onClick={download}><Download size={18} /></button>
     </div>
   )
