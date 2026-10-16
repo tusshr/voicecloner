@@ -1,7 +1,9 @@
 // Vocalis service worker. Keep it small.
-// Pages: network first, cached copy when offline. Build files: cache first (their names change on each build).
+// Build files (/_next/static/, names change on each build): cache first.
+// Everything else (pages, the voice worker, icons): network first, cached copy only when offline.
 // The voice model has its own cache (pocket-tts-models-v1). This file does not touch it.
-const CACHE = 'vocalis-v0.5.0'
+// Change CACHE when this file changes, so old copies are deleted.
+const CACHE = 'vocalis-v2'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.add('/')))
@@ -23,10 +25,10 @@ self.addEventListener('fetch', (event) => {
     return response
   }
 
-  if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).then(save).catch(() =>
-      caches.match(request).then((hit) => hit || caches.match('/'))))
+  if (new URL(request.url).pathname.startsWith('/_next/static/')) {
+    event.respondWith(caches.match(request).then((hit) => hit || fetch(request).then(save)))
     return
   }
-  event.respondWith(caches.match(request).then((hit) => hit || fetch(request).then(save)))
+  event.respondWith(fetch(request).then(save).catch(() =>
+    caches.match(request).then((hit) => hit || (request.mode === 'navigate' ? caches.match('/') : Response.error()))))
 })

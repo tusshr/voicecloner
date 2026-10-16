@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.0.0-rc.3] - 2026-10-16
+
+### Fixed
+- The service worker served files without hashed names (the voice worker, icons) from its cache first. So fixes to those files did not reach people who visited before. Now only `/_next/static/` files are cache first. All other files are network first. The old cache is deleted.
+
 ## [1.0.0-rc.2] - 2026-10-16
 
 ### Fixed
