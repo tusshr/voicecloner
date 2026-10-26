@@ -1,6 +1,6 @@
 'use client'
 
-import { useLayoutEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
 import { isKnownTag, MOOD_EMOJI, MOODS, tagMood, type Mood } from '@/lib/script'
 import { fmt } from '@/lib/i18n'
 import type { UI } from '@/content/ui'
@@ -11,9 +11,11 @@ type Chip = { label: string; tag: string; muted?: boolean; emoji?: string; mood?
 
 /** Textarea with tag highlighting (mirrored backdrop) and a row of insert chips. */
 export function ScriptEditor({
-  ui, value, onChange, disabled, moodsWithClips, maxLength, onSubmit, onFocus, showMoods = true,
+  ui, value, onChange, disabled, moodsWithClips, maxLength, onSubmit, onFocus, showMoods = true, highlight,
 }: {
   ui: UI
+  /** The word being spoken, as character offsets into `value`. */
+  highlight?: { start: number; end: number } | null
   showMoods?: boolean
   onSubmit?: () => void
   onFocus?: () => void
@@ -62,11 +64,35 @@ export function ScriptEditor({
     requestAnimationFrame(() => { el.focus(); el.setSelectionRange(caret, caret) })
   }
 
-  const highlighted: ReactNode[] = value.split(TAG_SPLIT).map((part, index) =>
-    index % 2 === 1
-      ? <mark key={index} className={!isKnownTag(part) ? 'tag tag-bad' : tagMood(part) ? `tag tag-mood mood-${tagMood(part)}` : 'tag'}>{part}</mark>
-      : <span key={index}>{part}</span>,
-  )
+  const markRef = useRef<HTMLElement>(null)
+  let offset = 0
+  const highlighted: ReactNode[] = value.split(TAG_SPLIT).map((part, index) => {
+    const at = offset
+    offset += part.length
+    if (index % 2 === 1) {
+      return <mark key={index} className={!isKnownTag(part) ? 'tag tag-bad' : tagMood(part) ? `tag tag-mood mood-${tagMood(part)}` : 'tag'}>{part}</mark>
+    }
+    // The spoken word, while a take of this exact text plays.
+    if (highlight && highlight.start >= at && highlight.end <= at + part.length) {
+      const a = highlight.start - at
+      const b = highlight.end - at
+      return (
+        <span key={index}>
+          {part.slice(0, a)}<mark ref={markRef} className="spoken-word">{part.slice(a, b)}</mark>{part.slice(b)}
+        </span>
+      )
+    }
+    return <span key={index}>{part}</span>
+  })
+
+  // Keep the spoken word in view when the field scrolls.
+  useEffect(() => {
+    const field = textareaRef.current
+    const mark = markRef.current
+    if (!highlight || !field || !mark) return
+    const top = mark.offsetTop
+    if (top < field.scrollTop || top > field.scrollTop + field.clientHeight - 40) field.scrollTop = Math.max(0, top - field.clientHeight / 3)
+  }, [highlight?.start])
 
   return (
     <div className="editor">

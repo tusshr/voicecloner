@@ -69,12 +69,21 @@ class Player {
     source.buffer = this.buffer
     source.connect(analyser)
     analyser.connect(context.destination)
+    // "ended" fires when the last sample is handed to the output, which is a little before it is heard.
+    // Keep the clip "playing" until the audible time reaches the end, so the UI never runs ahead of the sound.
     source.onended = () => {
       if (this.source !== source) return
-      this.source = null
-      this.offset = 0
-      analyser.disconnect(context.destination)
-      this.emit()
+      const finish = () => {
+        if (this.source !== source) return
+        this.source = null
+        this.offset = 0
+        try { analyser.disconnect(context.destination) } catch { /* not connected */ }
+        cancelAnimationFrame(this.raf)
+        this.emit()
+      }
+      const left = (this.buffer?.duration ?? 0) - (this.audibleTime() - this.startedAt)
+      if (left > 0.01) setTimeout(finish, Math.min(1500, left * 1000))
+      else finish()
     }
     this.offset = from >= this.buffer.duration ? 0 : from
     this.startedAt = context.currentTime - this.offset
@@ -91,7 +100,7 @@ class Player {
 
   pause() {
     if (!this.source || !context) return
-    this.offset = context.currentTime - this.startedAt
+    this.offset = Math.max(0, this.audibleTime() - this.startedAt)
     this.stopSource()
     this.emit()
   }
@@ -120,9 +129,22 @@ class Player {
     if (this.source) this.raf = requestAnimationFrame(this.tick)
   }
 
+  /**
+   * The context time of the sound reaching the speaker now. Phones (and Bluetooth more so) add output delay,
+   * so currentTime runs ahead of what people hear.
+   */
+  private audibleTime() {
+    const ctx = context!
+    const stamp = typeof ctx.getOutputTimestamp === 'function' ? ctx.getOutputTimestamp() : null
+    if (stamp?.contextTime && stamp.performanceTime) {
+      return Math.min(ctx.currentTime, stamp.contextTime + (performance.now() - stamp.performanceTime) / 1000)
+    }
+    return ctx.currentTime - (ctx.outputLatency || ctx.baseLatency || 0)
+  }
+
   private emit() {
     const duration = this.buffer?.duration ?? 0
-    const position = this.source && context ? Math.min(duration, context.currentTime - this.startedAt) : this.offset
+    const position = this.source && context ? Math.max(0, Math.min(duration, this.audibleTime() - this.startedAt)) : this.offset
     for (const listener of this.listeners) listener({ playingId: this.playingId, activeId: this.id, position, duration })
   }
 }

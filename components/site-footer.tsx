@@ -9,7 +9,6 @@ export function SiteFooter({ lang, page = '' }: { lang: Locale; page?: string })
   const legal = (slug: 'privacy' | 'terms') => localePath('en', slug)
   return (
     <footer className="footer">
-      <p>{UI_STRINGS[lang].privacyLine}</p>
       <p>{chrome.credits}</p>
       <nav className="footer-nav" aria-label="Site">
         <a href={localePath(lang, 'about')}>{chrome.about}</a>

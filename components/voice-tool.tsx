@@ -28,8 +28,9 @@ type Clip = { audio: Float32Array; source: 'preset' | 'mic' | 'file'; preset?: P
 type Target = 'base' | Mood
 type Busy = { label: string; progress?: number } | null
 /** A sentence of the take and where it is in the audio, in seconds. The read-along uses these. */
-type Piece = { text: string; start: number; end: number }
-type Take = { id: string; text: string; audio: Float32Array; pieces: Piece[] }
+/** `words` are character ranges of the piece's words in the script the take was made from. */
+type Piece = { text: string; start: number; end: number; words?: [number, number][] }
+type Take = { id: string; text: string; script?: string; audio: Float32Array; pieces: Piece[] }
 
 /** ONNX Runtime throws bare numbers (WASM pointers) on internal failures, which mean nothing to people. */
 function friendlyError(error: unknown, ui: UI) {
@@ -420,7 +421,18 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
         }
       }
 
-      const take: Take = { id: crypto.randomUUID(), text: script.trim(), audio: limitPeak(concat(parts)), pieces }
+      // Find each word in the script, in order, so the editor can mark the spoken word while it plays.
+      let wordCursor = 0
+      for (const piece of pieces) {
+        piece.words = []
+        for (const match of piece.text.matchAll(/\S+/g)) {
+          const at = script.indexOf(match[0], wordCursor)
+          if (at === -1) continue
+          piece.words.push([at, at + match[0].length])
+          wordCursor = at + match[0].length
+        }
+      }
+      const take: Take = { id: crypto.randomUUID(), text: script.trim(), script, audio: limitPeak(concat(parts)), pieces }
       setTakes((current) => [take, ...current].slice(0, 5))
       requestAnimationFrame(() => document.getElementById('latest-take')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }))
       setBusy(null)
@@ -470,6 +482,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   const voiceSummary = base ? clipTitle(base) : presetLabel(PRESETS[0], ui)
 
   const moodCount = MOODS.filter((mood) => moods[mood]).length
+  const spokenWord = currentWord(takes[0], script, playback)
   const voicePanel = (
     <>
       <div className="tabs-row">
@@ -590,9 +603,42 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
             </label>
           </div>
 
+          {/* Player strip: the newest result (or a demo, or an empty state) sits above the text it speaks. */}
+          <div className="output" aria-live="polite">
+            {busy ? (
+              <div className="stage is-working">
+                <Waveform mode={stage.mode} className="stage-wave" />
+                <div className="stage-status">{busy.label}</div>
+              </div>
+            ) : takes.length > 0 ? (
+              <div id="latest-take" className="take"><TakeRow ui={ui} take={takes[0]} playback={playback} primary /></div>
+            ) : demo ? (
+              <div className="take">
+                <p className="label">{fmt(ui.demoOf, { voice: presetLabel(demo.preset, ui) })}</p>
+                <TakeRow ui={ui} take={demo.take} playback={playback} primary />
+              </div>
+            ) : (
+              <div className="stage">
+                <Waveform mode={stage.mode} className="stage-wave" />
+                <div className="stage-row">
+                  <span className="stage-status">{stage.text ?? ui.outputEmpty}</span>
+                  {!ownClip && (
+                    <button className="btn btn-outline btn-small" onClick={() => void previewPreset(base?.preset ?? PRESETS[0])}>
+                      <Play size={14} /> {ui.playDemo}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+            {model === 'failed' && <p className="note is-error" role="alert">{fmt(ui.modelFailed, { error: modelError ?? '' })}</p>}
+            {genError && <p className="note is-error" role="alert">{fmt(ui.genFailed, { error: genError })}</p>}
+            {consentMissing && <p className="note is-warn">{ui.consentNeeded}</p>}
+            {stopped && !busy && <p className="note">{ui.stopped}</p>}
+          </div>
+
           <div className="pane-body">
             <ScriptEditor ui={ui} value={script} onChange={setScript} disabled={!!busy} maxLength={SCRIPT_LIMIT} onSubmit={onGenerate}
-              moodsWithClips={MOODS.filter((mood) => moods[mood])} showMoods={!!ownClip} onFocus={warmUp} />
+              moodsWithClips={MOODS.filter((mood) => moods[mood])} showMoods={!!ownClip} onFocus={warmUp} highlight={spokenWord} />
             <div className="meta">
               <span>{script !== speechUi.defaultScript && <button className="link" onClick={() => setScript(speechUi.defaultScript)} disabled={!!busy}>{ui.resetExample}</button>}</span>
               <span>{script.length} / {SCRIPT_LIMIT}</span>
@@ -606,6 +652,13 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
             )}
             {parsed.unknownTags.length > 0 && (
               <p className="note is-warn">{fmt(ui.unknownTags, { tags: parsed.unknownTags.join(', ') })}</p>
+            )}
+
+            {takes.length > 1 && (
+              <div className="history">
+                <h3 className="label">{ui.earlier}</h3>
+                {takes.slice(1).map((take) => <TakeRow ui={ui} key={take.id} take={take} playback={playback} />)}
+              </div>
             )}
           </div>
 
@@ -641,43 +694,6 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
             })()}
           </div>
 
-          <div className="output" aria-live="polite">
-            {busy && <p className="hint">{busy.label}</p>}
-            {model === 'failed' && <p className="note is-error" role="alert">{fmt(ui.modelFailed, { error: modelError ?? '' })}</p>}
-            {genError && <p className="note is-error" role="alert">{fmt(ui.genFailed, { error: genError })}</p>}
-            {consentMissing && <p className="note is-warn">{ui.consentNeeded}</p>}
-            {stopped && !busy && <p className="note">{ui.stopped}</p>}
-
-            {takes.length > 0 ? (
-              <>
-                <div id="latest-take" className="take">
-                  <TakeRow ui={ui} take={takes[0]} playback={playback} primary />
-                </div>
-                {takes.length > 1 && (
-                  <div className="history">
-                    <h3 className="label">{ui.earlier}</h3>
-                    {takes.slice(1).map((take) => <TakeRow ui={ui} key={take.id} take={take} playback={playback} />)}
-                  </div>
-                )}
-              </>
-            ) : demo ? (
-              <div className="take">
-                <p className="label">{fmt(ui.demoOf, { voice: presetLabel(demo.preset, ui) })}</p>
-                <TakeRow ui={ui} take={demo.take} playback={playback} primary />
-                <p className="hint">{ui.demoHint}</p>
-              </div>
-            ) : (
-              <div className="stage">
-                <Waveform mode={stage.mode} className="stage-wave" />
-                <div className="stage-status">{stage.text ?? (model === 'idle' ? `${ui.firstRun}${env.lowPower ? ` ${ui.laptop}` : ''}` : ui.outputEmpty)}</div>
-                {!ownClip && !busy && (
-                  <button className="btn btn-outline btn-small" onClick={() => void previewPreset(base?.preset ?? PRESETS[0])}>
-                    <Play size={14} /> {ui.playDemo}
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
         </section>
 
         {/* ---------- voice: a pane on desktop, a drawer on phones; same content ---------- */}
@@ -708,7 +724,6 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
         </Drawer.Root>
       )}
 
-      <p className="privacy-line">{ui.privacyLine}</p>
     </div>
   )
 }
@@ -945,4 +960,23 @@ function TakeMenu({ ui, items }: { ui: UI; items: { label: string; icon: React.R
       )}
     </div>
   )
+}
+
+/** The word being heard now, as offsets into the editor text, if the newest take was made from exactly this text. */
+function currentWord(take: Take | undefined, script: string, playback: Playback): { start: number; end: number } | null {
+  if (!take || take.script !== script) return null
+  if (playback.activeId !== take.id || playback.playingId !== take.id) return null
+  const t = playback.position
+  const piece = take.pieces.find((item) => t >= item.start && t < item.end)
+  if (!piece?.words?.length) return null
+  // Spread the sentence's time over its words by length.
+  const lengths = piece.words.map(([a, b]) => b - a + 1)
+  const total = lengths.reduce((sum, n) => sum + n, 0)
+  let target = ((t - piece.start) / Math.max(0.01, piece.end - piece.start)) * total
+  for (let i = 0; i < lengths.length; i++) {
+    target -= lengths[i]
+    if (target < 0) return { start: piece.words[i][0], end: piece.words[i][1] }
+  }
+  const last = piece.words[piece.words.length - 1]
+  return { start: last[0], end: last[1] }
 }

@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Changed
+- Text panel order: the player strip (newest result, a demo, or the empty state with Hear a demo) is above the text, then the editor, then earlier takes. While generating, the strip shows the progress ("Speaking part 2 of 3") instead of a line that pushed the result down.
+- Word highlight is back, in the editor itself: while the newest take plays, the word being heard is marked in your text. It turns off if you change the text after generating, because the audio no longer matches.
+- Removed the demo explanation and the "runs in your browser" lines under the tool and in the footer.
+
+### Fixed
+- The waveform and the time ran ahead of the sound and finished early, mostly on phones and Bluetooth. Playback now follows the time the sound reaches the speaker, and a clip counts as playing until its end is heard.
+
+### Changed
 - Result player: Share and Download WAV are in a ⋮ menu, so the waveform has room. Export formats will go in the same menu.
 
 ### Fixed
