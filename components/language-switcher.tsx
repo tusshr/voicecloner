@@ -10,7 +10,7 @@ import { LANGUAGE_NAMES, LOCALES, localePath, type Locale } from '@/lib/i18n'
 export function LanguageSwitcher({ lang, page = '', label }: { lang: Locale; page?: string; label: string }) {
   return (
     <label className="lang">
-      <Globe size={16} aria-hidden />
+      <Globe size={14} aria-hidden />
       <span>{lang.toUpperCase()}</span>
       <select aria-label={label} value={lang}
         onChange={(event) => { window.location.href = localePath(event.target.value as Locale, page) }}>

@@ -2,8 +2,8 @@ import type { HomeContent } from './types'
 
 // Written to ASD-STE100 rules: short sentences, active voice, one instruction per sentence.
 export const en: HomeContent = {
-  title: 'Free Voice Clone: Clone a Voice with AI in Your Browser',
-  description: 'Clone a voice from a 10-second recording. Then type text and the voice speaks it. Free, no account, and your audio stays on your device.',
+  title: 'Free Text to Voice and Voice Clone in Your Browser',
+  description: 'Type text and turn it into natural speech, or clone a voice from a 10-second recording. Free, no account, and your audio stays on your device.',
   sections: [
     {
       h: 'A voice clone tool that works on your device',
@@ -14,11 +14,18 @@ export const en: HomeContent = {
       ],
     },
     {
+      h: 'Text to voice without an account',
+      p: [
+        'Type or paste up to 700 characters, select a voice and push Generate. The tool turns your text into natural speech in English, Spanish, Portuguese, German or Italian.',
+        'You do not need your own recording. Select a sample voice, or keep the default voice, and use the tool as a free text to speech generator.',
+      ],
+    },
+    {
       h: 'How to clone a voice with AI',
       steps: [
         'Add a voice. Push Record and read the text on the screen. You can also upload an audio file or select a sample voice.',
         'Write the script. You can type a maximum of 700 characters.',
-        'Push Continue, then push Generate. The tool speaks your script in the cloned voice.',
+        'Push Generate. The tool speaks your script in the cloned voice.',
         'Listen to the result. If you like it, push the download button to save a WAV file.',
       ],
     },
@@ -79,7 +86,7 @@ export const en: HomeContent = {
     },
     {
       q: 'How do I clone my voice with AI for free?',
-      a: 'Push Record and read the text on the screen for approximately 10 seconds. Push Continue. Type your script and push Generate. The tool is free and you do not need an account.',
+      a: 'Push Record and read the text on the screen for approximately 10 seconds. Type your script and push Generate. The tool is free and you do not need an account.',
     },
     {
       q: 'How do I clone my voice for YouTube videos?',

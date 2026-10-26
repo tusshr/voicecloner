@@ -2,8 +2,8 @@ import type { HomeContent } from './types'
 
 // Mirrors the English STE text: short sentences, active voice, one instruction per sentence.
 export const it: HomeContent = {
-  title: 'Clonare la voce gratis: clona una voce con l’IA nel browser',
-  description: 'Clona una voce da una registrazione di 10 secondi. Poi scrivi un testo e la voce lo legge. Gratis, senza account, e il tuo audio resta sul dispositivo.',
+  title: 'Da testo a voce e clonare la voce gratis nel browser',
+  description: 'Trasforma il testo in voce naturale o clona una voce da una registrazione di 10 secondi. Gratis, senza account, e l’audio resta sul tuo dispositivo.',
   sections: [
     {
       h: 'Uno strumento per clonare la voce che funziona sul tuo dispositivo',
@@ -14,11 +14,18 @@ export const it: HomeContent = {
       ],
     },
     {
+      h: 'Da testo a voce senza account',
+      p: [
+        'Scrivi o incolla fino a 700 caratteri, scegli una voce e tocca Genera. Lo strumento trasforma il testo in voce naturale in inglese, spagnolo, portoghese, tedesco o italiano.',
+        'Non ti serve una tua registrazione. Scegli una voce di esempio, o tieni la voce predefinita, e usa lo strumento come generatore gratuito da testo a voce.',
+      ],
+    },
+    {
       h: 'Come clonare una voce con l’IA',
       steps: [
         'Aggiungi una voce. Tocca Registra e leggi il testo sullo schermo. Puoi anche caricare un file audio o scegliere una voce di esempio.',
         'Scrivi il testo. Puoi scrivere al massimo 700 caratteri.',
-        'Tocca Continua e poi Genera. Lo strumento legge il tuo testo con la voce clonata.',
+        'Tocca Genera. Lo strumento legge il tuo testo con la voce clonata.',
         'Ascolta il risultato. Se ti piace, tocca il pulsante di download per salvare un file WAV.',
       ],
     },
@@ -72,7 +79,7 @@ export const it: HomeContent = {
   faqTitle: 'Domande sulla clonazione della voce',
   faq: [
     { q: 'Quanto audio serve per clonare una voce?', a: 'Servono almeno 5 secondi di parlato. Circa 10 secondi di parlato chiaro danno il risultato migliore. Lo strumento usa al massimo 20 secondi. Taglia le registrazioni più lunghe a 20 secondi.' },
-    { q: 'Come clonare la mia voce con l’IA gratis?', a: 'Tocca Registra e leggi il testo sullo schermo per circa 10 secondi. Tocca Continua. Scrivi il tuo testo e tocca Genera. Lo strumento è gratuito e non serve un account.' },
+    { q: 'Come clonare la mia voce con l’IA gratis?', a: 'Tocca Registra e leggi il testo sullo schermo per circa 10 secondi. Scrivi il tuo testo e tocca Genera. Lo strumento è gratuito e non serve un account.' },
     { q: 'Come clonare la mia voce per i video di YouTube?', a: 'Registra un campione pulito in una stanza silenziosa. Scrivi la narrazione in parti brevi, perché ogni testo ha al massimo 700 caratteri. Genera ogni parte e scarica i file WAV. Poi inserisci i file nel tuo editor video.' },
     { q: 'Come clonare una voce per un podcast?', a: 'Segui gli stessi passaggi di un video. Per un’intro o una breve correzione, genera il testo e scarica il file WAV. Poi inserisci il file nel tuo editor audio.' },
     { q: 'Lo strumento carica la mia registrazione?', a: 'No. Il browser elabora il tuo audio e il tuo testo. Lo strumento non li invia a nessun server. Il browser scarica solo i file del modello e le voci di esempio che scegli.' },

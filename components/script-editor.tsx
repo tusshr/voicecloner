@@ -11,10 +11,11 @@ type Chip = { label: string; tag: string; muted?: boolean }
 
 /** Textarea with tag highlighting (mirrored backdrop) and a row of insert chips. */
 export function ScriptEditor({
-  ui, value, onChange, disabled, moodsWithClips, maxLength, onSubmit,
+  ui, value, onChange, disabled, moodsWithClips, maxLength, onSubmit, onFocus,
 }: {
   ui: UI
   onSubmit?: () => void
+  onFocus?: () => void
   value: string
   onChange: (value: string) => void
   disabled?: boolean
@@ -79,6 +80,7 @@ export function ScriptEditor({
           spellCheck={false}
           placeholder={ui.scriptPlaceholder}
           onChange={(event) => onChange(event.target.value)}
+          onFocus={onFocus}
           onScroll={(event) => { if (backdropRef.current) backdropRef.current.scrollTop = event.currentTarget.scrollTop }}
           onKeyDown={(event) => {
             // Ctrl+Enter or Cmd+Enter generates.

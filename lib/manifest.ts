@@ -3,7 +3,7 @@ import { SITE_NAME } from '@/lib/site'
 
 // Android paints an installed app's navigation bar and splash with the manifest colors,
 // and a manifest has no dark variant. So there are two manifests; root-document.tsx picks one.
-const COLORS = { light: '#f5f5f5', dark: '#0c0a09' } as const
+const COLORS = { light: '#f7f7f8', dark: '#0b0b0d' } as const
 
 const shot = (name: string, label: string, wide = false) => ({
   src: `/screenshots/${name}.webp`,

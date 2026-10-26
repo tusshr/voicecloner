@@ -1,11 +1,10 @@
 import type { Viewport } from 'next'
-import { Fraunces, Inter } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import { Analytics } from '@/components/analytics'
 import { CHROME } from '@/content/pages'
 import type { Locale } from '@/lib/i18n'
 import { GA_ID } from '@/lib/site'
 
-const display = Fraunces({ subsets: ['latin'], weight: ['300', '400'], variable: '--font-display', display: 'swap' })
 const body = Inter({ subsets: ['latin'], variable: '--font-body', display: 'swap' })
 
 export const viewport: Viewport = {
@@ -13,15 +12,15 @@ export const viewport: Viewport = {
   // Edge-to-edge: the page draws behind Android's navigation bar, so the bar takes the page color in light and dark mode.
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f5f5f5' },
-    { media: '(prefers-color-scheme: dark)', color: '#0c0a09' },
+    { media: '(prefers-color-scheme: light)', color: '#f7f7f8' },
+    { media: '(prefers-color-scheme: dark)', color: '#0b0b0d' },
   ],
 }
 
 export function RootDocument({ lang, children }: { lang: Locale; children: React.ReactNode }) {
   const chrome = CHROME[lang]
   return (
-    <html lang={lang} className={`${display.variable} ${body.variable}`}>
+    <html lang={lang} className={body.variable}>
       <body>
         {children}
         {/* Service worker (install and offline start), and keep the install prompt for the install button. */}

@@ -5,11 +5,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- Text to voice: you can type text and push Generate without a voice of your own. The first sample voice (Alba, casual) is the default.
+- Speech language menu in the Text panel. The voice can speak English, Spanish, Portuguese, German or Italian, whatever the page language is. The example script and the read-aloud texts follow the selected language. Each language loads its own model the first time it is used. The choice is kept per page language.
+- Generate loads the model if it is not ready, then generates. The model also starts to load when you click into the text field.
+- A new home page section about text to voice, in all five languages.
+
 ### Changed
-- Desktop (1024 px and wider): the home page uses two panes. The headline and the voice stage stay pinned on the left, and the current step is on the right. The stage is larger, and the privacy line sits under it.
-- Desktop: the article below the tool and the FAQ use two columns, the footer uses one row, and the script tags wrap instead of scrolling sideways. List rows and buttons have hover states.
-- About, Contact, Privacy and Terms are a little wider on desktop (720 px).
-- Phones and tablets look the same as before.
+- New interface: neutral colors, Inter only (Fraunces is removed), smaller controls, hairline borders and one teal accent for audio.
+- One screen instead of two steps. The Text panel (script, Generate, result) and the Voice panel (clone, sample voices, moods) are side by side on desktop and stacked on phones. The Continue button and the step switch are removed.
+- Headline, page titles and descriptions now target text to voice and voice cloning, in all five languages.
+- Desktop: the article and the FAQ use two columns, and the footer uses one row.
+
+### Fixed
+- Dark mode: the options in the language menus were hard to read on phones. The menus and their options now use the theme colors.
 
 ## [1.0.0-rc.3] - 2026-10-16
 

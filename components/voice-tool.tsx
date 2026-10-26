@@ -2,14 +2,15 @@
 
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { Check, Download, Mic, Pause, Play, Plus, RotateCcw, Share2, Square, Upload, X } from 'lucide-react'
+import { Check, ChevronDown, Download, Languages, Mic, Pause, Play, Plus, RotateCcw, Share2, Square, Upload, X } from 'lucide-react'
 import { Waveform, type WaveMode } from '@/components/waveform'
 import { ScriptEditor } from '@/components/script-editor'
 import { attachMic, decodeToMono24k, detachMic, encodeWav, formatTime, player, SAMPLE_RATE } from '@/lib/audio-stage'
 import { applyGain, concat, fadeEdges, limitPeak, prepareVoiceSample, silence, timeStretch } from '@/lib/audio-fx'
 import { MOODS, parseScript, SPEED_FACTOR, VOLUME_GAIN, type Mood } from '@/lib/script'
 import { canRecord, createEngine, isLowPowerDevice, isSupported, StoppedError, type LoadProgress, type TTSEngine } from '@/lib/tts-engine'
-import { ENGINE_LANGUAGE, fmt, type Locale } from '@/lib/i18n'
+import { ENGINE_LANGUAGE, fmt, isLocale, LANGUAGE_NAMES, LOCALES, type Locale } from '@/lib/i18n'
+import { UI_STRINGS } from '@/content/ui'
 import { PRESETS, type Preset } from '@/lib/voices'
 import type { UI } from '@/content/ui'
 import { SITE_NAME } from '@/lib/site'
@@ -37,7 +38,6 @@ const seconds = (audio: Float32Array) => audio.length / SAMPLE_RATE
 const presetLabel = (preset: Preset, ui: UI) => `${preset.name}, ${ui.styles[preset.style]}`
 
 export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang: Locale; homeHref: string; languageLabel: string }) {
-  const [step, setStep] = useState<'voice' | 'speak'>('voice')
   const [env, setEnv] = useState({ supported: true, recordable: true, lowPower: false })
 
   const [base, setBase] = useState<Clip | null>(null)
@@ -52,20 +52,38 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   const [loadProgress, setLoadProgress] = useState<LoadProgress | null>(null)
   const [modelError, setModelError] = useState<string | null>(null)
 
+  // The language the voice speaks. It starts as the page language, and people can change it (the choice is kept per page language).
+  const [speechLang, setSpeechLang] = useState<Locale>(lang)
+  const speechUi = UI_STRINGS[speechLang]
   const [script, setScript] = useState(ui.defaultScript)
+  const [hydrated, setHydrated] = useState(false)
   const scriptKey = `script:${lang}`
+  const speechKey = `speech-lang:${lang}`
   useEffect(() => {
-    try { const saved = localStorage.getItem(scriptKey); if (saved) setScript(saved) } catch {}
-  }, [scriptKey])
+    let saved: string | null = null
+    let savedLang: string | null = null
+    try { saved = localStorage.getItem(scriptKey); savedLang = localStorage.getItem(speechKey) } catch {}
+    const next = savedLang && isLocale(savedLang) ? savedLang : lang
+    setSpeechLang(next)
+    setScript(saved ?? UI_STRINGS[next].defaultScript)
+    setHydrated(true)
+  }, [scriptKey, speechKey, lang])
   useEffect(() => {
-    try { if (script === ui.defaultScript) localStorage.removeItem(scriptKey); else localStorage.setItem(scriptKey, script) } catch {}
-  }, [script, scriptKey, ui.defaultScript])
+    if (!hydrated) return
+    try {
+      if (script === UI_STRINGS[speechLang].defaultScript) localStorage.removeItem(scriptKey); else localStorage.setItem(scriptKey, script)
+      if (speechLang === lang) localStorage.removeItem(speechKey); else localStorage.setItem(speechKey, speechLang)
+    } catch {}
+  }, [hydrated, script, scriptKey, speechLang, speechKey, lang])
   const [busy, setBusy] = useState<Busy>(null)
   const [genError, setGenError] = useState<string | null>(null)
   const [stopped, setStopped] = useState(false)
   const [takes, setTakes] = useState<Take[]>([])
+  const [pendingGenerate, setPendingGenerate] = useState(false)
 
   const engineRef = useRef<TTSEngine | null>(null)
+  const modelLangRef = useRef<Locale | null>(null) // language the engine has (or is loading); null when idle or failed
+  const loadTokenRef = useRef(0) // a newer load makes an older one's result stale
   const encodedRef = useRef(new Map<string, Float32Array>()) // voice name -> audio it was cloned from
   const recorderRef = useRef<MediaRecorder | null>(null)
   const stopRequestedRef = useRef(false)
@@ -81,7 +99,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
   const usesOwnAudio = (!!base && base.source !== 'preset') || Object.values(moods).some((clip) => clip && clip.source !== 'preset')
   const voiceBlocked = !!recording || !!decoding
-  const canContinue = !!base && (!usesOwnAudio || consent) && !voiceBlocked
+  const consentMissing = usesOwnAudio && !consent
 
   /* ---------------- clips ---------------- */
   const setClip = (target: Target, clip: Clip | null) => {
@@ -214,32 +232,45 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   /* ---------------- model ---------------- */
   const getEngine = () => (engineRef.current ??= createEngine())
 
-  const loadModel = async () => {
-    if (model === 'loading' || model === 'ready') return
+  /** Load the model for a language. A different language replaces the engine, because each language has its own model. */
+  const loadModel = async (language: Locale = speechLang) => {
+    if (modelLangRef.current === language) return
+    if (modelLangRef.current) {
+      engineRef.current?.terminate()
+      engineRef.current = null
+      encodedRef.current.clear()
+    }
+    modelLangRef.current = language
+    const token = ++loadTokenRef.current
     setModel('loading')
     setModelError(null)
     setLoadProgress(null)
     try {
-      await getEngine().loadModel(setLoadProgress, ENGINE_LANGUAGE[lang])
+      await getEngine().loadModel((progress) => { if (token === loadTokenRef.current) setLoadProgress(progress) }, ENGINE_LANGUAGE[language])
+      if (token !== loadTokenRef.current) return
       setModel('ready')
       // Installed apps ask the browser to keep the ~140 MB model (browsers can clear caches under storage pressure).
       if (matchMedia('(display-mode: standalone)').matches) void navigator.storage?.persist?.()
     } catch (error) {
+      if (token !== loadTokenRef.current) return
       console.error('[vocalis] load', error)
       engineRef.current?.terminate()
       engineRef.current = null
       encodedRef.current.clear()
+      modelLangRef.current = null
       setModelError(error instanceof Error ? error.message : 'unknown error')
       setModel('failed')
     }
   }
 
-  const goToSpeak = () => {
-    if (!canContinue) return
-    player.stop()
-    setOpenMood(null)
-    setStep('speak')
-    void loadModel()
+  const changeSpeechLang = (next: Locale) => {
+    if (busy || next === speechLang) return
+    // Swap the example script, but never replace text the person typed.
+    if (script === UI_STRINGS[speechLang].defaultScript) setScript(UI_STRINGS[next].defaultScript)
+    setSpeechLang(next)
+    setGenError(null)
+    // Load the new language only if a model is already in use, so changing the menu alone does not start a download.
+    if (modelLangRef.current) void loadModel(next)
   }
 
   /* ---------------- generate ---------------- */
@@ -249,8 +280,24 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
     return [...used].filter((mood) => !moods[mood])
   }, [parsed, moods])
 
+  const canGenerate = !busy && !voiceBlocked && !consentMissing && parsed.spokenLength > 0
+
+  /** Generate now if the model is ready; otherwise load it and generate when it is. */
+  const onGenerate = () => {
+    if (!canGenerate) return
+    if (model === 'ready') { void generate(); return }
+    setPendingGenerate(true)
+    void loadModel()
+  }
+  useEffect(() => {
+    if (!pendingGenerate) return
+    if (model === 'ready') { setPendingGenerate(false); void generate() }
+    else if (model === 'failed') setPendingGenerate(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingGenerate, model])
+
   const generate = async () => {
-    if (!base || model !== 'ready' || busy) return
+    if (model !== 'ready' || busy || voiceBlocked || consentMissing) return
     const segments = parsed.segments
     if (!segments.some((segment) => segment.kind === 'speech')) return
     stopRequestedRef.current = false
@@ -261,10 +308,18 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
     const voiceFor = (mood: Mood | null) => (mood && moods[mood] ? mood : 'base')
 
     try {
+      // Text to voice without a chosen voice: use the first sample voice.
+      let baseClip = base
+      if (!baseClip) {
+        setBusy({ label: ui.learning })
+        const preset = PRESETS[0]
+        baseClip = { audio: await loadPresetAudio(preset), source: 'preset', preset }
+        setBase(baseClip)
+      }
       // 1. Clone each voice this script needs, unless it's already cloned from the same audio.
       const needed = new Set(segments.flatMap((segment) => (segment.kind === 'speech' ? [voiceFor(segment.mood)] : [])))
       for (const name of needed) {
-        const clip = name === 'base' ? base : moods[name as Mood]!
+        const clip = name === 'base' ? baseClip : moods[name as Mood]!
         if (encodedRef.current.get(name) === clip.audio) continue
         setBusy({ label: name === 'base' ? ui.learning : fmt(ui.learningMood, { mood: ui.moods[name as Mood].toLowerCase() }) })
         await engine.createVoice(prepareVoiceSample(clip.audio), name)
@@ -313,7 +368,6 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
     player.stop()
     setBase(null); setMoods({}); setOpenMood(null); setConsent(false)
     setTakes([]); setGenError(null); setStopped(false); setVoiceError(null)
-    setStep('voice')
   }
 
   /* ---------------- stage ---------------- */
@@ -334,171 +388,186 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   /* ---------------- render ---------------- */
   const clipTitle = (clip: Clip) => (clip.preset ? presetLabel(clip.preset, ui) : ui.yourVoice)
 
+  const ownClip = base && base.source !== 'preset' ? base : null
+  const selectedPreset = base?.preset?.id ?? (base ? undefined : PRESETS[0].id)
+  const modelLabel = pendingGenerate || model === 'loading' ? modelProgress : undefined
+  const voiceSummary = base ? clipTitle(base) : presetLabel(PRESETS[0], ui)
+
   return (
     <div className="tool">
       <header className="topbar">
-        <a className="wordmark" href={homeHref}>{SITE_NAME}</a>
+        <a className="wordmark" href={homeHref}><span className="wordmark-mark" aria-hidden />{SITE_NAME}</a>
         <div className="topbar-actions">
-          {base && (
-            <button className="btn btn-ghost" onClick={startOver} disabled={!!busy || voiceBlocked}><RotateCcw size={16} /> {ui.startOver}</button>
+          {(base || takes.length > 0) && (
+            <button className="btn btn-ghost btn-small" onClick={startOver} disabled={!!busy || voiceBlocked}><RotateCcw size={14} /> {ui.startOver}</button>
           )}
           <InstallButton ui={ui} />
           <LanguageSwitcher lang={lang} label={languageLabel} />
         </div>
       </header>
 
-      {/* Desktop: the headline and stage stay pinned on the left while the steps scroll on the right. Phones: one column, as before. */}
-      <div className="tool-aside">
-        <h1 className={base ? 'sr-only' : 'headline'}>{ui.headline}</h1>
-
-        <section className="stage" aria-live="polite">
-          <Waveform mode={stage.mode} className="stage-wave" />
-          <div className="stage-status">{stage.text}</div>
-        </section>
-
-        <p className="aside-note">{ui.privacyLine}</p>
+      <div className="hero">
+        <h1 className="headline">{ui.headline}</h1>
+        <p className="subhead">{ui.subhead}</p>
       </div>
 
-      <div className="tool-main">
       {!env.supported && <p className="note is-error">{ui.unsupported}</p>}
-
-      {base && (
-        <nav className="steps" aria-label="Steps">
-          <button aria-current={step === 'voice' ? 'step' : undefined} onClick={() => setStep('voice')} disabled={!!busy}>{ui.stepVoice}</button>
-          <button aria-current={step === 'speak' ? 'step' : undefined} onClick={goToSpeak} disabled={!canContinue || !!busy}>{ui.stepSpeak}</button>
-        </nav>
-      )}
 
       <input ref={fileInputRef} type="file" accept="audio/*" className="sr-only" tabIndex={-1} aria-label={ui.upload}
         onChange={(event) => { void onFile(event.target.files?.[0]); event.target.value = '' }} />
 
-      {step === 'voice' && (
-        <>
-          <section className="section">
-            {recording?.target === 'base' ? (
-              <RecordingPanel ui={ui} text={ui.readAloud.base} elapsed={recording.elapsed} onStop={stopRecording} />
-            ) : base ? (
-              <ClipRow ui={ui} id="clip-base" title={clipTitle(base)} audio={base.audio} progress={modelProgress}
-                playback={playback} onRemove={() => setClip('base', null)} disabled={voiceBlocked} />
-            ) : (
-              <>
-                <div className="btn-row">
-                  <button className="btn btn-primary" onClick={() => startRecording('base')} disabled={voiceBlocked || !env.recordable}><Mic size={18} /> {ui.record}</button>
-                  <button className="btn btn-outline" onClick={() => pickFile('base')} disabled={voiceBlocked}><Upload size={18} /> {ui.upload}</button>
-                </div>
-                <p className="hint"><strong className="tip">{ui.tip}:</strong> {ui.sampleHint}</p>
-                <PresetList ui={ui} playback={playback} disabled={voiceBlocked}
-                  onPreview={(preset) => void previewPreset(preset)} onUse={(preset) => void pickPreset(preset)} />
-              </>
-            )}
-            {voiceError && <p className="note is-error" role="alert">{voiceError}</p>}
-          </section>
+      <div className="workspace">
+        {/* ---------- text: what the voice says, and the result ---------- */}
+        <section className="pane pane-text" aria-labelledby="pane-text-title">
+          <div className="pane-head">
+            <h2 id="pane-text-title" className="pane-title">{ui.textTitle}</h2>
+            <label className="select">
+              <Languages size={14} aria-hidden />
+              <span className="sr-only">{ui.speechLanguage}</span>
+              <select value={speechLang} disabled={!!busy} aria-label={ui.speechLanguage}
+                onChange={(event) => changeSpeechLang(event.target.value as Locale)}>
+                {LOCALES.map((locale) => <option key={locale} value={locale} lang={locale}>{LANGUAGE_NAMES[locale]}</option>)}
+              </select>
+              <ChevronDown size={14} aria-hidden />
+            </label>
+          </div>
 
-          {base && (
-            <section className="section">
-              <div>
-                <h2 className="section-title">{ui.moodsTitle}</h2>
-                <p className="hint">{ui.moodsHint}</p>
-              </div>
-              <div className="pills">
-                {MOODS.map((mood) => (
-                  <button key={mood} disabled={voiceBlocked} aria-expanded={openMood === mood}
-                    className={moods[mood] ? 'pill is-set' : openMood === mood ? 'pill is-open' : 'pill'}
-                    onClick={() => setOpenMood(openMood === mood ? null : mood)}>
-                    {moods[mood] ? <Check size={14} /> : <Plus size={14} />} {ui.moods[mood]}
-                  </button>
-                ))}
-              </div>
-              {openMood && (recording?.target === openMood ? (
-                <RecordingPanel ui={ui} text={ui.readAloud[openMood]} elapsed={recording.elapsed} onStop={stopRecording} mood={openMood} />
-              ) : moods[openMood] ? (
-                <ClipRow ui={ui} id={`clip-${openMood}`} title={ui.moods[openMood]} audio={moods[openMood]!.audio} playback={playback}
-                  onRemove={() => setClip(openMood, null)} disabled={voiceBlocked} />
-              ) : (
-                <div className="section">
-                  <p className="read-aloud">{ui.readAloud[openMood]}</p>
-                  <p className="hint">{fmt(ui.readThis, { how: ui.moodHow[openMood] })}</p>
-                  <div className="btn-row">
-                    <button className="btn btn-primary" onClick={() => startRecording(openMood)} disabled={voiceBlocked || !env.recordable}><Mic size={18} /> {ui.record}</button>
-                    <button className="btn btn-outline" onClick={() => pickFile(openMood)} disabled={voiceBlocked}><Upload size={18} /> {ui.upload}</button>
-                  </div>
-                </div>
-              ))}
-            </section>
-          )}
-
-          {base && (
-            <section className="section">
-              {usesOwnAudio && (
-                <label className="check">
-                  <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
-                  <span>{ui.consent}</span>
-                </label>
-              )}
-              <button className="btn btn-primary btn-wide" onClick={goToSpeak} disabled={!canContinue}>{ui.continue}</button>
-              {model === 'idle' && <p className="hint">{ui.firstRun}{env.lowPower ? ` ${ui.laptop}` : ''}</p>}
-            </section>
-          )}
-        </>
-      )}
-
-      {step === 'speak' && (
-        <>
-          <section className="section">
-            <ScriptEditor ui={ui} value={script} onChange={setScript} disabled={!!busy} maxLength={SCRIPT_LIMIT} onSubmit={() => void generate()}
-              moodsWithClips={MOODS.filter((mood) => moods[mood])} />
+          <div className="pane-body">
+            <ScriptEditor ui={ui} value={script} onChange={setScript} disabled={!!busy} maxLength={SCRIPT_LIMIT} onSubmit={onGenerate}
+              moodsWithClips={MOODS.filter((mood) => moods[mood])} onFocus={warmUp} />
             <div className="meta">
-              <span>{script !== ui.defaultScript && <button className="underline" onClick={() => setScript(ui.defaultScript)} disabled={!!busy}>{ui.resetExample}</button>}</span>
-              <span>{script.length}/{SCRIPT_LIMIT}</span>
+              <span>{script !== speechUi.defaultScript && <button className="link" onClick={() => setScript(speechUi.defaultScript)} disabled={!!busy}>{ui.resetExample}</button>}</span>
+              <span>{script.length} / {SCRIPT_LIMIT}</span>
             </div>
+            {speechLang !== lang && <p className="note">{ui.langNote}</p>}
             {missingMoods.length > 0 && (
               <p className="note is-warn">{fmt(ui.missingMoods, { moods: missingMoods.map((mood) => ui.moods[mood].toLowerCase()).join(', ') })}</p>
             )}
             {parsed.unknownTags.length > 0 && (
               <p className="note is-warn">{fmt(ui.unknownTags, { tags: parsed.unknownTags.join(', ') })}</p>
             )}
-          </section>
+          </div>
 
-          <section className="section">
+          <div className="pane-foot">
+            <button className="voice-chip" title={voiceSummary} aria-label={`${ui.stepVoice}: ${voiceSummary}`}
+              onClick={() => document.getElementById('pane-voice-title')?.scrollIntoView({ block: 'start', behavior: 'smooth' })}>
+              <span className={`dot tone-${Math.max(0, PRESETS.findIndex((preset) => preset.id === (base?.preset?.id ?? PRESETS[0].id))) % 4}${ownClip ? ' is-own' : ''}`} aria-hidden />
+              <span className="voice-chip-text">{voiceSummary}</span>
+            </button>
             {busy ? (
-              <>
-                <button className={ringClass('btn btn-outline btn-wide', busy.progress)} style={ringStyle(busy.progress)} onClick={stopGenerating}>
-                  <Square size={16} /> {ui.stop}
-                </button>
-                <p className="hint hint-center" aria-live="polite">{busy.label}</p>
-              </>
+              <button className={ringClass('btn btn-outline', busy.progress)} style={ringStyle(busy.progress)} onClick={stopGenerating}>
+                <Square size={14} /> {ui.stop}
+              </button>
             ) : model === 'failed' ? (
-              <>
-                <button className="btn btn-primary btn-wide" onClick={() => void loadModel()}><RotateCcw size={16} /> {ui.retryModel}</button>
-                <p className="note is-error" role="alert">{fmt(ui.modelFailed, { error: modelError ?? '' })}</p>
-              </>
-            ) : modelProgress ? (
-              <button className={ringClass('btn btn-outline btn-wide is-waiting', modelProgress.value)} style={ringStyle(modelProgress.value)} disabled aria-live="polite">
-                {modelProgress.label}
+              <button className="btn btn-primary" onClick={() => void loadModel()}><RotateCcw size={14} /> {ui.retryModel}</button>
+            ) : modelLabel ? (
+              <button className={ringClass('btn btn-outline is-waiting', modelLabel.value)} style={ringStyle(modelLabel.value)} disabled aria-live="polite">
+                {modelLabel.label}
               </button>
             ) : (
-              <button className="btn btn-primary btn-wide" onClick={generate} disabled={model !== 'ready' || parsed.spokenLength === 0}>
-                {ui.generate}
+              <button className="btn btn-primary" onClick={onGenerate} disabled={!canGenerate}>
+                {ui.generate} <kbd className="kbd" aria-hidden>⌘↵</kbd>
               </button>
             )}
-            {genError && <p className="note is-error" role="alert">{fmt(ui.genFailed, { error: genError })}</p>}
-            {stopped && !busy && <p className="note">{ui.stopped}</p>}
-          </section>
+          </div>
 
-          {takes.length > 0 && (
+          <div className="output" aria-live="polite">
+            {busy && <p className="hint">{busy.label}</p>}
+            {model === 'failed' && <p className="note is-error" role="alert">{fmt(ui.modelFailed, { error: modelError ?? '' })}</p>}
+            {genError && <p className="note is-error" role="alert">{fmt(ui.genFailed, { error: genError })}</p>}
+            {consentMissing && <p className="note is-warn">{ui.consentNeeded}</p>}
+            {stopped && !busy && <p className="note">{ui.stopped}</p>}
+
+            {takes.length > 0 ? (
+              <>
+                <div id="latest-take"><TakeRow ui={ui} take={takes[0]} playback={playback} primary /></div>
+                {takes.length > 1 && (
+                  <div className="history">
+                    <h3 className="label">{ui.earlier}</h3>
+                    {takes.slice(1).map((take) => <TakeRow ui={ui} key={take.id} take={take} playback={playback} />)}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="stage">
+                <Waveform mode={stage.mode} className="stage-wave" />
+                <div className="stage-status">{stage.text ?? (model === 'idle' ? `${ui.firstRun}${env.lowPower ? ` ${ui.laptop}` : ''}` : ui.outputEmpty)}</div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* ---------- voice: clone one, or pick a sample ---------- */}
+        <aside className="pane pane-voice" aria-labelledby="pane-voice-title">
+          <div className="pane-head">
+            <h2 id="pane-voice-title" className="pane-title">{ui.stepVoice}</h2>
+          </div>
+
+          <div className="pane-body">
             <section className="section">
-              <div id="latest-take"><TakeRow ui={ui} take={takes[0]} playback={playback} primary /></div>
-              {takes.length > 1 && (
-                <div className="history">
-                  <h2 className="hint">{ui.earlier}</h2>
-                  {takes.slice(1).map((take) => <TakeRow ui={ui} key={take.id} take={take} playback={playback} />)}
-                </div>
+              <h3 className="label">{ui.cloneTitle}</h3>
+              {recording?.target === 'base' ? (
+                <RecordingPanel ui={ui} text={speechUi.readAloud.base} elapsed={recording.elapsed} onStop={stopRecording} />
+              ) : ownClip ? (
+                <ClipRow ui={ui} id="clip-base" title={clipTitle(ownClip)} audio={ownClip.audio} playback={playback} onRemove={() => setClip('base', null)} disabled={voiceBlocked} />
+              ) : (
+                <>
+                  <div className="btn-row">
+                    <button className="btn btn-outline" onClick={() => startRecording('base')} disabled={voiceBlocked || !env.recordable}><Mic size={16} /> {ui.record}</button>
+                    <button className="btn btn-outline" onClick={() => pickFile('base')} disabled={voiceBlocked}><Upload size={16} /> {ui.upload}</button>
+                  </div>
+                  <p className="hint">{ui.sampleHint}</p>
+                </>
               )}
+              {usesOwnAudio && (
+                <label className="check">
+                  <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+                  <span>{ui.consent}</span>
+                </label>
+              )}
+              {voiceError && <p className="note is-error" role="alert">{voiceError}</p>}
             </section>
-          )}
-        </>
-      )}
+
+            {!ownClip && recording?.target !== 'base' && (
+              <PresetList ui={ui} playback={playback} disabled={voiceBlocked || !!busy} selectedId={selectedPreset}
+                onPreview={(preset) => void previewPreset(preset)} onUse={(preset) => void pickPreset(preset)} />
+            )}
+
+            <details className="moods" open={!!openMood || Object.values(moods).some(Boolean)}>
+              <summary><span className="label">{ui.moodsTitle}</span><ChevronDown size={14} aria-hidden /></summary>
+              <div className="section">
+                <p className="hint">{ui.moodsHint}</p>
+                <div className="pills">
+                  {MOODS.map((mood) => (
+                    <button key={mood} disabled={voiceBlocked} aria-expanded={openMood === mood}
+                      className={moods[mood] ? 'pill is-set' : openMood === mood ? 'pill is-open' : 'pill'}
+                      onClick={() => setOpenMood(openMood === mood ? null : mood)}>
+                      {moods[mood] ? <Check size={12} /> : <Plus size={12} />} {ui.moods[mood]}
+                    </button>
+                  ))}
+                </div>
+                {openMood && (recording?.target === openMood ? (
+                  <RecordingPanel ui={ui} text={speechUi.readAloud[openMood]} elapsed={recording.elapsed} onStop={stopRecording} mood={openMood} />
+                ) : moods[openMood] ? (
+                  <ClipRow ui={ui} id={`clip-${openMood}`} title={ui.moods[openMood]} audio={moods[openMood]!.audio} playback={playback}
+                    onRemove={() => setClip(openMood, null)} disabled={voiceBlocked} />
+                ) : (
+                  <div className="section">
+                    <p className="read-aloud">{speechUi.readAloud[openMood]}</p>
+                    <p className="hint">{fmt(ui.readThis, { how: ui.moodHow[openMood] })}</p>
+                    <div className="btn-row">
+                      <button className="btn btn-outline" onClick={() => startRecording(openMood)} disabled={voiceBlocked || !env.recordable}><Mic size={16} /> {ui.record}</button>
+                      <button className="btn btn-outline" onClick={() => pickFile(openMood)} disabled={voiceBlocked}><Upload size={16} /> {ui.upload}</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </details>
+          </div>
+        </aside>
       </div>
+
+      <p className="privacy-line">{ui.privacyLine}</p>
     </div>
   )
 }
@@ -514,36 +583,40 @@ function fileName(text: string) {
 
 const FIRST_PRESETS = 4
 
-function PresetList({ ui, playback, disabled, onPreview, onUse }: {
-  ui: UI; playback: Playback; disabled: boolean; onPreview: (preset: Preset) => void; onUse: (preset: Preset) => void
+function PresetList({ ui, playback, disabled, selectedId, onPreview, onUse }: {
+  ui: UI; playback: Playback; disabled: boolean; selectedId?: string; onPreview: (preset: Preset) => void; onUse: (preset: Preset) => void
 }) {
   const [showAll, setShowAll] = useState(false)
   const shown = showAll ? PRESETS : PRESETS.slice(0, FIRST_PRESETS)
   return (
     <section className="presets" aria-labelledby="presets-title">
-      <h2 id="presets-title" className="section-title">{ui.sampleTitle}</h2>
+      <h3 id="presets-title" className="label">{ui.sampleTitle}</h3>
       <ul className="preset-list">
         {shown.map((preset, index) => {
           const playing = playback.playingId === `preset-${preset.id}`
           const label = `${preset.name}, ${ui.styles[preset.style]}`
           return (
-            <li key={preset.id} className="preset">
+            <li key={preset.id} className={preset.id === selectedId ? 'preset is-selected' : 'preset'}>
               <button className={`preset-avatar tone-${index % 4}`} onClick={() => onPreview(preset)} disabled={disabled}
                 aria-label={`${playing ? ui.pause : ui.play}: ${label}`}>
-                {playing ? <Pause size={16} /> : <Play size={16} />}
+                {playing ? <Pause size={14} /> : <Play size={14} />}
               </button>
               <div className="preset-main">
                 <span className="preset-name">{preset.name}</span>
                 <span className="preset-tag">{ui.styles[preset.style]}</span>
               </div>
-              <button className="btn btn-outline btn-small" onClick={() => onUse(preset)} disabled={disabled}
-                aria-label={`${ui.use}: ${label}`}>{ui.use}</button>
+              {preset.id === selectedId ? (
+                <span className="selected"><Check size={14} aria-hidden /> {ui.selected}</span>
+              ) : (
+                <button className="btn btn-ghost btn-small" onClick={() => onUse(preset)} disabled={disabled}
+                  aria-label={`${ui.use}: ${label}`}>{ui.use}</button>
+              )}
             </li>
           )
         })}
       </ul>
       {!showAll && (
-        <button className="btn btn-ghost btn-more" onClick={() => setShowAll(true)}>{ui.showAll}</button>
+        <button className="btn btn-ghost btn-small btn-more" onClick={() => setShowAll(true)}>{ui.showAll}</button>
       )}
     </section>
   )
@@ -563,7 +636,8 @@ type Playback = ReturnType<typeof usePlayback>
 function RecordingPanel({ ui, text, elapsed, onStop, mood }: { ui: UI; text: string; elapsed: number; onStop: () => void; mood?: Mood }) {
   const remaining = Math.ceil(MIN_SECONDS - elapsed)
   return (
-    <div className="section">
+    <div className="section recording">
+      <div className="recording-head"><span className="rec-dot" />{formatTime(elapsed)}<Waveform mode="live" className="rec-wave" /></div>
       <p className="read-aloud">{text}</p>
       {mood && <p className="hint">{fmt(ui.readIt, { how: ui.moodHow[mood] })}</p>}
       <button className="btn btn-primary btn-wide" onClick={onStop} disabled={remaining > 0}>
@@ -577,7 +651,7 @@ function PlayButton({ ui, id, audio, playback, primary }: { ui: UI; id: string; 
   const playing = playback.playingId === id
   return (
     <button className={primary ? 'icon-btn is-primary' : 'icon-btn'} aria-label={playing ? ui.pause : ui.play} onClick={() => player.toggle(id, audio)}>
-      {playing ? <Pause size={18} /> : <Play size={18} />}
+      {playing ? <Pause size={16} /> : <Play size={16} />}
     </button>
   )
 }
@@ -598,7 +672,7 @@ function ClipRow({ ui, id, title, audio, playback, onRemove, disabled, progress 
         <div className="row-title">{title}</div>
         <div className="row-sub" aria-live="polite">{progress ? progress.label : fmt(ui.seconds, { n: seconds(audio).toFixed(1) })}</div>
       </div>
-      <button className="icon-btn" aria-label={fmt(ui.remove, { title: title.toLowerCase() })} onClick={onRemove} disabled={disabled}><X size={18} /></button>
+      <button className="icon-btn" aria-label={fmt(ui.remove, { title: title.toLowerCase() })} onClick={onRemove} disabled={disabled}><X size={16} /></button>
     </div>
   )
 }
@@ -652,8 +726,8 @@ function TakeRow({ ui, take, playback, primary }: { ui: UI; take: Take; playback
         <div className="track-bar"><div className="track-fill" style={{ width: `${fraction * 100}%` }} /></div>
       </div>
       <span className="time">{formatTime(playback.playingId === take.id ? playback.position : duration)}</span>
-      {shareable && <button className="icon-btn" aria-label={ui.share} onClick={() => void share()}><Share2 size={18} /></button>}
-      <button className="icon-btn" aria-label={ui.downloadWav} onClick={download}><Download size={18} /></button>
+      {shareable && <button className="icon-btn" aria-label={ui.share} onClick={() => void share()}><Share2 size={16} /></button>}
+      <button className="icon-btn" aria-label={ui.downloadWav} onClick={download}><Download size={16} /></button>
     </div>
   )
 }
