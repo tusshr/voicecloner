@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- Phones and tablets: the tool works like an app. An action bar at the bottom (in thumb reach) shows the voice and the Generate button. Tap the voice to open the Voice panel as a bottom sheet (grip, Done, tap outside or Escape to close). Picking a sample voice closes the sheet. Controls are at least 44 px high, and text is larger. The text card has no title bar.
+- Voice panel: Voices and Moods are tabs instead of a tall Moods section. The Moods tab shows how many moods are recorded. On desktop the panel no longer grows.
+- The warning about missing mood clips has a link that opens the Moods tab at the right mood.
+
 ### Added
 - Voice demos: every sample voice reads one line in each of the five languages (39 short MP3 files in public/demos, about 1.5 MB in total). The play button on a sample voice plays its demo in the speech language, and the empty result area has a Hear a demo button. Demos show with the read-along. People can hear the voices before the model downloads. The Spanish demo for Alba (merchant) is missing for now, so that voice plays its original recording. tools/make-demos.py makes the demos again.
 - Read-along: the newest take shows its text, and the words light up while it plays. Spoken words are in full color, the current word is marked, and the rest is dimmed. Click a sentence to play from there. The tool now speaks each sentence on its own and keeps its start and end times. Inside a sentence the word position is an estimate.

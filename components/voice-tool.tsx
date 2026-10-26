@@ -84,6 +84,28 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   const [takes, setTakes] = useState<Take[]>([])
   const [pendingGenerate, setPendingGenerate] = useState(false)
   const [demo, setDemo] = useState<{ take: Take; preset: Preset } | null>(null)
+  // Voice panel: a tab for voices and one for moods. On phones it is a bottom sheet opened from the action bar.
+  const [voiceTab, setVoiceTab] = useState<'voices' | 'moods'>('voices')
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const isSheet = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
+  const openVoices = (tab: 'voices' | 'moods' = 'voices') => {
+    setVoiceTab(tab)
+    if (isSheet()) setSheetOpen(true)
+    else document.getElementById('pane-voice')?.focus({ preventScroll: true })
+  }
+  useEffect(() => {
+    if (!sheetOpen) return
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setSheetOpen(false) }
+    const onResize = () => { if (!isSheet()) setSheetOpen(false) }
+    document.documentElement.classList.add('sheet-lock')
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('resize', onResize)
+    return () => {
+      document.documentElement.classList.remove('sheet-lock')
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [sheetOpen])
 
   const engineRef = useRef<TTSEngine | null>(null)
   const demoCacheRef = useRef(new Map<string, Take | null>())
@@ -490,7 +512,10 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
             </div>
             {speechLang !== lang && <p className="note">{ui.langNote}</p>}
             {missingMoods.length > 0 && (
-              <p className="note is-warn">{fmt(ui.missingMoods, { moods: missingMoods.map((mood) => ui.moods[mood].toLowerCase()).join(', ') })}</p>
+              <p className="note is-warn">
+                {fmt(ui.missingMoods, { moods: missingMoods.map((mood) => ui.moods[mood].toLowerCase()).join(', ') })}{' '}
+                <button className="link" onClick={() => { setOpenMood(missingMoods[0]); openVoices('moods') }}>{ui.recordMoods}</button>
+              </p>
             )}
             {parsed.unknownTags.length > 0 && (
               <p className="note is-warn">{fmt(ui.unknownTags, { tags: parsed.unknownTags.join(', ') })}</p>
@@ -499,9 +524,10 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
           <div className="pane-foot">
             <button className="voice-chip" title={voiceSummary} aria-label={`${ui.stepVoice}: ${voiceSummary}`}
-              onClick={() => document.getElementById('pane-voice-title')?.scrollIntoView({ block: 'start', behavior: 'smooth' })}>
+              aria-haspopup="dialog" onClick={() => openVoices()}>
               <span className={`dot tone-${Math.max(0, PRESETS.findIndex((preset) => preset.id === (base?.preset?.id ?? PRESETS[0].id))) % 4}${ownClip ? ' is-own' : ''}`} aria-hidden />
               <span className="voice-chip-text">{voiceSummary}</span>
+              <ChevronDown size={14} className="voice-chip-caret" aria-hidden />
             </button>
             {busy ? (
               <button className={ringClass('btn btn-outline', busy.progress)} style={ringStyle(busy.progress)} onClick={stopGenerating}>
@@ -561,52 +587,64 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
           </div>
         </section>
 
-        {/* ---------- voice: clone one, or pick a sample ---------- */}
-        <aside className="pane pane-voice" aria-labelledby="pane-voice-title">
+        {/* ---------- voice: clone one or pick a sample; moods in their own tab. A bottom sheet on phones. ---------- */}
+        {sheetOpen && <div className="sheet-backdrop" onClick={() => setSheetOpen(false)} aria-hidden />}
+        <aside id="pane-voice" tabIndex={-1} className={sheetOpen ? 'pane pane-voice is-open' : 'pane pane-voice'}
+          aria-labelledby="pane-voice-title" role={sheetOpen ? 'dialog' : undefined} aria-modal={sheetOpen || undefined}>
+          <div className="sheet-grip" aria-hidden />
           <div className="pane-head">
-            <h2 id="pane-voice-title" className="pane-title">{ui.stepVoice}</h2>
+            <h2 id="pane-voice-title" className="sr-only">{ui.stepVoice}</h2>
+            <div className="tabs" role="tablist">
+              <button role="tab" aria-selected={voiceTab === 'voices'} onClick={() => setVoiceTab('voices')}>{ui.voicesTab}</button>
+              <button role="tab" aria-selected={voiceTab === 'moods'} onClick={() => setVoiceTab('moods')}>
+                {ui.moodsTitle}{Object.values(moods).some(Boolean) && <span className="tab-count">{Object.values(moods).filter(Boolean).length}</span>}
+              </button>
+            </div>
+            <button className="btn btn-ghost btn-small sheet-done" onClick={() => setSheetOpen(false)}>{ui.done}</button>
           </div>
 
           <div className="pane-body">
-            <section className="section">
-              <h3 className="label">{ui.cloneTitle}</h3>
-              {recording?.target === 'base' ? (
-                <RecordingPanel ui={ui} text={speechUi.readAloud.base} elapsed={recording.elapsed} onStop={stopRecording} />
-              ) : ownClip ? (
-                <ClipRow ui={ui} id="clip-base" title={clipTitle(ownClip)} audio={ownClip.audio} playback={playback} onRemove={() => setClip('base', null)} disabled={voiceBlocked} />
-              ) : (
-                <>
-                  <div className="btn-row">
-                    <button className="btn btn-outline" onClick={() => startRecording('base')} disabled={voiceBlocked || !env.recordable}><Mic size={16} /> {ui.record}</button>
-                    <button className="btn btn-outline" onClick={() => pickFile('base')} disabled={voiceBlocked}><Upload size={16} /> {ui.upload}</button>
-                  </div>
-                  <p className="hint">{ui.sampleHint}</p>
-                </>
-              )}
-              {usesOwnAudio && (
-                <label className="check">
-                  <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
-                  <span>{ui.consent}</span>
-                </label>
-              )}
-              {voiceError && <p className="note is-error" role="alert">{voiceError}</p>}
-            </section>
+            {voiceTab === 'voices' ? (
+              <>
+                <section className="section">
+                  <h3 className="label">{ui.cloneTitle}</h3>
+                  {recording?.target === 'base' ? (
+                    <RecordingPanel ui={ui} text={speechUi.readAloud.base} elapsed={recording.elapsed} onStop={stopRecording} />
+                  ) : ownClip ? (
+                    <ClipRow ui={ui} id="clip-base" title={clipTitle(ownClip)} audio={ownClip.audio} playback={playback} onRemove={() => setClip('base', null)} disabled={voiceBlocked} />
+                  ) : (
+                    <>
+                      <div className="btn-row">
+                        <button className="btn btn-outline" onClick={() => startRecording('base')} disabled={voiceBlocked || !env.recordable}><Mic size={16} /> {ui.record}</button>
+                        <button className="btn btn-outline" onClick={() => pickFile('base')} disabled={voiceBlocked}><Upload size={16} /> {ui.upload}</button>
+                      </div>
+                      <p className="hint">{ui.sampleHint}</p>
+                    </>
+                  )}
+                  {usesOwnAudio && (
+                    <label className="check">
+                      <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+                      <span>{ui.consent}</span>
+                    </label>
+                  )}
+                  {voiceError && <p className="note is-error" role="alert">{voiceError}</p>}
+                </section>
 
-            {!ownClip && recording?.target !== 'base' && (
-              <PresetList ui={ui} playback={playback} disabled={voiceBlocked || !!busy} selectedId={selectedPreset}
-                onPreview={(preset) => void previewPreset(preset)} onUse={(preset) => void pickPreset(preset)} />
-            )}
-
-            <details className="moods" open={!!openMood || Object.values(moods).some(Boolean)}>
-              <summary><span className="label">{ui.moodsTitle}</span><ChevronDown size={14} aria-hidden /></summary>
-              <div className="section">
+                {!ownClip && recording?.target !== 'base' && (
+                  <PresetList ui={ui} playback={playback} disabled={voiceBlocked || !!busy} selectedId={selectedPreset}
+                    onPreview={(preset) => void previewPreset(preset)}
+                    onUse={(preset) => { void pickPreset(preset); setSheetOpen(false) }} />
+                )}
+              </>
+            ) : (
+              <section className="section">
                 <p className="hint">{ui.moodsHint}</p>
                 <div className="pills">
                   {MOODS.map((mood) => (
                     <button key={mood} disabled={voiceBlocked} aria-expanded={openMood === mood}
                       className={moods[mood] ? 'pill is-set' : openMood === mood ? 'pill is-open' : 'pill'}
                       onClick={() => setOpenMood(openMood === mood ? null : mood)}>
-                      {moods[mood] ? <Check size={12} /> : <Plus size={12} />} <span aria-hidden>{MOOD_EMOJI[mood]}</span> {ui.moods[mood]}
+                      {moods[mood] ? <Check size={14} /> : <Plus size={14} />} <span aria-hidden>{MOOD_EMOJI[mood]}</span> {ui.moods[mood]}
                     </button>
                   ))}
                 </div>
@@ -616,7 +654,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
                   <ClipRow ui={ui} id={`clip-${openMood}`} title={ui.moods[openMood]} audio={moods[openMood]!.audio} playback={playback}
                     onRemove={() => setClip(openMood, null)} disabled={voiceBlocked} />
                 ) : (
-                  <div className="section">
+                  <div className="section recording">
                     <p className="read-aloud">{speechUi.readAloud[openMood]}</p>
                     <p className="hint">{fmt(ui.readThis, { how: ui.moodHow[openMood] })}</p>
                     <div className="btn-row">
@@ -625,8 +663,8 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
                     </div>
                   </div>
                 ))}
-              </div>
-            </details>
+              </section>
+            )}
           </div>
         </aside>
       </div>

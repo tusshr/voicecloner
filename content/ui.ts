@@ -5,6 +5,9 @@ export type UI = typeof en
 
 const en = {
   headline: 'Free text to voice and voice cloning',
+  recordMoods: 'Record a mood',
+  voicesTab: 'Voices',
+  done: 'Done',
   playDemo: 'Hear a demo',
   demoOf: 'Demo: {voice}',
   demoHint: 'A ready-made demo, so you can hear the voice before the model downloads. Push Generate to hear your own text.',
@@ -98,6 +101,9 @@ const en = {
 
 const es: UI = {
   headline: 'Texto a voz y clonación de voz gratis',
+  recordMoods: 'Grabar un estado de ánimo',
+  voicesTab: 'Voces',
+  done: 'Listo',
   playDemo: 'Escuchar una demo',
   demoOf: 'Demo: {voice}',
   demoHint: 'Una demo ya hecha, para oír la voz antes de descargar el modelo. Pulsa Generar para oír tu propio texto.',
@@ -191,6 +197,9 @@ const es: UI = {
 
 const pt: UI = {
   headline: 'Texto para voz e clonagem de voz grátis',
+  recordMoods: 'Gravar um humor',
+  voicesTab: 'Vozes',
+  done: 'Pronto',
   playDemo: 'Ouvir uma demonstração',
   demoOf: 'Demonstração: {voice}',
   demoHint: 'Uma demonstração pronta, para ouvir a voz antes de baixar o modelo. Toque em Gerar para ouvir o seu texto.',
@@ -284,6 +293,9 @@ const pt: UI = {
 
 const de: UI = {
   headline: 'Kostenlos: Text zu Sprache und Stimmen-Klonen',
+  recordMoods: 'Stimmung aufnehmen',
+  voicesTab: 'Stimmen',
+  done: 'Fertig',
   playDemo: 'Demo anhören',
   demoOf: 'Demo: {voice}',
   demoHint: 'Eine fertige Demo, damit du die Stimme hörst, bevor das Modell geladen wird. Tippe auf Erzeugen, um deinen eigenen Text zu hören.',
@@ -377,6 +389,9 @@ const de: UI = {
 
 const it: UI = {
   headline: 'Da testo a voce e clonazione vocale gratis',
+  recordMoods: 'Registra un umore',
+  voicesTab: 'Voci',
+  done: 'Fatto',
   playDemo: 'Ascolta una demo',
   demoOf: 'Demo: {voice}',
   demoHint: 'Una demo già pronta, per sentire la voce prima di scaricare il modello. Tocca Genera per sentire il tuo testo.',
