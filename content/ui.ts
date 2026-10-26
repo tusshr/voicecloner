@@ -5,6 +5,7 @@ export type UI = typeof en
 
 const en = {
   headline: 'Free text to voice and voice cloning',
+  readAlong: 'Read along',
   subhead: 'Type text, pick a voice or clone your own, and download the audio. It runs in your browser, with no account.',
   textTitle: 'Text',
   speechLanguage: 'Speech language',
@@ -94,6 +95,7 @@ const en = {
 
 const es: UI = {
   headline: 'Texto a voz y clonación de voz gratis',
+  readAlong: 'Lectura en voz alta',
   subhead: 'Escribe un texto, elige una voz o clona la tuya y descarga el audio. Funciona en tu navegador, sin cuenta.',
   textTitle: 'Texto',
   speechLanguage: 'Idioma de la voz',
@@ -183,6 +185,7 @@ const es: UI = {
 
 const pt: UI = {
   headline: 'Texto para voz e clonagem de voz grátis',
+  readAlong: 'Leitura acompanhada',
   subhead: 'Digite um texto, escolha uma voz ou clone a sua e baixe o áudio. Funciona no navegador, sem conta.',
   textTitle: 'Texto',
   speechLanguage: 'Idioma da fala',
@@ -272,6 +275,7 @@ const pt: UI = {
 
 const de: UI = {
   headline: 'Kostenlos: Text zu Sprache und Stimmen-Klonen',
+  readAlong: 'Mitlesen',
   subhead: 'Gib Text ein, wähle eine Stimme oder klone deine eigene und lade das Audio herunter. Läuft im Browser, ohne Konto.',
   textTitle: 'Text',
   speechLanguage: 'Sprache der Stimme',
@@ -361,6 +365,7 @@ const de: UI = {
 
 const it: UI = {
   headline: 'Da testo a voce e clonazione vocale gratis',
+  readAlong: 'Lettura guidata',
   subhead: 'Scrivi un testo, scegli una voce o clona la tua e scarica l’audio. Funziona nel browser, senza account.',
   textTitle: 'Testo',
   speechLanguage: 'Lingua del parlato',

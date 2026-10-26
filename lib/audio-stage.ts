@@ -33,7 +33,7 @@ export function detachMic() {
   micSource = null
 }
 
-type PlayerListener = (state: { playingId: string | null; position: number; duration: number }) => void
+type PlayerListener = (state: { playingId: string | null; activeId: string | null; position: number; duration: number }) => void
 
 /** Plays Float32 audio through the analyser. Only one clip plays at a time. */
 class Player {
@@ -123,7 +123,7 @@ class Player {
   private emit() {
     const duration = this.buffer?.duration ?? 0
     const position = this.source && context ? Math.min(duration, context.currentTime - this.startedAt) : this.offset
-    for (const listener of this.listeners) listener({ playingId: this.playingId, position, duration })
+    for (const listener of this.listeners) listener({ playingId: this.playingId, activeId: this.id, position, duration })
   }
 }
 

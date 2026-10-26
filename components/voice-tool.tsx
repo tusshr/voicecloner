@@ -7,7 +7,7 @@ import { Waveform, type WaveMode } from '@/components/waveform'
 import { ScriptEditor } from '@/components/script-editor'
 import { attachMic, decodeToMono24k, detachMic, encodeWav, formatTime, player, SAMPLE_RATE } from '@/lib/audio-stage'
 import { applyGain, concat, fadeEdges, limitPeak, prepareVoiceSample, silence, timeStretch } from '@/lib/audio-fx'
-import { MOODS, parseScript, SPEED_FACTOR, VOLUME_GAIN, type Mood } from '@/lib/script'
+import { MOOD_EMOJI, MOODS, parseScript, SPEED_FACTOR, splitSentences, VOLUME_GAIN, type Mood } from '@/lib/script'
 import { canRecord, createEngine, isLowPowerDevice, isSupported, StoppedError, type LoadProgress, type TTSEngine } from '@/lib/tts-engine'
 import { ENGINE_LANGUAGE, fmt, isLocale, LANGUAGE_NAMES, LOCALES, type Locale } from '@/lib/i18n'
 import { UI_STRINGS } from '@/content/ui'
@@ -25,7 +25,9 @@ const SEGMENT_GAP = 0.12
 type Clip = { audio: Float32Array; source: 'preset' | 'mic' | 'file'; preset?: Preset }
 type Target = 'base' | Mood
 type Busy = { label: string; progress?: number } | null
-type Take = { id: string; text: string; audio: Float32Array }
+/** A sentence of the take and where it is in the audio, in seconds. The read-along uses these. */
+type Piece = { text: string; start: number; end: number }
+type Take = { id: string; text: string; audio: Float32Array; pieces: Piece[] }
 
 /** ONNX Runtime throws bare numbers (WASM pointers) on internal failures, which mean nothing to people. */
 function friendlyError(error: unknown, ui: UI) {
@@ -327,24 +329,32 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
         if (stopRequestedRef.current) throw new StoppedError()
       }
 
-      // 2. Speak each part, shape it (speed, volume), and stitch the parts with pauses.
-      const speechCount = segments.filter((segment) => segment.kind === 'speech').length
+      // 2. Speak each sentence, shape it (speed, volume), and stitch the parts with pauses. Keep each sentence's time for the read-along.
+      const plan = segments.map((segment) => (segment.kind === 'speech' ? { segment, sentences: splitSentences(segment.text, speechLang) } : { segment, sentences: [] }))
+      const sentenceCount = plan.reduce((sum, item) => sum + item.sentences.length, 0)
       const parts: Float32Array[] = []
+      const pieces: Piece[] = []
+      let cursor = 0
       let spoken = 0
-      for (let i = 0; i < segments.length; i++) {
-        const segment = segments[i]
-        if (segment.kind === 'pause') { parts.push(silence(segment.seconds)); continue }
-        spoken += 1
-        setBusy({ label: speechCount > 1 ? fmt(ui.speakingPart, { n: spoken, total: speechCount }) : ui.speaking, progress: (spoken - 1) / speechCount })
-        let audio = await engine.generate(segment.text, voiceFor(segment.mood))
-        if (stopRequestedRef.current) throw new StoppedError()
-        audio = timeStretch(audio, SPEED_FACTOR[segment.speed])
-        audio = applyGain(audio, VOLUME_GAIN[segment.volume])
-        parts.push(fadeEdges(audio))
-        if (segments[i + 1]?.kind === 'speech') parts.push(silence(SEGMENT_GAP))
+      const add = (audio: Float32Array) => { parts.push(audio); cursor += seconds(audio) }
+      for (let i = 0; i < plan.length; i++) {
+        const { segment, sentences } = plan[i]
+        if (segment.kind === 'pause') { add(silence(segment.seconds)); continue }
+        for (let j = 0; j < sentences.length; j++) {
+          spoken += 1
+          setBusy({ label: sentenceCount > 1 ? fmt(ui.speakingPart, { n: spoken, total: sentenceCount }) : ui.speaking, progress: (spoken - 1) / sentenceCount })
+          let audio = await engine.generate(sentences[j], voiceFor(segment.mood))
+          if (stopRequestedRef.current) throw new StoppedError()
+          audio = timeStretch(audio, SPEED_FACTOR[segment.speed])
+          audio = fadeEdges(applyGain(audio, VOLUME_GAIN[segment.volume]))
+          pieces.push({ text: sentences[j], start: cursor, end: cursor + seconds(audio) })
+          add(audio)
+          const more = j < sentences.length - 1 || plan[i + 1]?.segment.kind === 'speech'
+          if (more) add(silence(SEGMENT_GAP))
+        }
       }
 
-      const take: Take = { id: crypto.randomUUID(), text: script.trim(), audio: limitPeak(concat(parts)) }
+      const take: Take = { id: crypto.randomUUID(), text: script.trim(), audio: limitPeak(concat(parts)), pieces }
       setTakes((current) => [take, ...current].slice(0, 5))
       requestAnimationFrame(() => document.getElementById('latest-take')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }))
       setBusy(null)
@@ -480,7 +490,10 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
             {takes.length > 0 ? (
               <>
-                <div id="latest-take"><TakeRow ui={ui} take={takes[0]} playback={playback} primary /></div>
+                <div id="latest-take" className="take">
+                  <ReadAlong ui={ui} take={takes[0]} playback={playback} lang={speechLang} />
+                  <TakeRow ui={ui} take={takes[0]} playback={playback} primary />
+                </div>
                 {takes.length > 1 && (
                   <div className="history">
                     <h3 className="label">{ui.earlier}</h3>
@@ -542,7 +555,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
                     <button key={mood} disabled={voiceBlocked} aria-expanded={openMood === mood}
                       className={moods[mood] ? 'pill is-set' : openMood === mood ? 'pill is-open' : 'pill'}
                       onClick={() => setOpenMood(openMood === mood ? null : mood)}>
-                      {moods[mood] ? <Check size={12} /> : <Plus size={12} />} {ui.moods[mood]}
+                      {moods[mood] ? <Check size={12} /> : <Plus size={12} />} <span aria-hidden>{MOOD_EMOJI[mood]}</span> {ui.moods[mood]}
                     </button>
                   ))}
                 </div>
@@ -573,6 +586,66 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 }
 
 /* ---------------- pieces ---------------- */
+
+/**
+ * The text of a take, lit up as it plays: spoken words in full color, the current word marked, the rest dimmed.
+ * Each sentence's start and end are known; inside a sentence the position is estimated from the time and snapped to a word.
+ * Click a sentence to play from there.
+ */
+function ReadAlong({ ui, take, playback, lang }: { ui: UI; take: Take; playback: Playback; lang: string }) {
+  const boxRef = useRef<HTMLDivElement>(null)
+  const currentRef = useRef<HTMLElement>(null)
+  const { pieces } = take
+  const active = playback.activeId === take.id && (playback.playingId === take.id || playback.position > 0)
+  const t = playback.position
+
+  let index = -1
+  let wordStart = 0
+  let wordEnd = 0
+  if (active && pieces.length) {
+    index = pieces.findIndex((piece) => t < piece.end)
+    if (index === -1) index = pieces.length
+    else if (t >= pieces[index].start) {
+      const piece = pieces[index]
+      const fraction = Math.min(1, Math.max(0, (t - piece.start) / Math.max(0.01, piece.end - piece.start)))
+      const space = piece.text.indexOf(' ', Math.round(piece.text.length * fraction))
+      wordEnd = space === -1 ? piece.text.length : space
+      wordStart = piece.text.lastIndexOf(' ', wordEnd - 1) + 1
+    } else index -= 0.5 // in a pause before this sentence: the earlier ones are spoken, this one is not
+  }
+
+  // Keep the current line in view inside the box (not the page).
+  useEffect(() => {
+    const box = boxRef.current
+    const current = currentRef.current
+    if (!box || !current) return
+    const top = current.offsetTop - box.offsetTop
+    if (top < box.scrollTop || top > box.scrollTop + box.clientHeight - 32) box.scrollTop = Math.max(0, top - box.clientHeight / 3)
+  }, [Math.floor(index), wordStart])
+
+  const seekTo = (piece: Piece) => player.seek(take.id, take.audio, piece.start / seconds(take.audio))
+
+  return (
+    <div ref={boxRef} className={active ? 'read-along is-active' : 'read-along'} lang={lang} aria-label={ui.readAlong}>
+      {pieces.map((piece, i) => {
+        const state = !active ? '' : i < index ? ' is-spoken' : i > index ? ' is-upcoming' : ' is-current'
+        const isCurrent = active && i === index
+        return (
+          <span key={i} className={`ra-piece${state}`} onClick={() => seekTo(piece)}>
+            {isCurrent ? (
+              <>
+                <span className="ra-spoken">{piece.text.slice(0, wordStart)}</span>
+                <mark ref={currentRef as React.RefObject<HTMLElement>} className="ra-word">{piece.text.slice(wordStart, wordEnd)}</mark>
+                <span className="ra-rest">{piece.text.slice(wordEnd)}</span>
+              </>
+            ) : piece.text}{' '}
+          </span>
+        )
+      })}
+    </div>
+  )
+}
+
 
 /** "voice-clone-hello-i-recorded-this.wav": the first words of the script, without tags. */
 function fileName(text: string) {
@@ -623,7 +696,7 @@ function PresetList({ ui, playback, disabled, selectedId, onPreview, onUse }: {
 }
 
 function usePlayback() {
-  const stateRef = useRef({ playingId: null as string | null, position: 0, duration: 0 })
+  const stateRef = useRef({ playingId: null as string | null, activeId: null as string | null, position: 0, duration: 0 })
   const subscribe = useCallback((notify: () => void) => player.subscribe((state) => {
     stateRef.current = state
     notify()

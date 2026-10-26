@@ -3,6 +3,8 @@
 
 export const MOODS = ['happy', 'sad', 'excited', 'calm', 'whisper'] as const
 export type Mood = (typeof MOODS)[number]
+/** Shown in the editor chips and inside inserted tags, e.g. [😊 happy]. The parser ignores emoji, so [happy] works too. */
+export const MOOD_EMOJI: Record<Mood, string> = { happy: '😊', sad: '😢', excited: '🤩', calm: '😌', whisper: '🤫' }
 export type Speed = 'slow' | 'normal' | 'fast'
 export type Volume = 'soft' | 'normal' | 'loud'
 
@@ -18,6 +20,17 @@ const MAX_PAUSE = 5
 
 export const SPEED_FACTOR: Record<Speed, number> = { slow: 0.85, normal: 1, fast: 1.18 }
 export const VOLUME_GAIN: Record<Volume, number> = { soft: 0.5, normal: 1, loud: 1.5 }
+
+/** The words inside a tag, lowercased, without emoji or symbols: "😊 Happy" → ["happy"], "pause 1.5s" → ["pause", "1.5s"]. */
+export function tagWords(inner: string) {
+  return inner.toLowerCase().replace(/[^\p{L}\p{N}\s.]/gu, ' ').trim().split(/\s+/).filter(Boolean)
+}
+
+/** The mood a tag sets, if any. */
+export const tagMood = (tag: string): Mood | null => {
+  const [name] = tagWords(tag.slice(1, -1))
+  return (MOODS as readonly string[]).includes(name) ? (name as Mood) : null
+}
 
 function parsePause(arg: string | undefined): number | null {
   if (!arg) return DEFAULT_PAUSE
@@ -60,7 +73,7 @@ export function parseScript(rawInput: string): ParsedScript {
   for (const match of input.matchAll(TAG_RE)) {
     pushText(input.slice(cursor, match.index))
     cursor = (match.index ?? 0) + match[0].length
-    const [name, ...rest] = match[1].trim().toLowerCase().split(/\s+/)
+    const [name = '', ...rest] = tagWords(match[1])
     const arg = rest.join(' ')
 
     if (name === 'pause') {
@@ -86,7 +99,32 @@ function trimPauses(segments: Segment[]) {
 }
 
 export const isKnownTag = (tag: string) => {
-  const [name, ...rest] = tag.slice(1, -1).trim().toLowerCase().split(/\s+/)
+  const [name = '', ...rest] = tagWords(tag.slice(1, -1))
   if (name === 'pause') return parsePause(rest.join(' ')) !== null
   return (MOODS as readonly string[]).includes(name) || ['slow', 'fast', 'soft', 'loud', 'normal'].includes(name)
+}
+
+/**
+ * Split speech into sentences, so each one is generated on its own and the read-along knows where it starts.
+ * Very short sentences ("Hi!") join the next one, so the voice keeps its flow.
+ */
+export function splitSentences(text: string, locale: string): string[] {
+  let parts: string[]
+  if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
+    parts = [...new Intl.Segmenter(locale, { granularity: 'sentence' }).segment(text)].map((part) => part.segment.trim())
+  } else {
+    parts = text.split(/(?<=[.!?…])\s+/).map((part) => part.trim())
+  }
+  const result: string[] = []
+  let carry = ''
+  for (const part of parts.filter(Boolean)) {
+    const joined = carry ? `${carry} ${part}` : part
+    if (joined.length < 24) carry = joined
+    else { result.push(joined); carry = '' }
+  }
+  if (carry) {
+    if (result.length) result[result.length - 1] += ` ${carry}`
+    else result.push(carry)
+  }
+  return result
 }

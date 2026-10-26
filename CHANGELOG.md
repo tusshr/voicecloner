@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- Read-along: the newest take shows its text, and the words light up while it plays. Spoken words are in full color, the current word is marked, and the rest is dimmed. Click a sentence to play from there. The tool now speaks each sentence on its own and keeps its start and end times. Inside a sentence the word position is an estimate.
+- Emotion chips: the mood chips in the editor show an emoji (😊 Happy, 😢 Sad, 🤩 Excited, 😌 Calm, 🤫 Whisper) and insert tags such as [😊 happy]. Each mood has its own color in the text. The parser ignores emoji, so [happy] still works. The mood pills in the Voice panel show the same emoji.
 - Text to voice: you can type text and push Generate without a voice of your own. The first sample voice (Alba, casual) is the default.
 - Speech language menu in the Text panel. The voice can speak English, Spanish, Portuguese, German or Italian, whatever the page language is. The example script and the read-aloud texts follow the selected language. Each language loads its own model the first time it is used. The choice is kept per page language.
 - Generate loads the model if it is not ready, then generates. The model also starts to load when you click into the text field.

@@ -1,13 +1,13 @@
 'use client'
 
 import { useLayoutEffect, useRef, type ReactNode } from 'react'
-import { isKnownTag, MOODS, type Mood } from '@/lib/script'
+import { isKnownTag, MOOD_EMOJI, MOODS, tagMood, type Mood } from '@/lib/script'
 import { fmt } from '@/lib/i18n'
 import type { UI } from '@/content/ui'
 
 const TAG_SPLIT = /(\[[^\]]*\])/g
 
-type Chip = { label: string; tag: string; muted?: boolean }
+type Chip = { label: string; tag: string; muted?: boolean; emoji?: string; mood?: Mood }
 
 /** Textarea with tag highlighting (mirrored backdrop) and a row of insert chips. */
 export function ScriptEditor({
@@ -33,9 +33,12 @@ export function ScriptEditor({
     el.style.height = `${el.scrollHeight + 2}px`
   }, [value])
 
+  // Emotions first, as emoji chips; then delivery (pause, speed, volume).
+  const moodChips: Chip[] = MOODS.map((mood) => ({
+    label: ui.moods[mood], emoji: MOOD_EMOJI[mood], mood, tag: `[${MOOD_EMOJI[mood]} ${mood}]`, muted: !moodsWithClips.includes(mood),
+  }))
   const chips: Chip[] = [
     { label: ui.chips.pause, tag: '[pause 1s]' },
-    ...MOODS.map((mood) => ({ label: ui.moods[mood], tag: `[${mood}]`, muted: !moodsWithClips.includes(mood) })),
     { label: ui.chips.slow, tag: '[slow]' },
     { label: ui.chips.fast, tag: '[fast]' },
     { label: ui.chips.soft, tag: '[soft]' },
@@ -60,7 +63,7 @@ export function ScriptEditor({
 
   const highlighted: ReactNode[] = value.split(TAG_SPLIT).map((part, index) =>
     index % 2 === 1
-      ? <mark key={index} className={isKnownTag(part) ? 'tag' : 'tag tag-bad'}>{part}</mark>
+      ? <mark key={index} className={!isKnownTag(part) ? 'tag tag-bad' : tagMood(part) ? `tag tag-mood mood-${tagMood(part)}` : 'tag'}>{part}</mark>
       : <span key={index}>{part}</span>,
   )
 
@@ -90,15 +93,18 @@ export function ScriptEditor({
         />
       </div>
       <div className="chips" role="toolbar" aria-label={ui.insertTag}>
-        {chips.map((chip) => (
-          <button
-            key={chip.tag}
-            type="button"
-            disabled={disabled}
-            className={chip.muted ? 'chip chip-muted' : 'chip'}
+        {moodChips.map((chip) => (
+          <button key={chip.tag} type="button" disabled={disabled}
+            className={`chip chip-mood mood-${chip.mood}${chip.muted ? ' is-fallback' : ''}`}
             title={chip.muted ? fmt(ui.noMoodClip, { mood: chip.label.toLowerCase() }) : fmt(ui.insertThis, { tag: chip.tag })}
-            onClick={() => insert(chip.tag)}
-          >
+            onClick={() => insert(chip.tag)}>
+            <span aria-hidden>{chip.emoji}</span> {chip.label}
+          </button>
+        ))}
+        <span className="chips-divider" aria-hidden />
+        {chips.map((chip) => (
+          <button key={chip.tag} type="button" disabled={disabled} className="chip"
+            title={fmt(ui.insertThis, { tag: chip.tag })} onClick={() => insert(chip.tag)}>
             {chip.label}
           </button>
         ))}
