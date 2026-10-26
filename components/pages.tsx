@@ -46,7 +46,7 @@ export function HomePage({ lang }: { lang: Locale }) {
     },
   ]
   return (
-    <main className="shell">
+    <main className="shell shell-home">
       <VoiceTool ui={UI_STRINGS[lang]} lang={lang} homeHref={localePath(lang)} languageLabel={CHROME[lang].language} />
       <HomeArticle content={content} />
       <SiteFooter lang={lang} />

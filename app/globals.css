@@ -318,3 +318,64 @@ a.wordmark { color: inherit; text-decoration: none; }
 }
 
 .tip { font-weight: 600; color: var(--ink); }
+
+/* ---------- desktop workspace ---------- */
+/* Phones and tablets keep the single column: the wrappers do not take part in layout. */
+.tool-aside, .tool-main { display: contents; }
+.aside-note { display: none; }
+
+@media (min-width: 1024px) {
+  .shell-home { max-width: 1180px; padding-left: calc(40px + env(safe-area-inset-left)); padding-right: calc(40px + env(safe-area-inset-right)); gap: 56px; }
+
+  /* Two panes: the stage on the left, the current step on the right. */
+  .shell-home .tool {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: clamp(40px, 5vw, 72px); row-gap: 28px; align-items: start;
+  }
+  .shell-home .topbar { grid-column: 1 / -1; }
+  .shell-home .tool-aside {
+    display: flex; flex-direction: column; gap: 24px;
+    position: sticky; top: 24px;
+  }
+  .shell-home .tool-main { display: flex; flex-direction: column; gap: 24px; padding-top: 4px; }
+
+  .shell-home .headline { font-size: clamp(48px, 4.6vw, 64px); max-width: 12ch; }
+  .shell-home .stage { min-height: 300px; justify-content: center; padding: 40px 32px 28px; border-radius: 28px; }
+  .shell-home .stage-wave { height: 168px; }
+  .shell-home .stage-status { font-size: 15px; }
+  .shell-home .aside-note { display: block; font-size: 14px; color: var(--muted); max-width: 46ch; }
+
+  /* The step switch reads as the pane's tabs. */
+  .shell-home .steps { max-width: 360px; }
+  .shell-home .editor-input { min-height: 240px; max-height: min(52vh, 460px); }
+  .shell-home .chips { flex-wrap: wrap; overflow: visible; }
+
+  /* Hover states a mouse can use. */
+  .preset { transition: background 120ms; }
+  .preset:hover { background: var(--surface-strong); }
+  .btn-primary:hover:not(:disabled) { opacity: 0.88; }
+  .chip:hover:not(:disabled), .pill:hover:not(:disabled) { color: var(--ink); }
+
+  /* Long-form content: two readable columns instead of one stretched line. */
+  .shell-home .article {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(40px, 5vw, 72px); row-gap: 40px; padding-top: 48px;
+  }
+  .shell-home .article > section { max-width: 62ch; }
+  .shell-home .article > section:last-child { grid-column: 1 / -1; max-width: none; }
+  .shell-home .faq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(40px, 5vw, 72px); border-top: 0; }
+  .shell-home .faq details:nth-child(-n + 2) { border-top: 1px solid var(--hairline); }
+  .shell-home .faq details { align-self: start; }
+
+  /* Footer in one row. */
+  .shell-home .footer { display: grid; grid-template-columns: 1fr auto; column-gap: 40px; align-items: start; }
+  .shell-home .footer > p { grid-column: 1; }
+  .shell-home .footer > nav { grid-column: 2; justify-content: flex-end; padding-top: 0; }
+  .shell-home .footer > nav:first-of-type { grid-row: 1; }
+  .shell-home .footer > nav:last-of-type { grid-row: 2; }
+}
+
+/* Prose pages get a little more room on large screens, but keep a readable measure. */
+@media (min-width: 1024px) {
+  .shell:not(.shell-home) { max-width: 720px; }
+}

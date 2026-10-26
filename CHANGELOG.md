@@ -5,6 +5,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- Desktop (1024 px and wider): the home page uses two panes. The headline and the voice stage stay pinned on the left, and the current step is on the right. The stage is larger, and the privacy line sits under it.
+- Desktop: the article below the tool and the FAQ use two columns, the footer uses one row, and the script tags wrap instead of scrolling sideways. List rows and buttons have hover states.
+- About, Contact, Privacy and Terms are a little wider on desktop (720 px).
+- Phones and tablets look the same as before.
+
 ## [1.0.0-rc.3] - 2026-10-16
 
 ### Fixed

@@ -347,13 +347,19 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
         </div>
       </header>
 
-      <h1 className={base ? 'sr-only' : 'headline'}>{ui.headline}</h1>
+      {/* Desktop: the headline and stage stay pinned on the left while the steps scroll on the right. Phones: one column, as before. */}
+      <div className="tool-aside">
+        <h1 className={base ? 'sr-only' : 'headline'}>{ui.headline}</h1>
 
-      <section className="stage" aria-live="polite">
-        <Waveform mode={stage.mode} className="stage-wave" />
-        <div className="stage-status">{stage.text}</div>
-      </section>
+        <section className="stage" aria-live="polite">
+          <Waveform mode={stage.mode} className="stage-wave" />
+          <div className="stage-status">{stage.text}</div>
+        </section>
 
+        <p className="aside-note">{ui.privacyLine}</p>
+      </div>
+
+      <div className="tool-main">
       {!env.supported && <p className="note is-error">{ui.unsupported}</p>}
 
       {base && (
@@ -492,6 +498,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
           )}
         </>
       )}
+      </div>
     </div>
   )
 }
