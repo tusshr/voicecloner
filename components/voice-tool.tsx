@@ -529,21 +529,32 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
               <span className="voice-chip-text">{voiceSummary}</span>
               <ChevronDown size={14} className="voice-chip-caret" aria-hidden />
             </button>
-            {busy ? (
-              <button className={ringClass('btn btn-outline', busy.progress)} style={ringStyle(busy.progress)} onClick={stopGenerating}>
-                <Square size={14} /> {ui.stop}
-              </button>
-            ) : model === 'failed' ? (
-              <button className="btn btn-primary" onClick={() => void loadModel()}><RotateCcw size={14} /> {ui.retryModel}</button>
-            ) : modelLabel ? (
-              <button className={ringClass('btn btn-outline is-waiting', modelLabel.value)} style={ringStyle(modelLabel.value)} disabled aria-live="polite">
-                {modelLabel.label}
-              </button>
-            ) : (
-              <button className="btn btn-primary" onClick={onGenerate} disabled={!canGenerate}>
-                {ui.generate} <kbd className="kbd" aria-hidden>⌘↵</kbd>
-              </button>
-            )}
+            {/* One button, one size: its label and fill change, never its width. */}
+            {(() => {
+              const loading = !busy && model !== 'failed' && !!modelLabel
+              const progress = busy ? busy.progress : loading ? modelLabel!.value : undefined
+              const state = busy ? 'busy' : model === 'failed' ? 'failed' : loading ? 'loading' : 'idle'
+              const label = busy ? ui.stop
+                : state === 'failed' ? ui.retryModel
+                : loading ? (modelLabel!.value === undefined ? ui.loadingShort : `${ui.loadingShort} ${Math.round(modelLabel!.value * 100)}%`)
+                : ui.generate
+              return (
+                <button className="action-btn" data-state={state}
+                  style={{ '--p': progress ?? 0 } as React.CSSProperties}
+                  data-indeterminate={(busy || loading) && progress === undefined ? '' : undefined}
+                  title={loading ? modelLabel!.label : busy ? busy.label : undefined}
+                  aria-label={loading ? modelLabel!.label : undefined}
+                  disabled={state === 'idle' ? !canGenerate : state === 'loading'}
+                  onClick={state === 'busy' ? stopGenerating : state === 'failed' ? () => void loadModel() : onGenerate}>
+                  <span className="action-fill" aria-hidden />
+                  <span className="action-label">
+                    {state === 'busy' ? <Square size={14} /> : state === 'failed' ? <RotateCcw size={14} /> : null}
+                    {label}
+                  </span>
+                  {state === 'idle' && <kbd className="kbd" aria-hidden>⌘↵</kbd>}
+                </button>
+              )
+            })()}
           </div>
 
           <div className="output" aria-live="polite">
@@ -593,14 +604,16 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
           aria-labelledby="pane-voice-title" role={sheetOpen ? 'dialog' : undefined} aria-modal={sheetOpen || undefined}>
           <div className="sheet-grip" aria-hidden />
           <div className="pane-head">
-            <h2 id="pane-voice-title" className="sr-only">{ui.stepVoice}</h2>
+            <h2 id="pane-voice-title" className="pane-title">{ui.stepVoice}</h2>
+            <button className="btn btn-ghost btn-small sheet-done" onClick={() => setSheetOpen(false)}>{ui.done}</button>
+          </div>
+          <div className="tabs-row">
             <div className="tabs" role="tablist">
               <button role="tab" aria-selected={voiceTab === 'voices'} onClick={() => setVoiceTab('voices')}>{ui.voicesTab}</button>
               <button role="tab" aria-selected={voiceTab === 'moods'} onClick={() => setVoiceTab('moods')}>
                 {ui.moodsTitle}{Object.values(moods).some(Boolean) && <span className="tab-count">{Object.values(moods).filter(Boolean).length}</span>}
               </button>
             </div>
-            <button className="btn btn-ghost btn-small sheet-done" onClick={() => setSheetOpen(false)}>{ui.done}</button>
           </div>
 
           <div className="pane-body">

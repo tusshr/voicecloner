@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Changed
+- The Generate button keeps one size in every state (Generate, Loading 45%, Stop, Retry), so the action bar never moves. Progress fills the button with a lighter shade of its own color. The full status ("Preparing the model: 45%") is in its tooltip and screen-reader label.
+- Voice sheet: a "Voice" title with Done, and a full-width Voices / Moods switch below it.
 - Phones and tablets: the tool works like an app. An action bar at the bottom (in thumb reach) shows the voice and the Generate button. Tap the voice to open the Voice panel as a bottom sheet (grip, Done, tap outside or Escape to close). Picking a sample voice closes the sheet. Controls are at least 44 px high, and text is larger. The text card has no title bar.
 - Voice panel: Voices and Moods are tabs instead of a tall Moods section. The Moods tab shows how many moods are recorded. On desktop the panel no longer grows.
 - The warning about missing mood clips has a link that opens the Moods tab at the right mood.

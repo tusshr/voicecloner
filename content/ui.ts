@@ -5,6 +5,7 @@ export type UI = typeof en
 
 const en = {
   headline: 'Free text to voice and voice cloning',
+  loadingShort: 'Loading',
   recordMoods: 'Record a mood',
   voicesTab: 'Voices',
   done: 'Done',
@@ -101,6 +102,7 @@ const en = {
 
 const es: UI = {
   headline: 'Texto a voz y clonación de voz gratis',
+  loadingShort: 'Cargando',
   recordMoods: 'Grabar un estado de ánimo',
   voicesTab: 'Voces',
   done: 'Listo',
@@ -197,6 +199,7 @@ const es: UI = {
 
 const pt: UI = {
   headline: 'Texto para voz e clonagem de voz grátis',
+  loadingShort: 'Carregando',
   recordMoods: 'Gravar um humor',
   voicesTab: 'Vozes',
   done: 'Pronto',
@@ -293,6 +296,7 @@ const pt: UI = {
 
 const de: UI = {
   headline: 'Kostenlos: Text zu Sprache und Stimmen-Klonen',
+  loadingShort: 'Lädt',
   recordMoods: 'Stimmung aufnehmen',
   voicesTab: 'Stimmen',
   done: 'Fertig',
@@ -389,6 +393,7 @@ const de: UI = {
 
 const it: UI = {
   headline: 'Da testo a voce e clonazione vocale gratis',
+  loadingShort: 'Caricamento',
   recordMoods: 'Registra un umore',
   voicesTab: 'Voci',
   done: 'Fatto',
