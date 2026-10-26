@@ -6,6 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- Voice demos: every sample voice reads one line in each of the five languages (39 short MP3 files in public/demos, about 1.5 MB in total). The play button on a sample voice plays its demo in the speech language, and the empty result area has a Hear a demo button. Demos show with the read-along. People can hear the voices before the model downloads. The Spanish demo for Alba (merchant) is missing for now, so that voice plays its original recording. tools/make-demos.py makes the demos again.
 - Read-along: the newest take shows its text, and the words light up while it plays. Spoken words are in full color, the current word is marked, and the rest is dimmed. Click a sentence to play from there. The tool now speaks each sentence on its own and keeps its start and end times. Inside a sentence the word position is an estimate.
 - Emotion chips: the mood chips in the editor show an emoji (😊 Happy, 😢 Sad, 🤩 Excited, 😌 Calm, 🤫 Whisper) and insert tags such as [😊 happy]. Each mood has its own color in the text. The parser ignores emoji, so [happy] still works. The mood pills in the Voice panel show the same emoji.
 - Text to voice: you can type text and push Generate without a voice of your own. The first sample voice (Alba, casual) is the default.

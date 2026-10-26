@@ -5,6 +5,9 @@ export type UI = typeof en
 
 const en = {
   headline: 'Free text to voice and voice cloning',
+  playDemo: 'Hear a demo',
+  demoOf: 'Demo: {voice}',
+  demoHint: 'A ready-made demo, so you can hear the voice before the model downloads. Push Generate to hear your own text.',
   readAlong: 'Read along',
   subhead: 'Type text, pick a voice or clone your own, and download the audio. It runs in your browser, with no account.',
   textTitle: 'Text',
@@ -95,6 +98,9 @@ const en = {
 
 const es: UI = {
   headline: 'Texto a voz y clonación de voz gratis',
+  playDemo: 'Escuchar una demo',
+  demoOf: 'Demo: {voice}',
+  demoHint: 'Una demo ya hecha, para oír la voz antes de descargar el modelo. Pulsa Generar para oír tu propio texto.',
   readAlong: 'Lectura en voz alta',
   subhead: 'Escribe un texto, elige una voz o clona la tuya y descarga el audio. Funciona en tu navegador, sin cuenta.',
   textTitle: 'Texto',
@@ -185,6 +191,9 @@ const es: UI = {
 
 const pt: UI = {
   headline: 'Texto para voz e clonagem de voz grátis',
+  playDemo: 'Ouvir uma demonstração',
+  demoOf: 'Demonstração: {voice}',
+  demoHint: 'Uma demonstração pronta, para ouvir a voz antes de baixar o modelo. Toque em Gerar para ouvir o seu texto.',
   readAlong: 'Leitura acompanhada',
   subhead: 'Digite um texto, escolha uma voz ou clone a sua e baixe o áudio. Funciona no navegador, sem conta.',
   textTitle: 'Texto',
@@ -275,6 +284,9 @@ const pt: UI = {
 
 const de: UI = {
   headline: 'Kostenlos: Text zu Sprache und Stimmen-Klonen',
+  playDemo: 'Demo anhören',
+  demoOf: 'Demo: {voice}',
+  demoHint: 'Eine fertige Demo, damit du die Stimme hörst, bevor das Modell geladen wird. Tippe auf Erzeugen, um deinen eigenen Text zu hören.',
   readAlong: 'Mitlesen',
   subhead: 'Gib Text ein, wähle eine Stimme oder klone deine eigene und lade das Audio herunter. Läuft im Browser, ohne Konto.',
   textTitle: 'Text',
@@ -365,6 +377,9 @@ const de: UI = {
 
 const it: UI = {
   headline: 'Da testo a voce e clonazione vocale gratis',
+  playDemo: 'Ascolta una demo',
+  demoOf: 'Demo: {voice}',
+  demoHint: 'Una demo già pronta, per sentire la voce prima di scaricare il modello. Tocca Genera per sentire il tuo testo.',
   readAlong: 'Lettura guidata',
   subhead: 'Scrivi un testo, scegli una voce o clona la tua e scarica l’audio. Funziona nel browser, senza account.',
   textTitle: 'Testo',

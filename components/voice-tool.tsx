@@ -7,6 +7,7 @@ import { Waveform, type WaveMode } from '@/components/waveform'
 import { ScriptEditor } from '@/components/script-editor'
 import { attachMic, decodeToMono24k, detachMic, encodeWav, formatTime, player, SAMPLE_RATE } from '@/lib/audio-stage'
 import { applyGain, concat, fadeEdges, limitPeak, prepareVoiceSample, silence, timeStretch } from '@/lib/audio-fx'
+import { DEMO_LINES, demoUrl } from '@/lib/demos'
 import { MOOD_EMOJI, MOODS, parseScript, SPEED_FACTOR, splitSentences, VOLUME_GAIN, type Mood } from '@/lib/script'
 import { canRecord, createEngine, isLowPowerDevice, isSupported, StoppedError, type LoadProgress, type TTSEngine } from '@/lib/tts-engine'
 import { ENGINE_LANGUAGE, fmt, isLocale, LANGUAGE_NAMES, LOCALES, type Locale } from '@/lib/i18n'
@@ -82,8 +83,10 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   const [stopped, setStopped] = useState(false)
   const [takes, setTakes] = useState<Take[]>([])
   const [pendingGenerate, setPendingGenerate] = useState(false)
+  const [demo, setDemo] = useState<{ take: Take; preset: Preset } | null>(null)
 
   const engineRef = useRef<TTSEngine | null>(null)
+  const demoCacheRef = useRef(new Map<string, Take | null>())
   const modelLangRef = useRef<Locale | null>(null) // language the engine has (or is loading); null when idle or failed
   const loadTokenRef = useRef(0) // a newer load makes an older one's result stale
   const encodedRef = useRef(new Map<string, Float32Array>()) // voice name -> audio it was cloned from
@@ -202,13 +205,48 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
     return audio
   }
 
+  /** A ready-made demo of a sample voice reading one line in the speech language. Null when there is none. */
+  const loadDemo = async (preset: Preset, language: Locale): Promise<Take | null> => {
+    const key = `${language}:${preset.id}`
+    const cached = demoCacheRef.current.get(key)
+    if (cached !== undefined) return cached
+    let take: Take | null = null
+    try {
+      const response = await fetch(demoUrl(language, preset))
+      if (response.ok) {
+        const audio = await decodeToMono24k(await response.blob())
+        const line = DEMO_LINES[language]
+        // Sentence times are spread by length; the read-along only needs them roughly.
+        const sentences = splitSentences(line, language)
+        const total = seconds(audio)
+        let start = 0
+        const pieces = sentences.map((text) => {
+          const end = start + (total * text.length) / sentences.join('').length
+          const piece = { text, start, end }
+          start = end
+          return piece
+        })
+        take = { id: `preset-${preset.id}`, text: line, audio, pieces }
+      }
+    } catch (error) {
+      console.warn('[vocalis] demo', error)
+    }
+    demoCacheRef.current.set(key, take)
+    return take
+  }
+
+  /** Play a sample voice: its demo in the speech language if there is one, otherwise its original recording. */
   const previewPreset = async (preset: Preset) => {
     const id = `preset-${preset.id}`
     if (playback.playingId === id) { player.stop(); return }
     setVoiceError(null)
-    if (!presetAudioRef.current.has(preset.id)) setDecoding('base')
+    setDecoding('base')
     try {
-      player.play(id, await loadPresetAudio(preset))
+      const demoTake = await loadDemo(preset, speechLang)
+      if (demoTake) {
+        setDemo({ take: demoTake, preset })
+        player.play(id, demoTake.audio)
+      } else player.play(id, await loadPresetAudio(preset))
     } catch (error) {
       console.error('[vocalis] sample preview', error)
       setVoiceError(ui.errSample)
@@ -271,6 +309,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
     if (script === UI_STRINGS[speechLang].defaultScript) setScript(UI_STRINGS[next].defaultScript)
     setSpeechLang(next)
     setGenError(null)
+    if (demo) { player.stop(); setDemo(null) }
     // Load the new language only if a model is already in use, so changing the menu alone does not start a download.
     if (modelLangRef.current) void loadModel(next)
   }
@@ -501,10 +540,22 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
                   </div>
                 )}
               </>
+            ) : demo ? (
+              <div className="take">
+                <p className="label">{fmt(ui.demoOf, { voice: presetLabel(demo.preset, ui) })}</p>
+                <ReadAlong ui={ui} take={demo.take} playback={playback} lang={speechLang} />
+                <TakeRow ui={ui} take={demo.take} playback={playback} primary />
+                <p className="hint">{ui.demoHint}</p>
+              </div>
             ) : (
               <div className="stage">
                 <Waveform mode={stage.mode} className="stage-wave" />
                 <div className="stage-status">{stage.text ?? (model === 'idle' ? `${ui.firstRun}${env.lowPower ? ` ${ui.laptop}` : ''}` : ui.outputEmpty)}</div>
+                {!ownClip && !busy && (
+                  <button className="btn btn-outline btn-small" onClick={() => void previewPreset(base?.preset ?? PRESETS[0])}>
+                    <Play size={14} /> {ui.playDemo}
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -669,7 +720,7 @@ function PresetList({ ui, playback, disabled, selectedId, onPreview, onUse }: {
           const playing = playback.playingId === `preset-${preset.id}`
           const label = `${preset.name}, ${ui.styles[preset.style]}`
           return (
-            <li key={preset.id} className={preset.id === selectedId ? 'preset is-selected' : 'preset'}>
+            <li key={preset.id} data-id={preset.id} className={preset.id === selectedId ? 'preset is-selected' : 'preset'}>
               <button className={`preset-avatar tone-${index % 4}`} onClick={() => onPreview(preset)} disabled={disabled}
                 aria-label={`${playing ? ui.pause : ui.play}: ${label}`}>
                 {playing ? <Pause size={14} /> : <Play size={14} />}
