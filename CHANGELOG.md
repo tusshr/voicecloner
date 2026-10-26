@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Changed
+- Result player: Share and Download WAV are in a ⋮ menu, so the waveform has room. Export formats will go in the same menu.
+
+### Fixed
+- Phones: the page (and the Voice drawer) could be wider than the screen when the browser can share files, because the player row did not fit. The waveform now shrinks to the space it has, and the page can no longer scroll sideways.
+- The progress border had an extra white outline: our class name ("ring") was also a Tailwind utility. It is now "progress-ring", so only the running teal line shows.
+
+### Changed
 - Phones: the Voice panel is a Vaul drawer. Swipe the handle down, tap outside or push Done to close it. It has a fixed height, so switching tabs does not change its size, and it opens on the tab of the voice in use.
 - Voice panel tabs: Voices (all sample voices in one list, no Show all voices button) and My voice (record or upload, then moods). The list scrolls with no scrollbar and fades at an edge where there is more; the fade uses scroll events, so it works in Firefox.
 - Moods are for your own voice: the mood chips in the editor and the mood recorder appear after you add your voice.

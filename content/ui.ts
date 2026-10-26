@@ -5,6 +5,7 @@ export type UI = typeof en
 
 const en = {
   headline: 'Free text to voice and voice cloning',
+  moreActions: 'More actions',
   myVoiceTab: 'My voice',
   moodsAfterVoice: 'Add your voice first. Then you can record it in different moods.',
   loadingShort: 'Loading',
@@ -104,6 +105,7 @@ const en = {
 
 const es: UI = {
   headline: 'Texto a voz y clonación de voz gratis',
+  moreActions: 'Más acciones',
   myVoiceTab: 'Mi voz',
   moodsAfterVoice: 'Primero añade tu voz. Luego puedes grabarla en distintos estados de ánimo.',
   loadingShort: 'Cargando',
@@ -203,6 +205,7 @@ const es: UI = {
 
 const pt: UI = {
   headline: 'Texto para voz e clonagem de voz grátis',
+  moreActions: 'Mais ações',
   myVoiceTab: 'Minha voz',
   moodsAfterVoice: 'Primeiro adicione sua voz. Depois você pode gravá-la em humores diferentes.',
   loadingShort: 'Carregando',
@@ -302,6 +305,7 @@ const pt: UI = {
 
 const de: UI = {
   headline: 'Kostenlos: Text zu Sprache und Stimmen-Klonen',
+  moreActions: 'Weitere Aktionen',
   myVoiceTab: 'Meine Stimme',
   moodsAfterVoice: 'Füge zuerst deine Stimme hinzu. Dann kannst du sie in verschiedenen Stimmungen aufnehmen.',
   loadingShort: 'Lädt',
@@ -401,6 +405,7 @@ const de: UI = {
 
 const it: UI = {
   headline: 'Da testo a voce e clonazione vocale gratis',
+  moreActions: 'Altre azioni',
   myVoiceTab: 'La mia voce',
   moodsAfterVoice: 'Prima aggiungi la tua voce. Poi puoi registrarla con umori diversi.',
   loadingShort: 'Caricamento',

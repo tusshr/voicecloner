@@ -2,7 +2,7 @@
 
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { Check, ChevronDown, Download, Languages, Mic, Pause, Play, Plus, RotateCcw, Share2, Square, Upload, X } from 'lucide-react'
+import { Check, ChevronDown, Download, EllipsisVertical, Languages, Mic, Pause, Play, Plus, RotateCcw, Share2, Square, Upload, X } from 'lucide-react'
 import { Drawer } from 'vaul'
 import { Waveform, type WaveMode } from '@/components/waveform'
 import { ScriptEditor } from '@/components/script-editor'
@@ -792,7 +792,7 @@ function PlayButton({ ui, id, audio, playback, primary }: { ui: UI; id: string; 
 type Progress = { label: string; value?: number }
 
 /** Border progress, like a file upload: `value` 0–1 fills the border, undefined spins. */
-const ringClass = (base: string, value?: number) => `${base} ring${value === undefined ? ' is-indeterminate' : ''}`
+const ringClass = (base: string, value?: number) => `${base} progress-ring${value === undefined ? ' is-indeterminate' : ''}`
 const ringStyle = (value?: number) => (value === undefined ? undefined : ({ '--p': Math.max(0.02, value) } as React.CSSProperties))
 
 function ClipRow({ ui, id, title, audio, playback, onRemove, disabled, progress }: {
@@ -863,8 +863,10 @@ function TakeRow({ ui, take, playback, primary }: { ui: UI; take: Take; playback
         ))}
       </div>
       <span className="time">{formatTime(active ? playback.position : duration)}</span>
-      {shareable && <button className="icon-btn" aria-label={ui.share} onClick={() => void share()}><Share2 size={16} /></button>}
-      <button className="icon-btn" aria-label={ui.downloadWav} onClick={download}><Download size={16} /></button>
+      <TakeMenu ui={ui} items={[
+        ...(shareable ? [{ label: ui.share, icon: <Share2 size={16} />, run: () => void share() }] : []),
+        { label: ui.downloadWav, icon: <Download size={16} />, run: download },
+      ]} />
     </div>
   )
 }
@@ -913,4 +915,34 @@ function ScrollFade({ className, children }: { className?: string; children: Rea
     return () => observer.disconnect()
   })
   return <div ref={ref} className={`scroll-fade ${className ?? ''}`} onScroll={update}>{children}</div>
+}
+
+/** A small "more" menu for a take (share, download); more export formats go here later. */
+function TakeMenu({ ui, items }: { ui: UI; items: { label: string; icon: React.ReactNode; run: () => void }[] }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const onDown = (event: PointerEvent) => { if (!ref.current?.contains(event.target as Node)) setOpen(false) }
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false) }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey) }
+  }, [open])
+  return (
+    <div ref={ref} className="menu">
+      <button className="icon-btn" aria-label={ui.moreActions} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(!open)}>
+        <EllipsisVertical size={18} />
+      </button>
+      {open && (
+        <div className="menu-list" role="menu">
+          {items.map((item) => (
+            <button key={item.label} role="menuitem" className="menu-item" onClick={() => { setOpen(false); item.run() }}>
+              {item.icon}{item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
