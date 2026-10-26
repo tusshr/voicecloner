@@ -11,9 +11,10 @@ type Chip = { label: string; tag: string; muted?: boolean; emoji?: string; mood?
 
 /** Textarea with tag highlighting (mirrored backdrop) and a row of insert chips. */
 export function ScriptEditor({
-  ui, value, onChange, disabled, moodsWithClips, maxLength, onSubmit, onFocus,
+  ui, value, onChange, disabled, moodsWithClips, maxLength, onSubmit, onFocus, showMoods = true,
 }: {
   ui: UI
+  showMoods?: boolean
   onSubmit?: () => void
   onFocus?: () => void
   value: string
@@ -93,7 +94,7 @@ export function ScriptEditor({
         />
       </div>
       <div className="chips" role="toolbar" aria-label={ui.insertTag}>
-        {moodChips.map((chip) => (
+        {showMoods && moodChips.map((chip) => (
           <button key={chip.tag} type="button" disabled={disabled}
             className={`chip chip-mood mood-${chip.mood}${chip.muted ? ' is-fallback' : ''}`}
             title={chip.muted ? fmt(ui.noMoodClip, { mood: chip.label.toLowerCase() }) : fmt(ui.insertThis, { tag: chip.tag })}
@@ -101,7 +102,7 @@ export function ScriptEditor({
             <span aria-hidden>{chip.emoji}</span> {chip.label}
           </button>
         ))}
-        <span className="chips-divider" aria-hidden />
+        {showMoods && <span className="chips-divider" aria-hidden />}
         {chips.map((chip) => (
           <button key={chip.tag} type="button" disabled={disabled} className="chip"
             title={fmt(ui.insertThis, { tag: chip.tag })} onClick={() => insert(chip.tag)}>

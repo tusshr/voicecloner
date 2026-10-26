@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Check, ChevronDown, Download, Languages, Mic, Pause, Play, Plus, RotateCcw, Share2, Square, Upload, X } from 'lucide-react'
+import { Drawer } from 'vaul'
 import { Waveform, type WaveMode } from '@/components/waveform'
 import { ScriptEditor } from '@/components/script-editor'
 import { attachMic, decodeToMono24k, detachMic, encodeWav, formatTime, player, SAMPLE_RATE } from '@/lib/audio-stage'
@@ -84,30 +85,27 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   const [takes, setTakes] = useState<Take[]>([])
   const [pendingGenerate, setPendingGenerate] = useState(false)
   const [demo, setDemo] = useState<{ take: Take; preset: Preset } | null>(null)
-  // Voice panel: a tab for voices and one for moods. On phones it is a bottom sheet opened from the action bar.
-  const [voiceTab, setVoiceTab] = useState<'voices' | 'moods'>('voices')
+  // Voice panel: sample voices in one tab, your own voice (and its moods) in the other. On phones it is a drawer.
+  const [voiceTab, setVoiceTab] = useState<'voices' | 'mine'>('voices')
   const [sheetOpen, setSheetOpen] = useState(false)
-  const isSheet = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
-  const openVoices = (tab: 'voices' | 'moods' = 'voices') => {
+  const isPhone = useMediaQuery('(max-width: 1023px)')
+  const openVoices = (tab: 'voices' | 'mine' = 'voices') => {
     setVoiceTab(tab)
-    if (isSheet()) setSheetOpen(true)
+    if (isPhone) setSheetOpen(true)
     else document.getElementById('pane-voice')?.focus({ preventScroll: true })
   }
-  useEffect(() => {
-    if (!sheetOpen) return
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setSheetOpen(false) }
-    const onResize = () => { if (!isSheet()) setSheetOpen(false) }
-    document.documentElement.classList.add('sheet-lock')
-    window.addEventListener('keydown', onKey)
-    window.addEventListener('resize', onResize)
-    return () => {
-      document.documentElement.classList.remove('sheet-lock')
-      window.removeEventListener('keydown', onKey)
-      window.removeEventListener('resize', onResize)
+  /** Closing the drawer never leaves the microphone on: a long enough recording is kept, a short one is dropped. */
+  const onSheetChange = (open: boolean) => {
+    if (!open && recording) {
+      if (recording.elapsed >= MIN_SECONDS) stopRecording()
+      else cancelRecording()
     }
-  }, [sheetOpen])
+    setSheetOpen(open)
+  }
+  useEffect(() => { if (!isPhone) setSheetOpen(false) }, [isPhone])
 
   const engineRef = useRef<TTSEngine | null>(null)
+  const cancelledRef = useRef(false)
   const demoCacheRef = useRef(new Map<string, Take | null>())
   const modelLangRef = useRef<Locale | null>(null) // language the engine has (or is loading); null when idle or failed
   const loadTokenRef = useRef(0) // a newer load makes an older one's result stale
@@ -176,6 +174,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
       stream.getTracks().forEach((track) => track.stop())
       recorderRef.current = null
       setRecording(null)
+      if (cancelledRef.current) { cancelledRef.current = false; return }
       setDecoding(target)
       try {
         acceptAudio(target, await decodeToMono24k(new Blob(chunks, { type: recorder.mimeType })), 'mic')
@@ -192,6 +191,12 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   }
 
   const stopRecording = () => { if (recorderRef.current?.state === 'recording') recorderRef.current.stop() }
+  /** Stop and throw the recording away. */
+  const cancelRecording = () => {
+    if (recorderRef.current?.state !== 'recording') return
+    cancelledRef.current = true
+    recorderRef.current.stop()
+  }
 
   const pickFile = (target: Target) => {
     warmUp()
@@ -464,6 +469,88 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   const modelLabel = pendingGenerate || model === 'loading' ? modelProgress : undefined
   const voiceSummary = base ? clipTitle(base) : presetLabel(PRESETS[0], ui)
 
+  const moodCount = MOODS.filter((mood) => moods[mood]).length
+  const voicePanel = (
+    <>
+      <div className="tabs-row">
+        <div className="tabs" role="tablist">
+          <button role="tab" aria-selected={voiceTab === 'voices'} onClick={() => setVoiceTab('voices')}>{ui.voicesTab}</button>
+          <button role="tab" aria-selected={voiceTab === 'mine'} onClick={() => setVoiceTab('mine')}>
+            {ui.myVoiceTab}{(ownClip || moodCount > 0) && <span className="tab-dot" aria-hidden />}
+          </button>
+        </div>
+      </div>
+      <ScrollFade className="panel-scroll">
+        {voiceTab === 'voices' ? (
+          <PresetList ui={ui} playback={playback} disabled={voiceBlocked || !!busy} selectedId={selectedPreset}
+            onPreview={(preset) => void previewPreset(preset)}
+            onUse={(preset) => { void pickPreset(preset); setSheetOpen(false) }} />
+        ) : (
+          <>
+            <section className="section">
+              <h3 className="label">{ui.cloneTitle}</h3>
+              {recording?.target === 'base' ? (
+                <RecordingPanel ui={ui} text={speechUi.readAloud.base} elapsed={recording.elapsed} onStop={stopRecording} />
+              ) : ownClip ? (
+                <ClipRow ui={ui} id="clip-base" title={clipTitle(ownClip)} audio={ownClip.audio} playback={playback} onRemove={() => setClip('base', null)} disabled={voiceBlocked} />
+              ) : (
+                <>
+                  <div className="btn-row">
+                    <button className="btn btn-outline" onClick={() => startRecording('base')} disabled={voiceBlocked || !env.recordable}><Mic size={16} /> {ui.record}</button>
+                    <button className="btn btn-outline" onClick={() => pickFile('base')} disabled={voiceBlocked}><Upload size={16} /> {ui.upload}</button>
+                  </div>
+                  <p className="hint">{ui.sampleHint}</p>
+                </>
+              )}
+              {usesOwnAudio && (
+                <label className="check">
+                  <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+                  <span>{ui.consent}</span>
+                </label>
+              )}
+              {voiceError && <p className="note is-error" role="alert">{voiceError}</p>}
+            </section>
+
+            <section className="section moods-section">
+              <h3 className="label">{ui.moodsTitle}</h3>
+              {!ownClip ? (
+                <p className="hint">{ui.moodsAfterVoice}</p>
+              ) : (
+                <>
+                  <p className="hint">{ui.moodsHint}</p>
+                  <div className="pills">
+                    {MOODS.map((mood) => (
+                      <button key={mood} disabled={voiceBlocked} aria-expanded={openMood === mood}
+                        className={moods[mood] ? 'pill is-set' : openMood === mood ? 'pill is-open' : 'pill'}
+                        onClick={() => setOpenMood(openMood === mood ? null : mood)}>
+                        {moods[mood] ? <Check size={14} /> : <Plus size={14} />} <span aria-hidden>{MOOD_EMOJI[mood]}</span> {ui.moods[mood]}
+                      </button>
+                    ))}
+                  </div>
+                  {openMood && (recording?.target === openMood ? (
+                    <RecordingPanel ui={ui} text={speechUi.readAloud[openMood]} elapsed={recording.elapsed} onStop={stopRecording} mood={openMood} />
+                  ) : moods[openMood] ? (
+                    <ClipRow ui={ui} id={`clip-${openMood}`} title={ui.moods[openMood]} audio={moods[openMood]!.audio} playback={playback}
+                      onRemove={() => setClip(openMood, null)} disabled={voiceBlocked} />
+                  ) : (
+                    <div className="section recording">
+                      <p className="read-aloud">{speechUi.readAloud[openMood]}</p>
+                      <p className="hint">{fmt(ui.readThis, { how: ui.moodHow[openMood] })}</p>
+                      <div className="btn-row">
+                        <button className="btn btn-outline" onClick={() => startRecording(openMood)} disabled={voiceBlocked || !env.recordable}><Mic size={16} /> {ui.record}</button>
+                        <button className="btn btn-outline" onClick={() => pickFile(openMood)} disabled={voiceBlocked}><Upload size={16} /> {ui.upload}</button>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </section>
+          </>
+        )}
+      </ScrollFade>
+    </>
+  )
+
   return (
     <div className="tool">
       <header className="topbar">
@@ -505,7 +592,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
           <div className="pane-body">
             <ScriptEditor ui={ui} value={script} onChange={setScript} disabled={!!busy} maxLength={SCRIPT_LIMIT} onSubmit={onGenerate}
-              moodsWithClips={MOODS.filter((mood) => moods[mood])} onFocus={warmUp} />
+              moodsWithClips={MOODS.filter((mood) => moods[mood])} showMoods={!!ownClip} onFocus={warmUp} />
             <div className="meta">
               <span>{script !== speechUi.defaultScript && <button className="link" onClick={() => setScript(speechUi.defaultScript)} disabled={!!busy}>{ui.resetExample}</button>}</span>
               <span>{script.length} / {SCRIPT_LIMIT}</span>
@@ -514,7 +601,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
             {missingMoods.length > 0 && (
               <p className="note is-warn">
                 {fmt(ui.missingMoods, { moods: missingMoods.map((mood) => ui.moods[mood].toLowerCase()).join(', ') })}{' '}
-                <button className="link" onClick={() => { setOpenMood(missingMoods[0]); openVoices('moods') }}>{ui.recordMoods}</button>
+                <button className="link" onClick={() => { setOpenMood(missingMoods[0]); openVoices('mine') }}>{ui.recordMoods}</button>
               </p>
             )}
             {parsed.unknownTags.length > 0 && (
@@ -524,33 +611,30 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
           <div className="pane-foot">
             <button className="voice-chip" title={voiceSummary} aria-label={`${ui.stepVoice}: ${voiceSummary}`}
-              aria-haspopup="dialog" onClick={() => openVoices()}>
+              aria-haspopup="dialog" onClick={() => openVoices(base && base.source !== 'preset' ? 'mine' : voiceTab)}>
               <span className={`dot tone-${Math.max(0, PRESETS.findIndex((preset) => preset.id === (base?.preset?.id ?? PRESETS[0].id))) % 4}${ownClip ? ' is-own' : ''}`} aria-hidden />
               <span className="voice-chip-text">{voiceSummary}</span>
               <ChevronDown size={14} className="voice-chip-caret" aria-hidden />
             </button>
-            {/* One button, one size: its label and fill change, never its width. */}
+            {/* One button, one size: the label changes and a ring runs round the border, but the width never does. */}
             {(() => {
               const loading = !busy && model !== 'failed' && !!modelLabel
               const progress = busy ? busy.progress : loading ? modelLabel!.value : undefined
               const state = busy ? 'busy' : model === 'failed' ? 'failed' : loading ? 'loading' : 'idle'
               const label = busy ? ui.stop
                 : state === 'failed' ? ui.retryModel
-                : loading ? (modelLabel!.value === undefined ? ui.loadingShort : `${ui.loadingShort} ${Math.round(modelLabel!.value * 100)}%`)
+                : loading ? (modelLabel!.value === undefined ? ui.loadingShort : `${Math.round(modelLabel!.value * 100)}%`)
                 : ui.generate
+              const working = state === 'busy' || state === 'loading'
               return (
-                <button className="action-btn" data-state={state}
-                  style={{ '--p': progress ?? 0 } as React.CSSProperties}
-                  data-indeterminate={(busy || loading) && progress === undefined ? '' : undefined}
+                <button className={working ? ringClass('action-btn is-working', progress) : 'action-btn'} data-state={state}
+                  style={working ? ringStyle(progress) : undefined}
                   title={loading ? modelLabel!.label : busy ? busy.label : undefined}
                   aria-label={loading ? modelLabel!.label : undefined}
                   disabled={state === 'idle' ? !canGenerate : state === 'loading'}
                   onClick={state === 'busy' ? stopGenerating : state === 'failed' ? () => void loadModel() : onGenerate}>
-                  <span className="action-fill" aria-hidden />
-                  <span className="action-label">
-                    {state === 'busy' ? <Square size={14} /> : state === 'failed' ? <RotateCcw size={14} /> : null}
-                    {label}
-                  </span>
+                  {state === 'busy' ? <Square size={14} /> : state === 'failed' ? <RotateCcw size={14} /> : null}
+                  <span className="action-label">{label}</span>
                   {state === 'idle' && <kbd className="kbd" aria-hidden>⌘↵</kbd>}
                 </button>
               )
@@ -567,7 +651,6 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
             {takes.length > 0 ? (
               <>
                 <div id="latest-take" className="take">
-                  <ReadAlong ui={ui} take={takes[0]} playback={playback} lang={speechLang} />
                   <TakeRow ui={ui} take={takes[0]} playback={playback} primary />
                 </div>
                 {takes.length > 1 && (
@@ -580,7 +663,6 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
             ) : demo ? (
               <div className="take">
                 <p className="label">{fmt(ui.demoOf, { voice: presetLabel(demo.preset, ui) })}</p>
-                <ReadAlong ui={ui} take={demo.take} playback={playback} lang={speechLang} />
                 <TakeRow ui={ui} take={demo.take} playback={playback} primary />
                 <p className="hint">{ui.demoHint}</p>
               </div>
@@ -598,89 +680,33 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
           </div>
         </section>
 
-        {/* ---------- voice: clone one or pick a sample; moods in their own tab. A bottom sheet on phones. ---------- */}
-        {sheetOpen && <div className="sheet-backdrop" onClick={() => setSheetOpen(false)} aria-hidden />}
-        <aside id="pane-voice" tabIndex={-1} className={sheetOpen ? 'pane pane-voice is-open' : 'pane pane-voice'}
-          aria-labelledby="pane-voice-title" role={sheetOpen ? 'dialog' : undefined} aria-modal={sheetOpen || undefined}>
-          <div className="sheet-grip" aria-hidden />
-          <div className="pane-head">
-            <h2 id="pane-voice-title" className="pane-title">{ui.stepVoice}</h2>
-            <button className="btn btn-ghost btn-small sheet-done" onClick={() => setSheetOpen(false)}>{ui.done}</button>
-          </div>
-          <div className="tabs-row">
-            <div className="tabs" role="tablist">
-              <button role="tab" aria-selected={voiceTab === 'voices'} onClick={() => setVoiceTab('voices')}>{ui.voicesTab}</button>
-              <button role="tab" aria-selected={voiceTab === 'moods'} onClick={() => setVoiceTab('moods')}>
-                {ui.moodsTitle}{Object.values(moods).some(Boolean) && <span className="tab-count">{Object.values(moods).filter(Boolean).length}</span>}
-              </button>
+        {/* ---------- voice: a pane on desktop, a drawer on phones; same content ---------- */}
+        {!isPhone && (
+          <aside id="pane-voice" tabIndex={-1} className="pane pane-voice" aria-labelledby="pane-voice-title">
+            {/* Absolutely filled, so the pane takes the text pane's height instead of setting its own. */}
+            <div className="pane-fill">
+              <div className="pane-head"><h2 id="pane-voice-title" className="pane-title">{ui.stepVoice}</h2></div>
+              {voicePanel}
             </div>
-          </div>
-
-          <div className="pane-body">
-            {voiceTab === 'voices' ? (
-              <>
-                <section className="section">
-                  <h3 className="label">{ui.cloneTitle}</h3>
-                  {recording?.target === 'base' ? (
-                    <RecordingPanel ui={ui} text={speechUi.readAloud.base} elapsed={recording.elapsed} onStop={stopRecording} />
-                  ) : ownClip ? (
-                    <ClipRow ui={ui} id="clip-base" title={clipTitle(ownClip)} audio={ownClip.audio} playback={playback} onRemove={() => setClip('base', null)} disabled={voiceBlocked} />
-                  ) : (
-                    <>
-                      <div className="btn-row">
-                        <button className="btn btn-outline" onClick={() => startRecording('base')} disabled={voiceBlocked || !env.recordable}><Mic size={16} /> {ui.record}</button>
-                        <button className="btn btn-outline" onClick={() => pickFile('base')} disabled={voiceBlocked}><Upload size={16} /> {ui.upload}</button>
-                      </div>
-                      <p className="hint">{ui.sampleHint}</p>
-                    </>
-                  )}
-                  {usesOwnAudio && (
-                    <label className="check">
-                      <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
-                      <span>{ui.consent}</span>
-                    </label>
-                  )}
-                  {voiceError && <p className="note is-error" role="alert">{voiceError}</p>}
-                </section>
-
-                {!ownClip && recording?.target !== 'base' && (
-                  <PresetList ui={ui} playback={playback} disabled={voiceBlocked || !!busy} selectedId={selectedPreset}
-                    onPreview={(preset) => void previewPreset(preset)}
-                    onUse={(preset) => { void pickPreset(preset); setSheetOpen(false) }} />
-                )}
-              </>
-            ) : (
-              <section className="section">
-                <p className="hint">{ui.moodsHint}</p>
-                <div className="pills">
-                  {MOODS.map((mood) => (
-                    <button key={mood} disabled={voiceBlocked} aria-expanded={openMood === mood}
-                      className={moods[mood] ? 'pill is-set' : openMood === mood ? 'pill is-open' : 'pill'}
-                      onClick={() => setOpenMood(openMood === mood ? null : mood)}>
-                      {moods[mood] ? <Check size={14} /> : <Plus size={14} />} <span aria-hidden>{MOOD_EMOJI[mood]}</span> {ui.moods[mood]}
-                    </button>
-                  ))}
-                </div>
-                {openMood && (recording?.target === openMood ? (
-                  <RecordingPanel ui={ui} text={speechUi.readAloud[openMood]} elapsed={recording.elapsed} onStop={stopRecording} mood={openMood} />
-                ) : moods[openMood] ? (
-                  <ClipRow ui={ui} id={`clip-${openMood}`} title={ui.moods[openMood]} audio={moods[openMood]!.audio} playback={playback}
-                    onRemove={() => setClip(openMood, null)} disabled={voiceBlocked} />
-                ) : (
-                  <div className="section recording">
-                    <p className="read-aloud">{speechUi.readAloud[openMood]}</p>
-                    <p className="hint">{fmt(ui.readThis, { how: ui.moodHow[openMood] })}</p>
-                    <div className="btn-row">
-                      <button className="btn btn-outline" onClick={() => startRecording(openMood)} disabled={voiceBlocked || !env.recordable}><Mic size={16} /> {ui.record}</button>
-                      <button className="btn btn-outline" onClick={() => pickFile(openMood)} disabled={voiceBlocked}><Upload size={16} /> {ui.upload}</button>
-                    </div>
-                  </div>
-                ))}
-              </section>
-            )}
-          </div>
-        </aside>
+          </aside>
+        )}
       </div>
+
+      {isPhone && (
+        <Drawer.Root open={sheetOpen} onOpenChange={onSheetChange}>
+          <Drawer.Portal>
+            <Drawer.Overlay className="sheet-backdrop" />
+            <Drawer.Content className="sheet" aria-describedby={undefined}>
+              <Drawer.Handle className="sheet-handle" />
+              <div className="sheet-head">
+                <Drawer.Title className="sheet-title">{ui.stepVoice}</Drawer.Title>
+                <button className="btn btn-ghost btn-small sheet-done" onClick={() => onSheetChange(false)}>{ui.done}</button>
+              </div>
+              {voicePanel}
+            </Drawer.Content>
+          </Drawer.Portal>
+        </Drawer.Root>
+      )}
 
       <p className="privacy-line">{ui.privacyLine}</p>
     </div>
@@ -689,85 +715,20 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
 /* ---------------- pieces ---------------- */
 
-/**
- * The text of a take, lit up as it plays: spoken words in full color, the current word marked, the rest dimmed.
- * Each sentence's start and end are known; inside a sentence the position is estimated from the time and snapped to a word.
- * Click a sentence to play from there.
- */
-function ReadAlong({ ui, take, playback, lang }: { ui: UI; take: Take; playback: Playback; lang: string }) {
-  const boxRef = useRef<HTMLDivElement>(null)
-  const currentRef = useRef<HTMLElement>(null)
-  const { pieces } = take
-  const active = playback.activeId === take.id && (playback.playingId === take.id || playback.position > 0)
-  const t = playback.position
-
-  let index = -1
-  let wordStart = 0
-  let wordEnd = 0
-  if (active && pieces.length) {
-    index = pieces.findIndex((piece) => t < piece.end)
-    if (index === -1) index = pieces.length
-    else if (t >= pieces[index].start) {
-      const piece = pieces[index]
-      const fraction = Math.min(1, Math.max(0, (t - piece.start) / Math.max(0.01, piece.end - piece.start)))
-      const space = piece.text.indexOf(' ', Math.round(piece.text.length * fraction))
-      wordEnd = space === -1 ? piece.text.length : space
-      wordStart = piece.text.lastIndexOf(' ', wordEnd - 1) + 1
-    } else index -= 0.5 // in a pause before this sentence: the earlier ones are spoken, this one is not
-  }
-
-  // Keep the current line in view inside the box (not the page).
-  useEffect(() => {
-    const box = boxRef.current
-    const current = currentRef.current
-    if (!box || !current) return
-    const top = current.offsetTop - box.offsetTop
-    if (top < box.scrollTop || top > box.scrollTop + box.clientHeight - 32) box.scrollTop = Math.max(0, top - box.clientHeight / 3)
-  }, [Math.floor(index), wordStart])
-
-  const seekTo = (piece: Piece) => player.seek(take.id, take.audio, piece.start / seconds(take.audio))
-
-  return (
-    <div ref={boxRef} className={active ? 'read-along is-active' : 'read-along'} lang={lang} aria-label={ui.readAlong}>
-      {pieces.map((piece, i) => {
-        const state = !active ? '' : i < index ? ' is-spoken' : i > index ? ' is-upcoming' : ' is-current'
-        const isCurrent = active && i === index
-        return (
-          <span key={i} className={`ra-piece${state}`} onClick={() => seekTo(piece)}>
-            {isCurrent ? (
-              <>
-                <span className="ra-spoken">{piece.text.slice(0, wordStart)}</span>
-                <mark ref={currentRef as React.RefObject<HTMLElement>} className="ra-word">{piece.text.slice(wordStart, wordEnd)}</mark>
-                <span className="ra-rest">{piece.text.slice(wordEnd)}</span>
-              </>
-            ) : piece.text}{' '}
-          </span>
-        )
-      })}
-    </div>
-  )
-}
-
-
-/** "voice-clone-hello-i-recorded-this.wav": the first words of the script, without tags. */
 function fileName(text: string) {
   const words = text.replace(/\[[^\]]*\]/g, ' ').toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []
   const slug = words.slice(0, 5).join('-').slice(0, 40)
   return `voice-clone${slug ? `-${slug}` : ''}.wav`
 }
 
-const FIRST_PRESETS = 4
-
 function PresetList({ ui, playback, disabled, selectedId, onPreview, onUse }: {
   ui: UI; playback: Playback; disabled: boolean; selectedId?: string; onPreview: (preset: Preset) => void; onUse: (preset: Preset) => void
 }) {
-  const [showAll, setShowAll] = useState(false)
-  const shown = showAll ? PRESETS : PRESETS.slice(0, FIRST_PRESETS)
   return (
     <section className="presets" aria-labelledby="presets-title">
       <h3 id="presets-title" className="label">{ui.sampleTitle}</h3>
       <ul className="preset-list">
-        {shown.map((preset, index) => {
+        {PRESETS.map((preset, index) => {
           const playing = playback.playingId === `preset-${preset.id}`
           const label = `${preset.name}, ${ui.styles[preset.style]}`
           return (
@@ -790,9 +751,6 @@ function PresetList({ ui, playback, disabled, selectedId, onPreview, onUse }: {
           )
         })}
       </ul>
-      {!showAll && (
-        <button className="btn btn-ghost btn-small btn-more" onClick={() => setShowAll(true)}>{ui.showAll}</button>
-      )}
     </section>
   )
 }
@@ -854,7 +812,9 @@ function ClipRow({ ui, id, title, audio, playback, onRemove, disabled, progress 
 
 function TakeRow({ ui, take, playback, primary }: { ui: UI; take: Take; playback: Playback; primary?: boolean }) {
   const duration = seconds(take.audio)
-  const fraction = playback.playingId === take.id && playback.duration ? playback.position / playback.duration : 0
+  const active = playback.activeId === take.id && (playback.playingId === take.id || playback.position > 0)
+  const fraction = active && playback.duration ? playback.position / playback.duration : 0
+  const peaks = useMemo(() => wavePeaks(take.audio, 48), [take.audio])
 
   const name = fileName(take.text)
   const download = () => {
@@ -888,7 +848,7 @@ function TakeRow({ ui, take, playback, primary }: { ui: UI; take: Take; playback
   return (
     <div className="row">
       <PlayButton ui={ui} id={take.id} audio={take.audio} playback={playback} primary />
-      <div className="track" role="slider" aria-label={ui.seek} tabIndex={0}
+      <div className="track wavebars" role="slider" aria-label={ui.seek} tabIndex={0}
         aria-valuemin={0} aria-valuemax={Math.round(duration)} aria-valuenow={Math.round(fraction * duration)}
         onClick={(event) => {
           const rect = event.currentTarget.getBoundingClientRect()
@@ -898,11 +858,59 @@ function TakeRow({ ui, take, playback, primary }: { ui: UI; take: Take; playback
           const delta = event.key === 'ArrowRight' ? 0.05 : event.key === 'ArrowLeft' ? -0.05 : 0
           if (delta) player.seek(take.id, take.audio, fraction + delta)
         }}>
-        <div className="track-bar"><div className="track-fill" style={{ width: `${fraction * 100}%` }} /></div>
+        {peaks.map((peak, i) => (
+          <span key={i} className={i / peaks.length < fraction ? 'bar is-played' : 'bar'} style={{ height: `${Math.max(12, peak * 100)}%` }} />
+        ))}
       </div>
-      <span className="time">{formatTime(playback.playingId === take.id ? playback.position : duration)}</span>
+      <span className="time">{formatTime(active ? playback.position : duration)}</span>
       {shareable && <button className="icon-btn" aria-label={ui.share} onClick={() => void share()}><Share2 size={16} /></button>}
       <button className="icon-btn" aria-label={ui.downloadWav} onClick={download}><Download size={16} /></button>
     </div>
   )
+}
+
+/** Loudness of the audio in `count` buckets, 0–1, for the voice-message style waveform. */
+function wavePeaks(audio: Float32Array, count: number) {
+  const size = Math.max(1, Math.floor(audio.length / count))
+  const peaks: number[] = []
+  for (let i = 0; i < count; i++) {
+    let sum = 0
+    for (let j = i * size; j < Math.min(audio.length, (i + 1) * size); j++) sum += audio[j] * audio[j]
+    peaks.push(Math.sqrt(sum / size))
+  }
+  const max = Math.max(...peaks, 1e-6)
+  return peaks.map((peak) => Math.pow(peak / max, 0.7))
+}
+
+function useMediaQuery(query: string) {
+  const subscribe = useCallback((notify: () => void) => {
+    const list = window.matchMedia(query)
+    list.addEventListener('change', notify)
+    return () => list.removeEventListener('change', notify)
+  }, [query])
+  return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches, () => false)
+}
+
+/**
+ * A scroll area with no scrollbar that fades out at the edge where more content is hidden.
+ * Plain scroll events (not scroll-driven animations), so the fade also works in Firefox.
+ */
+function ScrollFade({ className, children }: { className?: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const update = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    el.dataset.fadeTop = el.scrollTop > 2 ? 'true' : 'false'
+    el.dataset.fadeBottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2 ? 'true' : 'false'
+  }, [])
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(el)
+    for (const child of Array.from(el.children)) observer.observe(child)
+    return () => observer.disconnect()
+  })
+  return <div ref={ref} className={`scroll-fade ${className ?? ''}`} onScroll={update}>{children}</div>
 }

@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Changed
+- Phones: the Voice panel is a Vaul drawer. Swipe the handle down, tap outside or push Done to close it. It has a fixed height, so switching tabs does not change its size, and it opens on the tab of the voice in use.
+- Voice panel tabs: Voices (all sample voices in one list, no Show all voices button) and My voice (record or upload, then moods). The list scrolls with no scrollbar and fades at an edge where there is more; the fade uses scroll events, so it works in Firefox.
+- Moods are for your own voice: the mood chips in the editor and the mood recorder appear after you add your voice.
+- The result player is a voice-message style waveform (tap to seek). The read-along text box is removed.
+- The Generate button has the running border again while it loads or generates. It keeps one size in every state.
+
+### Fixed
+- Closing the Voice panel while recording left the microphone on. Now a recording of 5 seconds or more is kept and a shorter one is dropped.
+
+### Changed
 - The Generate button keeps one size in every state (Generate, Loading 45%, Stop, Retry), so the action bar never moves. Progress fills the button with a lighter shade of its own color. The full status ("Preparing the model: 45%") is in its tooltip and screen-reader label.
 - Voice sheet: a "Voice" title with Done, and a full-width Voices / Moods switch below it.
 - Phones and tablets: the tool works like an app. An action bar at the bottom (in thumb reach) shows the voice and the Generate button. Tap the voice to open the Voice panel as a bottom sheet (grip, Done, tap outside or Escape to close). Picking a sample voice closes the sheet. Controls are at least 44 px high, and text is larger. The text card has no title bar.

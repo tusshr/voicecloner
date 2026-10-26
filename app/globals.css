@@ -184,18 +184,7 @@ body {
 .chip-mood.is-fallback { background: rgb(var(--m) / 0.08); }
 .chips-divider { flex: none; width: 1px; align-self: stretch; margin: 4px 2px; background: var(--hairline-strong); }
 
-/* Read-along: the take's text lights up as it plays. */
 .take { display: flex; flex-direction: column; gap: 8px; }
-.read-along {
-  max-height: 168px; overflow-y: auto; padding: 12px 14px; border-radius: var(--r-md);
-  background: var(--raised); border: 1px solid var(--hairline);
-  font-size: 17px; line-height: 1.7; color: var(--ink); scroll-behavior: smooth;
-}
-.ra-piece { cursor: pointer; border-radius: 4px; transition: color 160ms; }
-.ra-piece:hover { text-decoration: underline; text-decoration-color: var(--hairline-strong); text-underline-offset: 4px; }
-.read-along.is-active .ra-piece.is-upcoming, .read-along.is-active .ra-rest { color: color-mix(in srgb, var(--muted) 70%, transparent); }
-.ra-word { background: var(--accent-soft); color: var(--ink); border-radius: 4px; box-shadow: 0 0 0 2px var(--accent-soft); }
-@media (prefers-reduced-motion: reduce) { .read-along { scroll-behavior: auto; } .ra-piece { transition: none; } }
 
 .meta { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
@@ -271,34 +260,29 @@ body {
 .pill.is-set { border-style: solid; background: var(--accent-soft); border-color: transparent; color: var(--ink); }
 .pill.is-open { border-style: solid; border-color: var(--ink); color: var(--ink); }
 
-/* ---------- the action button: fixed size; progress fills it ---------- */
+/* ---------- the action button: one size in every state; working states get the running border ---------- */
 .action-btn {
-  position: relative; flex: none; width: 156px; height: 36px; overflow: hidden; isolation: isolate;
+  position: relative; flex: none; width: 156px; height: 36px;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  border-radius: var(--r-md); background: var(--primary); color: var(--on-primary);
-  font-size: 14px; font-weight: 600; white-space: nowrap; transition: opacity 120ms;
+  border-radius: var(--r-md); border: 1px solid transparent; background: var(--primary); color: var(--on-primary);
+  font-size: 14px; font-weight: 600; white-space: nowrap; transition: opacity 120ms, background 120ms;
 }
 .action-btn:hover:not(:disabled) { opacity: 0.9; }
-.action-btn:disabled { cursor: default; }
 .action-btn[data-state='idle']:disabled { opacity: 0.4; cursor: not-allowed; }
-.action-label { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-/* Progress: the button stays the same color; a lighter layer grows from the left. */
-.action-fill { position: absolute; inset: 0; z-index: -1; transform-origin: left; transform: scaleX(var(--p)); background: color-mix(in srgb, var(--on-primary) 22%, var(--primary)); transition: transform 300ms ease-out; }
-.action-btn[data-state='idle'] .action-fill, .action-btn[data-state='failed'] .action-fill { display: none; }
-.action-btn[data-indeterminate] .action-fill { transform: none; width: 40%; animation: action-sweep 1.2s ease-in-out infinite; }
-@keyframes action-sweep { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
-@media (prefers-reduced-motion: reduce) { .action-btn[data-indeterminate] .action-fill { animation: none; width: 100%; opacity: 0.4; } }
+.action-btn.is-working { background: var(--panel); color: var(--ink); border-color: var(--hairline-strong); }
+.action-btn.is-working:disabled { cursor: progress; }
+.action-label { font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; }
 .action-btn .kbd { opacity: 0.55; }
 
-/* ---------- voice panel: title, then a full-width two-part switch ---------- */
+/* ---------- voice panel: a full-width two-part switch ---------- */
 .tabs-row { padding: 12px 16px 0; }
 .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; border-radius: 10px; background: var(--subtle); }
 .tabs button { height: 30px; padding: 0 12px; justify-content: center; border-radius: var(--r-sm); font-size: 13px; font-weight: 500; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
 .tabs button:hover { color: var(--ink); }
 .tabs button[aria-selected='true'] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--hairline); }
+.tab-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); }
 .tab-count { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; font-size: 11px; line-height: 18px; text-align: center; background: var(--accent-soft); color: var(--accent); }
 .voice-chip-caret { color: var(--muted); flex: none; }
-.sheet-grip, .sheet-done { display: none; }
 
 /* ---------- phones and tablets: an app, not a workbench ---------- */
 @media (max-width: 1023px) {
@@ -321,7 +305,6 @@ body {
   .preset-tag { font-size: 13px; }
   .row-title { font-size: 15px; }
   .track { height: 40px; }
-  .read-along { font-size: 18px; }
 
   /* The text card is the screen: no title bar. */
   .pane-text .pane-head { min-height: 0; padding: 12px 12px 0; border-bottom: 0; justify-content: flex-end; }
@@ -336,39 +319,39 @@ body {
     -webkit-backdrop-filter: saturate(1.6) blur(16px); backdrop-filter: saturate(1.6) blur(16px);
   }
   .pane-foot > .action-btn { width: 148px; height: 48px; font-size: 16px; border-radius: 12px; }
+
+  /* Voice drawer (Vaul): fixed height, so switching tabs never changes its size. */
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; outline: none;
+    height: min(78dvh, 640px); display: flex; flex-direction: column;
+    background: var(--panel); border-radius: 18px 18px 0 0; border-top: 1px solid var(--hairline);
+    padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -12px 40px rgb(0 0 0 / 0.25);
+  }
+  .sheet-handle { margin: 10px auto 2px !important; width: 40px !important; height: 5px !important; background: var(--hairline-strong) !important; flex: none; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 0 8px 0 20px; flex: none; }
+  .sheet-title { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  .sheet-done { font-weight: 600; color: var(--accent); }
+  .sheet-backdrop { position: fixed; inset: 0; z-index: 45; background: rgb(0 0 0 / 0.45); }
+  .sheet .tabs-row { padding: 2px 16px 4px; }
+  .sheet .panel-scroll { padding: 12px 16px 16px; }
   .voice-chip {
     flex: 1; height: 48px; margin: 0; padding: 0 12px; gap: 10px; border-radius: 12px;
     background: var(--raised); border: 1px solid var(--hairline); font-size: 15px; color: var(--ink);
   }
   .voice-chip .dot { width: 26px; height: 26px; }
 
-  /* Voice panel: a bottom sheet. */
-  .pane-voice {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; max-height: 86dvh;
-    display: flex; flex-direction: column; border-radius: 18px 18px 0 0 !important; border-bottom: 0 !important;
-    padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -12px 40px rgb(0 0 0 / 0.25) !important;
-    transform: translateY(100%); visibility: hidden; transition: transform 260ms cubic-bezier(0.32, 0.72, 0, 1), visibility 0s 260ms;
-  }
-  .pane-voice.is-open { transform: none; visibility: visible; transition: transform 300ms cubic-bezier(0.32, 0.72, 0, 1); }
-  .pane-voice .pane-head { border-bottom: 0; min-height: 44px; padding: 0 8px 0 20px; }
-  .pane-voice .pane-title { font-size: 17px; }
-  .pane-voice .tabs-row { padding: 4px 16px 8px; }
-  .pane-voice .pane-body { overflow-y: auto; overscroll-behavior: contain; padding-top: 4px; }
-  .tabs button { height: 36px; font-size: 15px; }
-  .sheet-grip { display: block; width: 36px; height: 5px; margin: 8px auto 4px; border-radius: 999px; background: var(--hairline-strong); flex: none; }
-  .sheet-done { display: inline-flex; font-weight: 600; color: var(--accent); }
-  .sheet-backdrop { position: fixed; inset: 0; z-index: 45; background: rgb(0 0 0 / 0.45); }
-  @media (prefers-reduced-motion: no-preference) { .sheet-backdrop { animation: fade-in 200ms ease-out; } }
-  html.sheet-lock, html.sheet-lock body { overflow: hidden; }
 }
 @keyframes fade-in { from { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .pane-voice { transition: none !important; } }
 
 /* Desktop: the voice panel keeps a steady height; tabs replace the tall accordion. */
 @media (min-width: 1024px) {
   .voice-chip-caret { display: none; }
   .pane-voice .pane-head { padding-left: 16px; }
-  .pane-voice .pane-body { padding-top: 12px; }
+  /* The voice pane takes the text pane's height; its content scrolls inside. */
+  .workspace { align-items: stretch; }
+  .pane-voice { position: relative; }
+  .pane-fill { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .pane-voice .tabs-row { flex: none; }
 }
 
 /* ---------- border progress (model download, generation) ---------- */
@@ -444,7 +427,8 @@ body {
   .pane-text { display: flex; flex-direction: column; }
   .pane-text .pane-body { flex: 1; }
   .editor-input { min-height: 240px; max-height: min(55vh, 520px); }
-  .pane-voice .pane-body { max-height: calc(100vh - 120px); overflow-y: auto; }
+  .pane-voice { display: flex; flex-direction: column; min-height: 0; }
+  .pane-voice .panel-scroll { padding: 12px 16px 16px; }
   .chips { flex-wrap: wrap; overflow: visible; }
 
   .shell-home .article { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 64px; row-gap: 40px; padding-top: 48px; }
@@ -460,3 +444,21 @@ body {
   .shell-home .footer > nav:first-of-type { grid-row: 1; }
   .shell-home .footer > nav:last-of-type { grid-row: 2; }
 }
+
+/* ---------- scroll area: no scrollbar, a soft fade where content continues ---------- */
+.scroll-fade {
+  overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; min-height: 0; flex: 1;
+  display: flex; flex-direction: column; gap: 16px;
+  --fade-top: 0px; --fade-bottom: 0px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent 100%);
+}
+.scroll-fade::-webkit-scrollbar { display: none; }
+.scroll-fade[data-fade-top='true'] { --fade-top: 28px; }
+.scroll-fade[data-fade-bottom='true'] { --fade-bottom: 40px; }
+
+/* ---------- result player: a voice-message waveform ---------- */
+.wavebars { display: flex; align-items: center; gap: 2px; height: 36px; padding: 0 2px; }
+.wavebars .bar { flex: 1; min-width: 2px; border-radius: 999px; background: var(--hairline-strong); transition: background 120ms; }
+.wavebars .bar.is-played { background: var(--accent); }
+.moods-section { border-top: 1px solid var(--hairline); padding-top: 16px; }

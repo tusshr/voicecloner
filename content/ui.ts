@@ -5,6 +5,8 @@ export type UI = typeof en
 
 const en = {
   headline: 'Free text to voice and voice cloning',
+  myVoiceTab: 'My voice',
+  moodsAfterVoice: 'Add your voice first. Then you can record it in different moods.',
   loadingShort: 'Loading',
   recordMoods: 'Record a mood',
   voicesTab: 'Voices',
@@ -102,6 +104,8 @@ const en = {
 
 const es: UI = {
   headline: 'Texto a voz y clonación de voz gratis',
+  myVoiceTab: 'Mi voz',
+  moodsAfterVoice: 'Primero añade tu voz. Luego puedes grabarla en distintos estados de ánimo.',
   loadingShort: 'Cargando',
   recordMoods: 'Grabar un estado de ánimo',
   voicesTab: 'Voces',
@@ -199,6 +203,8 @@ const es: UI = {
 
 const pt: UI = {
   headline: 'Texto para voz e clonagem de voz grátis',
+  myVoiceTab: 'Minha voz',
+  moodsAfterVoice: 'Primeiro adicione sua voz. Depois você pode gravá-la em humores diferentes.',
   loadingShort: 'Carregando',
   recordMoods: 'Gravar um humor',
   voicesTab: 'Vozes',
@@ -296,6 +302,8 @@ const pt: UI = {
 
 const de: UI = {
   headline: 'Kostenlos: Text zu Sprache und Stimmen-Klonen',
+  myVoiceTab: 'Meine Stimme',
+  moodsAfterVoice: 'Füge zuerst deine Stimme hinzu. Dann kannst du sie in verschiedenen Stimmungen aufnehmen.',
   loadingShort: 'Lädt',
   recordMoods: 'Stimmung aufnehmen',
   voicesTab: 'Stimmen',
@@ -393,6 +401,8 @@ const de: UI = {
 
 const it: UI = {
   headline: 'Da testo a voce e clonazione vocale gratis',
+  myVoiceTab: 'La mia voce',
+  moodsAfterVoice: 'Prima aggiungi la tua voce. Poi puoi registrarla con umori diversi.',
   loadingShort: 'Caricamento',
   recordMoods: 'Registra un umore',
   voicesTab: 'Voci',
