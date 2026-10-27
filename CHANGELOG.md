@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- The header is sticky: a full-width frosted bar (blurred, translucent page color, hairline border) on every page.
+- Reset example is a small ↺ button next to the language menu, shown only when the text differs from the example. The effects row sits at the bottom of the text card again.
+
 ### Added
 - Vercel Web Analytics (cookieless page views; no consent banner needed). Google Analytics still loads, with its consent banner, when NEXT_PUBLIC_GA_ID is set.
 - Structured data: WebSite, and a richer WebApplication (alternate name, languages, image, screenshot, features) next to the FAQPage.
