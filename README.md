@@ -1,6 +1,8 @@
 # Vocalis
 
-A free voice clone tool. It operates fully in the browser with Pocket TTS.
+A free voice studio that runs fully in the browser: text to voice with voice cloning (Pocket TTS) and voice to text (Whisper).
+
+Start with `CLAUDE.md`, then `docs/PRD.md`, `docs/DESIGN.md`, `docs/ROADMAP.md` (next steps) and `docs/RELEASE-CHECKLIST.md`.
 
 ## Commands
 
@@ -28,6 +30,7 @@ Set these environment variables in your host:
 | Languages and URL prefixes | `lib/i18n.ts` |
 | Tool text (buttons, errors) | `content/ui.ts` |
 | Homepage text and FAQ | `content/home/<lang>.ts` |
+| Voice to text text, article and FAQ | `content/stt.ts` |
 | About, Contact, 404 and footer text | `content/pages.ts` |
 | Privacy and Terms | `content/legal.ts` |
 | Sample voices | `lib/voices.ts` |

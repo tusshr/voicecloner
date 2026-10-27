@@ -1,0 +1,69 @@
+# ROADMAP: what to do next
+
+Ordered. Start a session by reading this, then remind the owner where we are. Tick items as they ship and log them in `CHANGELOG.md`.
+
+## 0. Owner actions (outside the code)
+
+- [ ] **Search Console**: click Verify for `https://freevoiceclone.vercel.app/` (HTML file method; the file is live at `/googlef5a07ed0f4e61975.html`), then submit `sitemap.xml`. When the custom domain exists, add a **Domain property** (DNS) instead.
+- [ ] **Vercel Web Analytics**: click Enable in the project's Analytics tab (code is in place). It goes away when hosting moves to Cloudflare.
+- [ ] **Domain**: do the SERP review for "text to voice" (pages 1–3: keyword domains? irrelevant results? Reddit/Quora on page 1?). Candidates that were available on 2026-10-27: **texttovoicefree.com** (recommended: "text to voice free" >1,000 and "free text to voice" >1,000), **texttovoiceapp.com** (only Easy keyword), voicetotextfree.com, voiceclonetool.com, clonevoicefree.com, voicestudiofree.com. Taken: freevoiceclone.com, freetexttovoice.com, texttovoiceai.com, aitexttovoice.com, texttovoicegenerator.com, texttovoiceonline.com, voiceclonefree.com, freevoicetotext.com.
+- [ ] Give Claude: the GA4 Measurement ID (`G-…`), Ahrefs keyword + questions exports for es / pt / de / it, the chosen domain.
+- [ ] Revoke old GitHub tokens that were pasted in chats; keep one fine-grained token with Contents read/write for `tusshr/voicecloner`.
+
+## 1. Performance (next session, owner asked for this first)
+
+Current state:
+- Both models already run in Web Workers (`public/pocket-tts/inference-worker.js`, `public/whisper-worker.js`); inference never blocks the page.
+- **Multithreading is off**: the TTS worker sets `ort.env.wasm.numThreads` to up to 8 only when `self.crossOriginIsolated`, and the site sends no COOP/COEP headers, so it runs on 1 thread. Whisper (transformers.js) is the same.
+- Still on the main thread: recording via `ScriptProcessorNode` (stt-tool.tsx; voice-tool uses MediaRecorder), `timeStretch` / `applyGain` / `concat` / `limitPeak` in `lib/audio-fx.ts` during generate, `resampleTo16k`, `wavePeaks`.
+
+Plan:
+1. **Cross-origin isolation** to enable WASM threads: `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: credentialless` (Chrome/Edge/Firefox; Safari lacks `credentialless`, so it stays single-threaded — acceptable). Add to `vercel.json` headers and `public/_headers`. Check jsDelivr, Hugging Face, Google Fonts (self-hosted by next/font, fine) and later **AdSense / GA under COEP** — ads iframes can break with COEP; test before enabling ads, and consider isolating only the tool routes.
+2. Verify `self.crossOriginIsolated === true` in both workers; measure generation time and transcription time before/after (use the demo clips; log in ROADMAP).
+3. **WebGPU for Whisper** where available (`device: 'webgpu'`, dtype `{ encoder_model: 'fp32', decoder_model_merged: 'q4' }`), fall back to wasm q8. Measure.
+4. Move recording in voice to text from `ScriptProcessorNode` to an **AudioWorklet** (main-thread jank and deprecation).
+5. Move audio post-processing (`timeStretch`, gain, fades, concat, peaks) into the TTS worker or a small DSP worker.
+6. Optional: start the Whisper model download on Upload-button hover / page idle with low priority.
+
+Test after: phone (Android Chrome) and desktop; first-load time, warm generation time, transcription speed (seconds of audio per second), no UI freezes while recording (Performance panel), memory.
+
+## 2. Cactus Whistle evaluation (voice to text)
+
+Facts (2026-10): 16.9 MB, Apache-2.0, released 2026-10-02 by Cactus Compute; languages en, de, fr, es, it, nl, pl — **no Portuguese**; 16 kHz mono, 30 s windows; word timestamps; keyword biasing; runs on the Needle C++ engine (`.cact` files), lists WebAssembly among 17 platforms; company-reported WER beats Whisper base; users report weaker results for natural non-English speech.
+
+Steps:
+1. Feasibility: is there a WebAssembly build with a JavaScript API usable in a worker? (GitHub: Cactus-Compute; Hugging Face: Cactus-Compute/whistle.)
+2. If yes, A/B against Whisper base on the same clips in 5 languages (our demos + a few real phone recordings): accuracy, speed, first-download time.
+3. If it wins: Whistle for en/es/de/it, Whisper for pt (users only notice the faster start). Bonus: fr, nl, pl could be added to voice to text.
+
+## 3. Hosting and launch readiness (before ads)
+
+- [ ] Move to **Cloudflare Pages** (static `out/`; `_headers` already has the pages.dev noindex). Re-add the Search Console file route (Cloudflare serves `/x.html` as `/x` with a redirect; use a Domain property instead).
+- [ ] Custom domain → `NEXT_PUBLIC_SITE_URL`, redirect vercel.app and pages.dev, noindex both (rule 12 of the checklist).
+- [ ] Cloudflare Email Routing: hello@ / legal@ → owner's inbox; set `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_LEGAL_EMAIL` (today the site shows `hello@freevoiceclone.vercel.app`, which cannot receive mail).
+- [ ] Google Analytics (`NEXT_PUBLIC_GA_ID`; consent banner already built). Remove `@vercel/analytics`.
+- [ ] AdSense application (needs the custom domain, ads.txt at the root, privacy page mentions ads/cookies).
+
+## 4. SEO content
+
+- [ ] Voice to text article: **458 words → 800–1,200** (owner's rule), all 5 languages. Use Easy keywords: voice to text app, voice to text iPhone/Android, Google Docs, best voice to text app.
+- [ ] Mine Google "People also ask" for both tools (pages 2–3, or prefix with "what") and add relevant FAQs.
+- [ ] Per-language keyword pass when the owner sends Ahrefs exports.
+- [ ] Decide on brand-name FAQs ("YouTube", "Google Docs"): currently kept (they are platforms, not competitors).
+
+## 5. Features (after the above)
+
+1. Export for sharing: small files (OGG/Opus for WhatsApp voice notes, M4A), **captioned video** (waveform + highlighted words, MP4 for Reels/TikTok/Status — nobody free does this), subtitles for text to voice takes.
+2. Voice cleaner (third tool): open-source denoiser vs. Desert Ant Labs Clear; "clean before cloning" option.
+3. Multi-speaker dialogue (`[Alba]: … [Bill]: …`).
+4. Longer texts (chunked), pronunciation dictionary.
+5. Retry the missing demo `es/alba-merchant.mp3` (`python3 tools/make-demos.py es`, check with a transcription).
+6. Kokoro 82M as an instant multi-voice TTS engine (more voices/languages), Pocket TTS only for cloning.
+
+## Test checklist (run on every UI release)
+
+- Phones 360 and 390 px, light + dark: no sideways scroll (with the fake share script), action bar never moves, drawers keep height, recording stops when the drawer closes.
+- Text to voice: demo plays without model download; generate with default voice; effect chip wraps a selection; `[happy:` → `[😊:`; generations play and load text; word highlight; menu share/download.
+- Voice to text: record (fake mic) → live text → stop → transcript; upload a real clip with the real model; copy, .txt, .srt, Read aloud lands in text to voice with the text.
+- All 5 languages render (titles, H1, hreflang, footer version).
+- Live site after deploy: robots `Allow`, canonical, sitemap includes `/voice-to-text` in 5 languages.

@@ -5,6 +5,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- Project docs for new sessions: `CLAUDE.md` (project memory), `docs/PRD.md`, `docs/DESIGN.md`, `docs/ROADMAP.md` (next steps and tests: performance, Cactus Whistle, hosting, SEO) and `docs/RELEASE-CHECKLIST.md`.
+
+### Changed
+- Desktop: the workbench is narrower (1080 px page, about 1016 px workbench), so the editor reads at about 72 characters per line and lines up better with the 720 px article column.
+
 ## [1.0.0] - 2026-10-27
 
 First stable release: indexing is on, and the site is a small voice studio with text to voice, voice cloning and voice to text.

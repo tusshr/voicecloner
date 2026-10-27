@@ -442,7 +442,7 @@ body {
 
 /* ---------- desktop: editor and voice side by side, like a workstation ---------- */
 @media (min-width: 1024px) {
-  .shell-home { max-width: 1200px; padding-left: calc(32px + env(safe-area-inset-left)); padding-right: calc(32px + env(safe-area-inset-right)); gap: 24px; }
+  .shell-home { max-width: 1080px; padding-left: calc(32px + env(safe-area-inset-left)); padding-right: calc(32px + env(safe-area-inset-right)); gap: 24px; }
   .shell-home .article { margin-top: 32px; }
   .shell:not(.shell-home) { max-width: 720px; }
   .hero { padding-top: 16px; }
