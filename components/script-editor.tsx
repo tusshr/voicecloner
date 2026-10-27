@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { Drawer } from 'vaul'
-import { SlidersHorizontal } from 'lucide-react'
+import { SlidersHorizontal, X } from 'lucide-react'
 import { DELIVERY, emojifyTags, MOOD_EMOJI, MOODS, TAG_RE, tagLook, type Delivery, type Mood } from '@/lib/script'
 import { fmt } from '@/lib/i18n'
 import type { UI } from '@/content/ui'
@@ -32,6 +32,20 @@ export function ScriptEditor({
   const backdropRef = useRef<HTMLDivElement>(null)
   const markRef = useRef<HTMLElement>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const isPhone = useMediaQuery('(max-width: 1023px)')
+  const popoverRef = useRef<HTMLDivElement>(null)
+  // Desktop popover: close on a click outside or Escape.
+  useEffect(() => {
+    if (!pickerOpen || isPhone) return
+    const onDown = (event: PointerEvent) => {
+      const target = event.target as Node
+      if (!popoverRef.current?.contains(target) && !(target as Element).closest?.('.effects-all')) setPickerOpen(false)
+    }
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setPickerOpen(false) }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey) }
+  }, [pickerOpen, isPhone])
   const [selection, setSelection] = useState('')
   /** Where the caret goes after the next render (set when a change rewrites text before the caret). */
   const caretRef = useRef<number | null>(null)
@@ -99,6 +113,46 @@ export function ScriptEditor({
     setPickerOpen(true)
   }
 
+  const pickerBody = (
+    <>
+              <p className="sheet-note">
+                {selection ? <>{ui.appliesTo} <span className="sheet-quote">“{selection.length > 60 ? `${selection.slice(0, 60)}…` : selection}”</span></> : ui.atCursor}
+              </p>
+              <ScrollFade className="panel-scroll">
+                <section className="section">
+                  <div className="section-head"><h3 className="label">{ui.emotionsLabel}</h3><span className="hint">{ui.emotionsNote}</span></div>
+                  <div className="effect-grid">
+                    {MOODS.map((mood) => (
+                      <button key={mood} className={`effect-tile mood-${mood}${moodsWithClips.includes(mood) ? '' : ' is-fallback'}`}
+                        onClick={() => { setPickerOpen(false); apply(MOOD_EMOJI[mood]) }}>
+                        <span className="effect-emoji" aria-hidden>{MOOD_EMOJI[mood]}</span>
+                        <span className="effect-text"><span className="effect-name">{ui.moods[mood]}</span><span className="effect-hint">{ui.moodHints[mood]}</span></span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+                <section className="section">
+                  <h3 className="label">{ui.deliveryLabel}</h3>
+                  <div className="effect-grid">
+                    {DELIVERY.map((effect: Delivery) => (
+                      <button key={effect} className="effect-tile is-plain" onClick={() => { setPickerOpen(false); apply(effect) }}>
+                        <span className="effect-text"><span className="effect-name">{ui.chips[effect]}</span><code className="effect-code">[{effect}: …]</code></span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+                <section className="section">
+                  <div className="section-head"><h3 className="label">{ui.chips.pause}</h3><span className="hint">{ui.atCursor}</span></div>
+                  <div className="pause-grid">
+                    {PAUSES.map((seconds) => (
+                      <button key={seconds} className="effect-tile is-plain is-pause" onClick={() => { setPickerOpen(false); apply(`pause ${seconds}s`, true) }}>{seconds}s</button>
+                    ))}
+                  </div>
+                </section>
+              </ScrollFade>
+    </>
+  )
+
   return (
     <div className="editor">
       <div className="editor-field">
@@ -127,7 +181,8 @@ export function ScriptEditor({
 
       <div className="effects-row">
         <button type="button" className="effects-all" aria-label={ui.allEffects} title={ui.allEffects} disabled={disabled}
-          onMouseDown={(event) => event.preventDefault()} onClick={openPicker}>
+          aria-expanded={pickerOpen} aria-haspopup="dialog"
+          onMouseDown={(event) => event.preventDefault()} onClick={() => (pickerOpen ? setPickerOpen(false) : openPicker())}>
           <SlidersHorizontal size={16} />
         </button>
         <ScrollFade axis="x" className="chips" role="toolbar" aria-label={ui.insertTag}>
@@ -152,7 +207,17 @@ export function ScriptEditor({
         <span className="char-count">{value.length}/{maxLength}</span>
       </div>
 
-      <Drawer.Root open={pickerOpen} onOpenChange={setPickerOpen}>
+      {!isPhone && pickerOpen && (
+        <div ref={popoverRef} className="effects-popover" role="dialog" aria-label={ui.effectsTitle}>
+          <div className="popover-head">
+            <span className="popover-title">{ui.effectsTitle}</span>
+            <button className="icon-btn" aria-label={ui.close} onClick={() => setPickerOpen(false)}><X size={16} /></button>
+          </div>
+          {pickerBody}
+        </div>
+      )}
+
+      {isPhone && <Drawer.Root open={pickerOpen} onOpenChange={setPickerOpen}>
         <Drawer.Portal>
           <Drawer.Overlay className="sheet-backdrop" />
           <Drawer.Content className="sheet sheet-effects" aria-describedby={undefined}>
@@ -161,46 +226,21 @@ export function ScriptEditor({
               <Drawer.Title className="sheet-title">{ui.effectsTitle}</Drawer.Title>
               <button className="btn btn-ghost btn-small sheet-done" onClick={() => setPickerOpen(false)}>{ui.done}</button>
             </div>
-            <p className="sheet-note">
-              {selection ? <>{ui.appliesTo} <span className="sheet-quote">“{selection.length > 60 ? `${selection.slice(0, 60)}…` : selection}”</span></> : ui.atCursor}
-            </p>
-            <ScrollFade className="panel-scroll">
-              <section className="section">
-                <div className="section-head"><h3 className="label">{ui.emotionsLabel}</h3><span className="hint">{ui.emotionsNote}</span></div>
-                <div className="effect-grid">
-                  {MOODS.map((mood) => (
-                    <button key={mood} className={`effect-tile mood-${mood}${moodsWithClips.includes(mood) ? '' : ' is-fallback'}`}
-                      onClick={() => { setPickerOpen(false); apply(MOOD_EMOJI[mood]) }}>
-                      <span className="effect-emoji" aria-hidden>{MOOD_EMOJI[mood]}</span>
-                      <span className="effect-text"><span className="effect-name">{ui.moods[mood]}</span><span className="effect-hint">{ui.moodHints[mood]}</span></span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-              <section className="section">
-                <h3 className="label">{ui.deliveryLabel}</h3>
-                <div className="effect-grid">
-                  {DELIVERY.map((effect: Delivery) => (
-                    <button key={effect} className="effect-tile is-plain" onClick={() => { setPickerOpen(false); apply(effect) }}>
-                      <span className="effect-text"><span className="effect-name">{ui.chips[effect]}</span><code className="effect-code">[{effect}: …]</code></span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-              <section className="section">
-                <div className="section-head"><h3 className="label">{ui.chips.pause}</h3><span className="hint">{ui.atCursor}</span></div>
-                <div className="pause-grid">
-                  {PAUSES.map((seconds) => (
-                    <button key={seconds} className="effect-tile is-plain is-pause" onClick={() => { setPickerOpen(false); apply(`pause ${seconds}s`, true) }}>{seconds}s</button>
-                  ))}
-                </div>
-              </section>
-            </ScrollFade>
+            {pickerBody}
           </Drawer.Content>
         </Drawer.Portal>
-      </Drawer.Root>
+      </Drawer.Root>}
     </div>
   )
+}
+
+function useMediaQuery(query: string) {
+  const subscribe = useCallback((notify: () => void) => {
+    const list = window.matchMedia(query)
+    list.addEventListener('change', notify)
+    return () => list.removeEventListener('change', notify)
+  }, [query])
+  return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches, () => false)
 }
 
 /** The backdrop: the same text, with each tag (a whole "[effect: text]" span) tinted, and the spoken word marked. */

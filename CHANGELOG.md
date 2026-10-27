@@ -5,6 +5,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- Vercel Web Analytics (cookieless page views; no consent banner needed). Google Analytics still loads, with its consent banner, when NEXT_PUBLIC_GA_ID is set.
+- Structured data: WebSite, and a richer WebApplication (alternate name, languages, image, screenshot, features) next to the FAQPage.
+
+### Changed
+- Desktop: the effect picker is a popover above the effects row (it closes on Escape or a click outside). Phones keep the drawer.
+- On-page SEO in all five languages, aimed at "text to voice" and "voice clone" searches: new page titles (under 60 characters) and descriptions (under 160), H1, subtitle, the first three H2s (text to voice generator, voice clone, how to clone your voice with AI for free), text to voice now comes first, a sentence about the installable app, and three new FAQ answers (is it free, is there an app for my phone, how to clone someone else's voice, with permission).
+- Production domain: https://freevoiceclone.vercel.app, and indexing is on (NEXT_PUBLIC_SITE_URL and NEXT_PUBLIC_INDEXABLE in Vercel). Before this, every page said noindex and robots.txt blocked all crawlers.
+
 ### Changed
 - The tool is first: the title and subtitle moved from above the tool to the start of the article below it (still the page's H1). The article is one centered reading column (720 px) with larger text, like a long-form guide.
 - Install app moved from the header to the footer, beside the credits. It still appears only where the browser can install the app (or shows the iPhone how-to).

@@ -2,11 +2,19 @@ import type { HomeContent } from './types'
 
 // Mirrors the English STE text: short sentences, active voice, one instruction per sentence.
 export const de: HomeContent = {
-  title: 'Text zu Sprache und Stimme klonen, kostenlos im Browser',
-  description: 'Wandle Text in natürliche Sprache um oder klone eine Stimme aus einer 10-Sekunden-Aufnahme. Kostenlos, ohne Konto, und dein Audio bleibt auf deinem Gerät.',
+  title: 'Text zu Sprache kostenlos & KI Stimme klonen online',
+  description: 'Kostenlos Text zu Sprache mit KI und Stimme klonen. Text eingeben, Stimme wählen oder mit 10 Sekunden Audio klonen und laden. Ohne Anmeldung.',
   sections: [
     {
-      h: 'Ein Tool zum Stimmen-Klonen, das auf deinem Gerät läuft',
+      h: 'Kostenloser KI Text-zu-Sprache-Generator',
+      p: [
+        'Gib bis zu 700 Zeichen ein, wähle eine Stimme und tippe auf Erzeugen. Das Tool macht aus deinem Text natürliche Sprache auf Englisch, Spanisch, Portugiesisch, Deutsch oder Italienisch.',
+        'Du brauchst keine eigene Aufnahme. Wähle eine Beispielstimme oder behalte die Standardstimme und nutze das Tool als kostenlosen Text-zu-Sprache-Generator.',
+        'So kannst du Text in Sprache umwandeln, auch als App: Installiere sie über die Fußzeile, dann öffnet sie sich wie eine App auf Handy oder Computer.',
+      ],
+    },
+    {
+      h: 'KI Stimme klonen mit 10 Sekunden Audio, kostenlos',
       p: [
         'Dieses kostenlose Tool macht aus einer kurzen Aufnahme einen Stimmklon. Du nimmst etwa 10 Sekunden Sprache auf oder lädst sie hoch. Dann tippst du ein Skript, und das Tool spricht es mit dieser Stimme.',
         'Du kannst das Ergebnis als WAV-Datei herunterladen. Nutze es in einem Video, einem Podcast, einem Spielprototyp oder einer Mailbox-Ansage.',
@@ -14,14 +22,7 @@ export const de: HomeContent = {
       ],
     },
     {
-      h: 'Text zu Sprache ohne Konto',
-      p: [
-        'Gib bis zu 700 Zeichen ein, wähle eine Stimme und tippe auf Erzeugen. Das Tool macht aus deinem Text natürliche Sprache auf Englisch, Spanisch, Portugiesisch, Deutsch oder Italienisch.',
-        'Du brauchst keine eigene Aufnahme. Wähle eine Beispielstimme oder behalte die Standardstimme und nutze das Tool als kostenlosen Text-zu-Sprache-Generator.',
-      ],
-    },
-    {
-      h: 'So klonst du eine Stimme mit KI',
+      h: 'So klonst du deine Stimme kostenlos mit KI',
       steps: [
         'Füge eine Stimme hinzu. Tippe auf Aufnehmen und lies den Text auf dem Bildschirm vor. Du kannst auch eine Audiodatei hochladen oder eine Beispielstimme wählen.',
         'Schreib das Skript. Du kannst höchstens 700 Zeichen eingeben.',
@@ -76,8 +77,20 @@ export const de: HomeContent = {
       ],
     },
   ],
-  faqTitle: 'Fragen zum Stimmen-Klonen',
+  faqTitle: 'Fragen zu Text zu Sprache und Stimmen-Klonen',
   faq: [
+    {
+      q: 'Ist dieser Text-zu-Sprache-Generator kostenlos?',
+      a: 'Ja. Text zu Sprache und Stimmen-Klonen sind kostenlos, ohne Konto und ohne Nutzungslimit. Die KI läuft in deinem Browser, deshalb kostet jede Aufnahme nichts.',
+    },
+    {
+      q: 'Gibt es eine Text-zu-Sprache-App fürs Handy?',
+      a: 'Ja. Öffne die Seite auf dem Handy und tippe in der Fußzeile auf App installieren. Das Tool öffnet sich dann wie eine App, und das Sprachmodell bleibt nach dem ersten Start auf dem Handy.',
+    },
+    {
+      q: 'Wie klone ich die Stimme einer anderen Person mit KI?',
+      a: 'Nur mit ihrer Erlaubnis. Bitte die Person, etwa 10 Sekunden klar zu sprechen oder dir eine Aufnahme zu schicken. Lade sie dann unter Meine Stimme hoch und bestätige die Einwilligung.',
+    },
     { q: 'Wie viel Audio braucht man, um eine Stimme zu klonen?', a: 'Du brauchst mindestens 5 Sekunden Sprache. Etwa 10 Sekunden klare Sprache geben das beste Ergebnis. Das Tool nutzt höchstens 20 Sekunden. Längere Aufnahmen kürzt es auf 20 Sekunden.' },
     { q: 'Wie klone ich meine Stimme kostenlos mit KI?', a: 'Tippe auf Aufnehmen und lies etwa 10 Sekunden lang den Text auf dem Bildschirm vor. Schreib dein Skript und tippe auf Erzeugen. Das Tool ist kostenlos und du brauchst kein Konto.' },
     { q: 'Wie klone ich meine Stimme für YouTube-Videos?', a: 'Nimm in einem ruhigen Raum eine saubere Probe auf. Schreib deinen Sprechertext in kurzen Teilen, denn jedes Skript hat höchstens 700 Zeichen. Erzeuge jeden Teil und lade die WAV-Dateien herunter. Dann füge die Dateien in deinen Videoeditor ein.' },

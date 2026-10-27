@@ -2,11 +2,19 @@ import type { HomeContent } from './types'
 
 // Mirrors the English STE text: short sentences, active voice, one instruction per sentence.
 export const pt: HomeContent = {
-  title: 'Texto para voz e clonar voz grátis no navegador',
-  description: 'Transforme texto em voz natural ou clone uma voz com uma gravação de 10 segundos. Grátis, sem conta, e seu áudio fica no seu dispositivo.',
+  title: 'Texto para Voz Grátis com IA e Clonar Voz Online',
+  description: 'Texto para voz com IA grátis e clonagem de voz online. Digite, escolha uma voz ou clone a sua com 10 segundos de áudio e baixe. Sem cadastro.',
   sections: [
     {
-      h: 'Uma ferramenta de clonar voz que funciona no seu dispositivo',
+      h: 'Gerador de texto para voz com IA grátis',
+      p: [
+        'Digite ou cole até 700 caracteres, escolha uma voz e toque em Gerar. A ferramenta transforma seu texto em voz natural em inglês, espanhol, português, alemão ou italiano.',
+        'Você não precisa de uma gravação própria. Escolha uma voz de exemplo, ou mantenha a voz padrão, e use a ferramenta como um gerador de texto para voz grátis.',
+        'Também funciona como app de texto para voz: instale pelo rodapé e ele abre como um app no seu celular ou computador.',
+      ],
+    },
+    {
+      h: 'Clonar voz com IA grátis com 10 segundos de áudio',
       p: [
         'Esta ferramenta gratuita faz um clone de voz a partir de uma gravação curta. Você grava ou envia cerca de 10 segundos de fala. Depois digita um roteiro, e a ferramenta fala o roteiro com essa voz.',
         'Você pode baixar o resultado como arquivo WAV. Use em um vídeo, um podcast, o protótipo de um jogo ou uma mensagem de caixa postal.',
@@ -14,14 +22,7 @@ export const pt: HomeContent = {
       ],
     },
     {
-      h: 'Texto para voz sem conta',
-      p: [
-        'Digite ou cole até 700 caracteres, escolha uma voz e toque em Gerar. A ferramenta transforma seu texto em voz natural em inglês, espanhol, português, alemão ou italiano.',
-        'Você não precisa de uma gravação própria. Escolha uma voz de exemplo, ou mantenha a voz padrão, e use a ferramenta como um gerador de texto para voz grátis.',
-      ],
-    },
-    {
-      h: 'Como clonar uma voz com IA',
+      h: 'Como clonar sua voz com IA grátis',
       steps: [
         'Adicione uma voz. Toque em Gravar e leia o texto na tela. Você também pode enviar um arquivo de áudio ou escolher uma voz de exemplo.',
         'Escreva o roteiro. Você pode digitar no máximo 700 caracteres.',
@@ -76,8 +77,20 @@ export const pt: HomeContent = {
       ],
     },
   ],
-  faqTitle: 'Perguntas sobre clonar voz',
+  faqTitle: 'Perguntas sobre texto para voz e clonar voz',
   faq: [
+    {
+      q: 'Este gerador de texto para voz é grátis?',
+      a: 'Sim. O texto para voz e a clonagem de voz são grátis, sem conta e sem limite de uso. A IA roda no seu navegador, então cada áudio não custa nada.',
+    },
+    {
+      q: 'Existe um app de texto para voz para celular?',
+      a: 'Sim. Abra o site no celular e toque em Instalar app no rodapé. A ferramenta abre como um app e o modelo de voz fica no celular depois do primeiro uso.',
+    },
+    {
+      q: 'Como clonar a voz de outra pessoa com IA?',
+      a: 'Só com a permissão dela. Peça para a pessoa gravar uns 10 segundos de fala clara ou enviar uma gravação. Depois envie em Minha voz e confirme que você tem o consentimento.',
+    },
     { q: 'Quanto áudio é preciso para clonar uma voz?', a: 'Você precisa de no mínimo 5 segundos de fala. Cerca de 10 segundos de fala clara dão o melhor resultado. A ferramenta usa no máximo 20 segundos. Ela corta gravações mais longas em 20 segundos.' },
     { q: 'Como clonar minha voz com IA de graça?', a: 'Toque em Gravar e leia o texto na tela por cerca de 10 segundos. Digite seu roteiro e toque em Gerar. A ferramenta é grátis e você não precisa de conta.' },
     { q: 'Como clonar minha voz para vídeos do YouTube?', a: 'Grave uma amostra limpa em um cômodo silencioso. Escreva a narração em partes curtas, porque cada roteiro tem no máximo 700 caracteres. Gere cada parte e baixe os arquivos WAV. Depois coloque os arquivos no seu editor de vídeo.' },

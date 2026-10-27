@@ -1,6 +1,7 @@
 import type { Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { Analytics } from '@/components/analytics'
+import { Analytics as VercelAnalytics } from '@vercel/analytics/next'
 import { CHROME } from '@/content/pages'
 import type { Locale } from '@/lib/i18n'
 import { GA_ID } from '@/lib/site'
@@ -30,6 +31,8 @@ export function RootDocument({ lang, children }: { lang: Locale; children: React
           "addEventListener('appinstalled',function(){window.installPrompt=null});",
           "if(matchMedia('(prefers-color-scheme: dark)').matches){var m=document.querySelector('link[rel=manifest]');if(m)m.href='/manifest-dark.webmanifest'}",
         ].join('') }} />
+        {/* Vercel Web Analytics: page views without cookies, so it needs no consent banner. */}
+        <VercelAnalytics />
         {GA_ID && <Analytics id={GA_ID} text={chrome.cookieText} accept={chrome.accept} decline={chrome.decline} />}
       </body>
     </html>

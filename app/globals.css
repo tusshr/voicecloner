@@ -558,3 +558,24 @@ html, body { overflow-x: clip; }
   border: 1px solid var(--hairline-strong); background: var(--panel); color: var(--ink); font-size: 13px; font-weight: 500;
 }
 .install-link:hover { background: var(--subtle); }
+
+/* Desktop: the effect picker is a popover above the effects row. */
+.editor { position: relative; }
+.effects-popover {
+  position: absolute; left: 12px; bottom: 48px; z-index: 30; width: min(460px, calc(100% - 24px)); max-height: min(560px, 70vh);
+  display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--hairline-strong); border-radius: 14px;
+  box-shadow: 0 18px 48px rgb(0 0 0 / 0.28), 0 2px 6px rgb(0 0 0 / 0.12);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .effects-popover { animation: pop-in 140ms ease-out; transform-origin: bottom left; }
+  @keyframes pop-in { from { opacity: 0; transform: translateY(6px) scale(0.98); } }
+}
+.popover-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px 2px 16px; flex: none; }
+.popover-title { font-size: 14px; font-weight: 600; }
+.effects-popover .sheet-note { margin: 0 16px 2px; }
+.effects-popover .panel-scroll { padding: 10px 12px 14px; gap: 14px; }
+.effects-popover .effect-tile { min-height: 48px; border-radius: 10px; }
+.effects-popover .effect-tile.is-pause { min-height: 36px; font-size: 14px; }
+.effects-popover .effect-emoji { font-size: 19px; }
+.effects-popover .effect-name { font-size: 14px; }
+.effects-all[aria-expanded='true'] { background: var(--subtle); border-color: var(--ink); }

@@ -2,11 +2,19 @@ import type { HomeContent } from './types'
 
 // Mirrors the English STE text: short sentences, active voice, one instruction per sentence.
 export const es: HomeContent = {
-  title: 'Texto a voz y clonar voz gratis en tu navegador',
-  description: 'Convierte texto en voz natural o clona una voz con una grabación de 10 segundos. Gratis, sin cuenta y tu audio se queda en tu dispositivo.',
+  title: 'Texto a Voz Gratis con IA y Clonar Voz Online',
+  description: 'Texto a voz con IA gratis y clonación de voz online. Escribe, elige una voz o clona la tuya con 10 segundos de audio y descárgalo. Sin registro.',
   sections: [
     {
-      h: 'Una herramienta para clonar voz que funciona en tu dispositivo',
+      h: 'Generador de texto a voz con IA gratis',
+      p: [
+        'Escribe o pega hasta 700 caracteres, elige una voz y pulsa Generar. La herramienta convierte tu texto en voz natural en inglés, español, portugués, alemán o italiano.',
+        'No necesitas una grabación propia. Elige una voz de muestra, o deja la voz predeterminada, y usa la herramienta como un generador de texto a voz gratis.',
+        'También funciona como app de texto a voz: instálala desde el pie de página y se abre como una app en tu móvil o tu ordenador.',
+      ],
+    },
+    {
+      h: 'Clonar voz con IA gratis con 10 segundos de audio',
       p: [
         'Esta herramienta gratuita hace un clon de voz con una grabación corta. Grabas o subes unos 10 segundos de habla. Luego escribes un guion y la herramienta lo dice con esa voz.',
         'Puedes descargar el resultado como archivo WAV. Úsalo en un video, un pódcast, el prototipo de un juego o un mensaje de buzón de voz.',
@@ -14,14 +22,7 @@ export const es: HomeContent = {
       ],
     },
     {
-      h: 'Texto a voz sin cuenta',
-      p: [
-        'Escribe o pega hasta 700 caracteres, elige una voz y pulsa Generar. La herramienta convierte tu texto en voz natural en inglés, español, portugués, alemán o italiano.',
-        'No necesitas una grabación propia. Elige una voz de muestra, o deja la voz predeterminada, y usa la herramienta como un generador de texto a voz gratis.',
-      ],
-    },
-    {
-      h: 'Cómo clonar una voz con IA',
+      h: 'Cómo clonar tu voz con IA gratis',
       steps: [
         'Añade una voz. Pulsa Grabar y lee el texto de la pantalla. También puedes subir un archivo de audio o elegir una voz de muestra.',
         'Escribe el guion. Puedes escribir un máximo de 700 caracteres.',
@@ -76,8 +77,20 @@ export const es: HomeContent = {
       ],
     },
   ],
-  faqTitle: 'Preguntas sobre clonar voz',
+  faqTitle: 'Preguntas sobre texto a voz y clonar voz',
   faq: [
+    {
+      q: '¿Este generador de texto a voz es gratis?',
+      a: 'Sí. El texto a voz y la clonación de voz son gratis, sin cuenta y sin límite de uso. La IA funciona en tu navegador, así que cada audio no cuesta nada.',
+    },
+    {
+      q: '¿Hay una app de texto a voz para el móvil?',
+      a: 'Sí. Abre la web en tu móvil y pulsa Instalar app en el pie de página. La herramienta se abre como una app y el modelo de voz se queda en tu móvil después del primer uso.',
+    },
+    {
+      q: '¿Cómo clonar la voz de otra persona con IA?',
+      a: 'Solo con su permiso. Pide a la persona que grabe unos 10 segundos de voz clara o que te envíe una grabación. Después súbela en Mi voz y confirma que tienes su consentimiento.',
+    },
     { q: '¿Cuánto audio se necesita para clonar una voz?', a: 'Necesitas un mínimo de 5 segundos de habla. Unos 10 segundos de habla clara dan el mejor resultado. La herramienta usa un máximo de 20 segundos. Recorta las grabaciones más largas a 20 segundos.' },
     { q: '¿Cómo clono mi voz con IA gratis?', a: 'Pulsa Grabar y lee el texto de la pantalla durante unos 10 segundos. Escribe tu guion y pulsa Generar. La herramienta es gratis y no necesitas una cuenta.' },
     { q: '¿Cómo clono mi voz para videos de YouTube?', a: 'Graba una muestra limpia en una habitación silenciosa. Escribe tu narración en partes cortas, porque cada guion tiene un máximo de 700 caracteres. Genera cada parte y descarga los archivos WAV. Luego ponlos en tu editor de video.' },

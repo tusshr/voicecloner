@@ -2,11 +2,19 @@ import type { HomeContent } from './types'
 
 // Written to ASD-STE100 rules: short sentences, active voice, one instruction per sentence.
 export const en: HomeContent = {
-  title: 'Free Text to Voice and Voice Clone in Your Browser',
-  description: 'Type text and turn it into natural speech, or clone a voice from a 10-second recording. Free, no account, and your audio stays on your device.',
+  title: 'Free Text to Voice Generator & AI Voice Clone Online',
+  description: 'Free AI text to voice generator and voice cloning online. Type text, pick a voice or clone yours from 10 seconds of audio, then download it. No sign-up.',
   sections: [
     {
-      h: 'A voice clone tool that works on your device',
+      h: 'Free AI text to voice generator',
+      p: [
+        'Type or paste up to 700 characters, select a voice and push Generate. The tool turns your text into natural speech in English, Spanish, Portuguese, German or Italian.',
+        'You do not need your own recording. Select a sample voice, or keep the default voice, and use the tool as a free text to speech generator.',
+        'It also works as a text to voice app: install it from the footer, and it opens like an app on your phone or computer.',
+      ],
+    },
+    {
+      h: 'Free AI voice clone from 10 seconds of audio',
       p: [
         'This free tool makes a voice clone from a short recording. You record or upload approximately 10 seconds of speech. Then you type a script, and the tool speaks the script in that voice.',
         'You can download the result as a WAV file. Use it in a video, a podcast, a game prototype or a voicemail message.',
@@ -14,14 +22,7 @@ export const en: HomeContent = {
       ],
     },
     {
-      h: 'Text to voice without an account',
-      p: [
-        'Type or paste up to 700 characters, select a voice and push Generate. The tool turns your text into natural speech in English, Spanish, Portuguese, German or Italian.',
-        'You do not need your own recording. Select a sample voice, or keep the default voice, and use the tool as a free text to speech generator.',
-      ],
-    },
-    {
-      h: 'How to clone a voice with AI',
+      h: 'How to clone your voice with AI for free',
       steps: [
         'Add a voice. Push Record and read the text on the screen. You can also upload an audio file or select a sample voice.',
         'Write the script. You can type a maximum of 700 characters.',
@@ -78,8 +79,20 @@ export const en: HomeContent = {
       ],
     },
   ],
-  faqTitle: 'Voice clone questions',
+  faqTitle: 'Text to voice and voice clone questions',
   faq: [
+    {
+      q: 'Is this text to voice generator free?',
+      a: 'Yes. Text to voice and voice cloning are free, with no account and no usage limit. The AI runs in your browser, so the tool costs nothing to run per generation.',
+    },
+    {
+      q: 'Is there a text to voice app for my phone?',
+      a: 'Yes. Open the site on your phone and push Install app in the footer. The tool then opens like an app, and the voice model stays on your phone after the first run.',
+    },
+    {
+      q: 'How do I clone someone else’s voice with AI?',
+      a: 'Only with their permission. Ask the person to record approximately 10 seconds of clear speech, or to send you a recording. Then upload it under My voice and confirm that you have consent.',
+    },
     {
       q: 'How much audio is needed to clone a voice?',
       a: 'You need a minimum of 5 seconds of speech. Approximately 10 seconds of clear speech gives the best result. The tool uses a maximum of 20 seconds. It cuts longer recordings to 20 seconds.',

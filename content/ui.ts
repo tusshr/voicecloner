@@ -4,7 +4,7 @@ import type { Locale } from '@/lib/i18n'
 export type UI = typeof en
 
 const en = {
-  headline: 'Free text to voice and voice cloning',
+  headline: 'Free Text to Voice and AI Voice Clone',
   allEffects: 'All effects',
   effectsTitle: 'Effects',
   appliesTo: 'Applies to your selection:',
@@ -28,7 +28,7 @@ const en = {
   demoOf: 'Demo: {voice}',
   demoHint: 'A ready-made demo, so you can hear the voice before the model downloads. Push Generate to hear your own text.',
   readAlong: 'Read along',
-  subhead: 'Turn text into natural speech. Pick a voice or clone your own, then download the audio.',
+  subhead: 'Turn text into natural AI speech. Pick a voice or clone your own, then download the audio.',
   textTitle: 'Text',
   speechLanguage: 'Speech language',
   langNote: 'Each language has its own model. The first use of a language downloads it.',
@@ -116,7 +116,7 @@ const en = {
 }
 
 const es: UI = {
-  headline: 'Texto a voz y clonación de voz gratis',
+  headline: 'Texto a voz gratis y clonar voz con IA',
   allEffects: 'Todos los efectos',
   effectsTitle: 'Efectos',
   appliesTo: 'Se aplica a tu selección:',
@@ -140,7 +140,7 @@ const es: UI = {
   demoOf: 'Demo: {voice}',
   demoHint: 'Una demo ya hecha, para oír la voz antes de descargar el modelo. Pulsa Generar para oír tu propio texto.',
   readAlong: 'Lectura en voz alta',
-  subhead: 'Convierte texto en voz natural. Elige una voz o clona la tuya y descarga el audio.',
+  subhead: 'Convierte texto en voz natural con IA. Elige una voz o clona la tuya y descarga el audio.',
   textTitle: 'Texto',
   speechLanguage: 'Idioma de la voz',
   langNote: 'Cada idioma tiene su propio modelo. Se descarga la primera vez que usas ese idioma.',
@@ -228,7 +228,7 @@ const es: UI = {
 }
 
 const pt: UI = {
-  headline: 'Texto para voz e clonagem de voz grátis',
+  headline: 'Texto para voz grátis e clonar voz com IA',
   allEffects: 'Todos os efeitos',
   effectsTitle: 'Efeitos',
   appliesTo: 'Aplica-se à sua seleção:',
@@ -252,7 +252,7 @@ const pt: UI = {
   demoOf: 'Demonstração: {voice}',
   demoHint: 'Uma demonstração pronta, para ouvir a voz antes de baixar o modelo. Toque em Gerar para ouvir o seu texto.',
   readAlong: 'Leitura acompanhada',
-  subhead: 'Transforme texto em fala natural. Escolha uma voz ou clone a sua e baixe o áudio.',
+  subhead: 'Transforme texto em fala natural com IA. Escolha uma voz ou clone a sua e baixe o áudio.',
   textTitle: 'Texto',
   speechLanguage: 'Idioma da fala',
   langNote: 'Cada idioma tem o seu próprio modelo. Ele é baixado no primeiro uso desse idioma.',
@@ -340,7 +340,7 @@ const pt: UI = {
 }
 
 const de: UI = {
-  headline: 'Kostenlos: Text zu Sprache und Stimmen-Klonen',
+  headline: 'Text zu Sprache kostenlos und Stimme klonen mit KI',
   allEffects: 'Alle Effekte',
   effectsTitle: 'Effekte',
   appliesTo: 'Gilt für deine Auswahl:',
@@ -364,7 +364,7 @@ const de: UI = {
   demoOf: 'Demo: {voice}',
   demoHint: 'Eine fertige Demo, damit du die Stimme hörst, bevor das Modell geladen wird. Tippe auf Erzeugen, um deinen eigenen Text zu hören.',
   readAlong: 'Mitlesen',
-  subhead: 'Mach aus Text natürliche Sprache. Wähle eine Stimme oder klone deine eigene und lade das Audio herunter.',
+  subhead: 'Mach aus Text natürliche KI-Sprache. Wähle eine Stimme oder klone deine eigene und lade das Audio herunter.',
   textTitle: 'Text',
   speechLanguage: 'Sprache der Stimme',
   langNote: 'Jede Sprache hat ein eigenes Modell. Es wird bei der ersten Nutzung dieser Sprache geladen.',
@@ -452,7 +452,7 @@ const de: UI = {
 }
 
 const it: UI = {
-  headline: 'Da testo a voce e clonazione vocale gratis',
+  headline: 'Da testo a voce gratis e clonazione vocale con IA',
   allEffects: 'Tutti gli effetti',
   effectsTitle: 'Effetti',
   appliesTo: 'Si applica alla selezione:',
@@ -476,7 +476,7 @@ const it: UI = {
   demoOf: 'Demo: {voice}',
   demoHint: 'Una demo già pronta, per sentire la voce prima di scaricare il modello. Tocca Genera per sentire il tuo testo.',
   readAlong: 'Lettura guidata',
-  subhead: 'Trasforma il testo in voce naturale. Scegli una voce o clona la tua, poi scarica l’audio.',
+  subhead: 'Trasforma il testo in voce naturale con l’IA. Scegli una voce o clona la tua, poi scarica l’audio.',
   textTitle: 'Testo',
   speechLanguage: 'Lingua del parlato',
   langNote: 'Ogni lingua ha il suo modello. Viene scaricato al primo utilizzo di quella lingua.',
