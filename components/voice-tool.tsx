@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { Check, ChevronDown, Download, EllipsisVertical, Languages, Mic, Pause, Play, Plus, RotateCcw, Share2, Square, Upload, X } from 'lucide-react'
 import { Drawer } from 'vaul'
 import { ScrollFade } from './scroll-fade'
+import { ToolSwitch } from './tool-switch'
 import { Waveform, type WaveMode } from '@/components/waveform'
 import { ScriptEditor } from '@/components/script-editor'
 import { attachMic, decodeToMono24k, detachMic, encodeWav, formatTime, player, SAMPLE_RATE } from '@/lib/audio-stage'
@@ -579,6 +580,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
     <div className="tool">
       <header className="topbar">
         <a className="wordmark" href={homeHref}><span className="wordmark-mark" aria-hidden />{SITE_NAME}</a>
+        <ToolSwitch lang={lang} active="tts" className="tool-switch-header" />
         <div className="topbar-actions">
           {(base || takes.length > 0) && (
             <button className="btn btn-ghost btn-small" onClick={startOver} disabled={!!busy || voiceBlocked}><RotateCcw size={14} /> {ui.startOver}</button>
@@ -586,6 +588,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
           <LanguageSwitcher lang={lang} label={languageLabel} />
         </div>
       </header>
+      <ToolSwitch lang={lang} active="tts" className="tool-switch-inline" />
 
 
       {!env.supported && <p className="note is-error">{ui.unsupported}</p>}

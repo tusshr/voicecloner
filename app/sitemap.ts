@@ -7,11 +7,11 @@ export const dynamic = 'force-static'
 const abs = (path: string) => `${SITE_URL}${path === '/' ? '/' : path}`
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const translated = ['', 'about', 'contact'].flatMap((page) =>
+  const translated = ['', 'voice-to-text', 'about', 'contact'].flatMap((page) =>
     LOCALES.map((lang) => ({
       url: abs(localePath(lang, page)),
       changeFrequency: 'monthly' as const,
-      priority: page === '' ? 1 : 0.4,
+      priority: page === '' ? 1 : page === 'voice-to-text' ? 0.9 : 0.4,
       alternates: {
         languages: Object.fromEntries([
           ...LOCALES.map((l) => [l, abs(localePath(l, page))]),

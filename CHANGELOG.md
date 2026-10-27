@@ -5,74 +5,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
-### Changed
-- The header is sticky: a full-width frosted bar (blurred, translucent page color, hairline border) on every page.
-- Reset example is a small ↺ button next to the language menu, shown only when the text differs from the example. The effects row sits at the bottom of the text card again.
+## [1.0.0] - 2026-10-27
+
+First stable release: indexing is on, and the site is a small voice studio with text to voice, voice cloning and voice to text.
 
 ### Added
+- Voice to text (`/voice-to-text`, in all five languages): record or upload audio and Whisper base (OpenAI, MIT license) writes it down in the browser with transformers.js. Text appears while you speak, and the full transcript is ready when you stop. Copy it, download it as text (.txt) or subtitles (.srt), or push Read aloud to send it to text to voice. Your transcripts are kept in this browser. The page has its own title, description, article, FAQ and structured data aimed at voice to text searches.
+- A Text to voice / Voice to text switch in the header (desktop) or under it (phones), and links to both tools in the footer.
+- The version number in the footer (from package.json, through NEXT_PUBLIC_APP_VERSION).
+- Google Search Console verification file.
 - Vercel Web Analytics (cookieless page views; no consent banner needed). Google Analytics still loads, with its consent banner, when NEXT_PUBLIC_GA_ID is set.
 - Structured data: WebSite, and a richer WebApplication (alternate name, languages, image, screenshot, features) next to the FAQPage.
-
-### Changed
-- Desktop: the effect picker is a popover above the effects row (it closes on Escape or a click outside). Phones keep the drawer.
-- On-page SEO in all five languages, aimed at "text to voice" and "voice clone" searches: new page titles (under 60 characters) and descriptions (under 160), H1, subtitle, the first three H2s (text to voice generator, voice clone, how to clone your voice with AI for free), text to voice now comes first, a sentence about the installable app, and three new FAQ answers (is it free, is there an app for my phone, how to clone someone else's voice, with permission).
-- Production domain: https://freevoiceclone.vercel.app, and indexing is on (NEXT_PUBLIC_SITE_URL and NEXT_PUBLIC_INDEXABLE in Vercel). Before this, every page said noindex and robots.txt blocked all crawlers.
-
-### Changed
-- The tool is first: the title and subtitle moved from above the tool to the start of the article below it (still the page's H1). The article is one centered reading column (720 px) with larger text, like a long-form guide.
-- Install app moved from the header to the footer, beside the credits. It still appears only where the browser can install the app (or shows the iPhone how-to).
-- Hear a demo keeps one width when it turns into Stop: both labels share one grid cell.
-
-### Fixed
-- Desktop: the effect chips wrapped onto a second line. They now scroll in one row with the edge fade, as on phones.
-
-### Added
 - Scoped effects: [😊: text], [slow: text] and combinations such as [😊, slow: text] apply to the text inside the brackets only, and the editor tints the whole span. Mood words in any page language ([happy: …], [feliz: …], [fröhlich: …]) turn into the emoji when you type the colon. Scripts in the older style ([slow] … [normal]) still work.
 - Effect picker: the sliders button next to the chips opens a drawer with every effect (emotions with a short description, delivery with its syntax, pauses of 0.5 to 3 s). With text selected, an effect wraps the selection; without, it is inserted at the cursor with the caret inside.
 - Your generations: every take is a card below the text card, with a compact player, the text, the voice and when it was made. Playing one loads it in the stage and puts its text in the editor; if that would replace text you typed, the tool asks first.
-
-### Changed
-- Phones: a smaller title (21 px) and subtitle (14 px, two lines); the subtitle no longer mentions the browser. The language menu is on the left of the text card and Hear a demo on the right.
-- The stage is the clean waveform of the first version again (soft color glow, no text, no buttons), a little shorter. It idles, works while generating and moves with whatever plays.
-- The effect chips scroll sideways with an edge fade, beside the character count. Emotion chips are always shown, so people can find them.
-- New link preview image (og.png) and install screenshots in the new design.
-
-### Notes
-- Built-in emotions for the sample voices were planned from Kyutai's Expresso recordings, but those are licensed for non-commercial use only, so they are not used. Emotions use your recorded moods.
-
-### Changed
-- Text panel order: the player strip (newest result, a demo, or the empty state with Hear a demo) is above the text, then the editor, then earlier takes. While generating, the strip shows the progress ("Speaking part 2 of 3") instead of a line that pushed the result down.
-- Word highlight is back, in the editor itself: while the newest take plays, the word being heard is marked in your text. It turns off if you change the text after generating, because the audio no longer matches.
-- Removed the demo explanation and the "runs in your browser" lines under the tool and in the footer.
-
-### Fixed
-- The waveform and the time ran ahead of the sound and finished early, mostly on phones and Bluetooth. Playback now follows the time the sound reaches the speaker, and a clip counts as playing until its end is heard.
-
-### Changed
-- Result player: Share and Download WAV are in a ⋮ menu, so the waveform has room. Export formats will go in the same menu.
-
-### Fixed
-- Phones: the page (and the Voice drawer) could be wider than the screen when the browser can share files, because the player row did not fit. The waveform now shrinks to the space it has, and the page can no longer scroll sideways.
-- The progress border had an extra white outline: our class name ("ring") was also a Tailwind utility. It is now "progress-ring", so only the running teal line shows.
-
-### Changed
-- Phones: the Voice panel is a Vaul drawer. Swipe the handle down, tap outside or push Done to close it. It has a fixed height, so switching tabs does not change its size, and it opens on the tab of the voice in use.
-- Voice panel tabs: Voices (all sample voices in one list, no Show all voices button) and My voice (record or upload, then moods). The list scrolls with no scrollbar and fades at an edge where there is more; the fade uses scroll events, so it works in Firefox.
-- Moods are for your own voice: the mood chips in the editor and the mood recorder appear after you add your voice.
-- The result player is a voice-message style waveform (tap to seek). The read-along text box is removed.
-- The Generate button has the running border again while it loads or generates. It keeps one size in every state.
-
-### Fixed
-- Closing the Voice panel while recording left the microphone on. Now a recording of 5 seconds or more is kept and a shorter one is dropped.
-
-### Changed
-- The Generate button keeps one size in every state (Generate, Loading 45%, Stop, Retry), so the action bar never moves. Progress fills the button with a lighter shade of its own color. The full status ("Preparing the model: 45%") is in its tooltip and screen-reader label.
-- Voice sheet: a "Voice" title with Done, and a full-width Voices / Moods switch below it.
-- Phones and tablets: the tool works like an app. An action bar at the bottom (in thumb reach) shows the voice and the Generate button. Tap the voice to open the Voice panel as a bottom sheet (grip, Done, tap outside or Escape to close). Picking a sample voice closes the sheet. Controls are at least 44 px high, and text is larger. The text card has no title bar.
-- Voice panel: Voices and Moods are tabs instead of a tall Moods section. The Moods tab shows how many moods are recorded. On desktop the panel no longer grows.
-- The warning about missing mood clips has a link that opens the Moods tab at the right mood.
-
-### Added
 - Voice demos: every sample voice reads one line in each of the five languages (39 short MP3 files in public/demos, about 1.5 MB in total). The play button on a sample voice plays its demo in the speech language, and the empty result area has a Hear a demo button. Demos show with the read-along. People can hear the voices before the model downloads. The Spanish demo for Alba (merchant) is missing for now, so that voice plays its original recording. tools/make-demos.py makes the demos again.
 - Read-along: the newest take shows its text, and the words light up while it plays. Spoken words are in full color, the current word is marked, and the rest is dimmed. Click a sentence to play from there. The tool now speaks each sentence on its own and keeps its start and end times. Inside a sentence the word position is an estimate.
 - Emotion chips: the mood chips in the editor show an emoji (😊 Happy, 😢 Sad, 🤩 Excited, 😌 Calm, 🤫 Whisper) and insert tags such as [😊 happy]. Each mood has its own color in the text. The parser ignores emoji, so [happy] still works. The mood pills in the Voice panel show the same emoji.
@@ -82,13 +28,47 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - A new home page section about text to voice, in all five languages.
 
 ### Changed
+- The header is sticky: a full-width frosted bar (blurred, translucent page color, hairline border) on every page.
+- Reset example is a small ↺ button next to the language menu, shown only when the text differs from the example. The effects row sits at the bottom of the text card again.
+- Desktop: the effect picker is a popover above the effects row (it closes on Escape or a click outside). Phones keep the drawer.
+- On-page SEO in all five languages, aimed at "text to voice" and "voice clone" searches: new page titles (under 60 characters) and descriptions (under 160), H1, subtitle, the first three H2s (text to voice generator, voice clone, how to clone your voice with AI for free), text to voice now comes first, a sentence about the installable app, and three new FAQ answers (is it free, is there an app for my phone, how to clone someone else's voice, with permission).
+- Production domain: https://freevoiceclone.vercel.app, and indexing is on (NEXT_PUBLIC_SITE_URL and NEXT_PUBLIC_INDEXABLE in Vercel). Before this, every page said noindex and robots.txt blocked all crawlers.
+- The tool is first: the title and subtitle moved from above the tool to the start of the article below it (still the page's H1). The article is one centered reading column (720 px) with larger text, like a long-form guide.
+- Install app moved from the header to the footer, beside the credits. It still appears only where the browser can install the app (or shows the iPhone how-to).
+- Hear a demo keeps one width when it turns into Stop: both labels share one grid cell.
+- Phones: a smaller title (21 px) and subtitle (14 px, two lines); the subtitle no longer mentions the browser. The language menu is on the left of the text card and Hear a demo on the right.
+- The stage is the clean waveform of the first version again (soft color glow, no text, no buttons), a little shorter. It idles, works while generating and moves with whatever plays.
+- The effect chips scroll sideways with an edge fade, beside the character count. Emotion chips are always shown, so people can find them.
+- New link preview image (og.png) and install screenshots in the new design.
+- Text panel order: the player strip (newest result, a demo, or the empty state with Hear a demo) is above the text, then the editor, then earlier takes. While generating, the strip shows the progress ("Speaking part 2 of 3") instead of a line that pushed the result down.
+- Word highlight is back, in the editor itself: while the newest take plays, the word being heard is marked in your text. It turns off if you change the text after generating, because the audio no longer matches.
+- Removed the demo explanation and the "runs in your browser" lines under the tool and in the footer.
+- Result player: Share and Download WAV are in a ⋮ menu, so the waveform has room. Export formats will go in the same menu.
+- Phones: the Voice panel is a Vaul drawer. Swipe the handle down, tap outside or push Done to close it. It has a fixed height, so switching tabs does not change its size, and it opens on the tab of the voice in use.
+- Voice panel tabs: Voices (all sample voices in one list, no Show all voices button) and My voice (record or upload, then moods). The list scrolls with no scrollbar and fades at an edge where there is more; the fade uses scroll events, so it works in Firefox.
+- Moods are for your own voice: the mood chips in the editor and the mood recorder appear after you add your voice.
+- The result player is a voice-message style waveform (tap to seek). The read-along text box is removed.
+- The Generate button has the running border again while it loads or generates. It keeps one size in every state.
+- The Generate button keeps one size in every state (Generate, Loading 45%, Stop, Retry), so the action bar never moves. Progress fills the button with a lighter shade of its own color. The full status ("Preparing the model: 45%") is in its tooltip and screen-reader label.
+- Voice sheet: a "Voice" title with Done, and a full-width Voices / Moods switch below it.
+- Phones and tablets: the tool works like an app. An action bar at the bottom (in thumb reach) shows the voice and the Generate button. Tap the voice to open the Voice panel as a bottom sheet (grip, Done, tap outside or Escape to close). Picking a sample voice closes the sheet. Controls are at least 44 px high, and text is larger. The text card has no title bar.
+- Voice panel: Voices and Moods are tabs instead of a tall Moods section. The Moods tab shows how many moods are recorded. On desktop the panel no longer grows.
+- The warning about missing mood clips has a link that opens the Moods tab at the right mood.
 - New interface: neutral colors, Inter only (Fraunces is removed), smaller controls, hairline borders and one teal accent for audio.
 - One screen instead of two steps. The Text panel (script, Generate, result) and the Voice panel (clone, sample voices, moods) are side by side on desktop and stacked on phones. The Continue button and the step switch are removed.
 - Headline, page titles and descriptions now target text to voice and voice cloning, in all five languages.
 - Desktop: the article and the FAQ use two columns, and the footer uses one row.
 
 ### Fixed
+- Desktop: the effect chips wrapped onto a second line. They now scroll in one row with the edge fade, as on phones.
+- The waveform and the time ran ahead of the sound and finished early, mostly on phones and Bluetooth. Playback now follows the time the sound reaches the speaker, and a clip counts as playing until its end is heard.
+- Phones: the page (and the Voice drawer) could be wider than the screen when the browser can share files, because the player row did not fit. The waveform now shrinks to the space it has, and the page can no longer scroll sideways.
+- The progress border had an extra white outline: our class name ("ring") was also a Tailwind utility. It is now "progress-ring", so only the running teal line shows.
+- Closing the Voice panel while recording left the microphone on. Now a recording of 5 seconds or more is kept and a shorter one is dropped.
 - Dark mode: the options in the language menus were hard to read on phones. The menus and their options now use the theme colors.
+
+### Notes
+- Built-in emotions for the sample voices were planned from Kyutai's Expresso recordings, but those are licensed for non-commercial use only, so they are not used. Emotions use your recorded moods.
 
 ## [1.0.0-rc.3] - 2026-10-16
 

@@ -3,6 +3,8 @@ import { HomeArticle } from '@/components/home-article'
 import { ProsePage } from '@/components/prose-page'
 import { SiteFooter } from '@/components/site-footer'
 import { VoiceTool } from '@/components/voice-tool'
+import { SttTool } from '@/components/stt-tool'
+import { STT } from '@/content/stt'
 import { HOME } from '@/content/home'
 import { PRIVACY, TERMS, type LegalDoc } from '@/content/legal'
 import { CHROME } from '@/content/pages'
@@ -64,6 +66,52 @@ export function HomePage({ lang }: { lang: Locale }) {
       <VoiceTool ui={UI_STRINGS[lang]} lang={lang} homeHref={localePath(lang)} languageLabel={CHROME[lang].language} />
       <HomeArticle content={content} title={UI_STRINGS[lang].headline} lede={UI_STRINGS[lang].subhead} />
       <SiteFooter lang={lang} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
+    </main>
+  )
+}
+
+/* ---------------- voice to text ---------------- */
+
+export function sttMetadata(lang: Locale): Metadata {
+  const content = STT[lang]
+  return pageMetadata({ lang, page: 'voice-to-text', title: content.title, description: content.description, translated: true, absoluteTitle: true })
+}
+
+export function SttPage({ lang }: { lang: Locale }) {
+  const content = STT[lang]
+  const url = `${SITE_URL}${localePath(lang, 'voice-to-text')}`
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: `${SITE_NAME}: ${content.ui.toolStt}`,
+      alternateName: content.headline,
+      url,
+      description: content.description,
+      applicationCategory: 'MultimediaApplication',
+      applicationSubCategory: 'Speech to text',
+      operatingSystem: 'Any (web browser)',
+      browserRequirements: 'Requires a modern browser with WebAssembly',
+      inLanguage: lang,
+      availableLanguage: ['en', 'es', 'pt', 'de', 'it'],
+      isAccessibleForFree: true,
+      image: `${SITE_URL}/og.png`,
+      featureList: content.sections.map((section) => section.h),
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      inLanguage: lang,
+      mainEntity: content.faq.map((item) => ({ '@type': 'Question', name: item.q, acceptedAnswer: { '@type': 'Answer', text: item.a } })),
+    },
+  ]
+  return (
+    <main className="shell shell-home">
+      <SttTool lang={lang} languageLabel={CHROME[lang].language} />
+      <HomeArticle content={{ ...HOME[lang], sections: content.sections, faqTitle: content.faqTitle, faq: content.faq }} title={content.headline} lede={content.lede} />
+      <SiteFooter lang={lang} page="voice-to-text" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
     </main>
   )

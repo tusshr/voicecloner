@@ -595,3 +595,51 @@ html, body { overflow-x: clip; }
 
 /* Home: the tool's wrapper lays out nothing itself, so the sticky header belongs to the whole page, not just the tool. */
 .shell-home .tool { display: contents; }
+
+/* ---------- studio switch: Text to voice | Voice to text ---------- */
+.tool-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; border-radius: 10px; background: var(--subtle); }
+.tool-switch a {
+  height: 30px; display: flex; align-items: center; justify-content: center; padding: 0 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; white-space: nowrap;
+}
+.tool-switch a:hover { color: var(--ink); }
+.tool-switch a[aria-current='page'] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--hairline); }
+.tool-switch-header { display: none; }
+@media (max-width: 1023px) { .tool-switch a { height: 36px; font-size: 14px; } }
+@media (min-width: 1024px) {
+  .tool-switch-inline { display: none; }
+  .tool-switch-header { display: grid; position: absolute; left: 50%; top: calc(50% + env(safe-area-inset-top) / 2); transform: translate(-50%, -50%); width: 320px; }
+}
+
+/* ---------- voice to text ---------- */
+.stt-text {
+  display: block; width: 100%; min-height: 200px; max-height: min(50vh, 460px); overflow-y: auto; resize: none;
+  padding: 12px; border: 0; background: transparent; color: var(--ink); font: inherit; font-size: 17px; line-height: 1.65; outline: none;
+}
+.stt-text::placeholder { color: var(--muted); }
+.stt-text.is-live { white-space: pre-wrap; }
+.stt-pending { color: var(--muted); }
+.stt-caret { display: inline-block; width: 2px; height: 1.1em; margin-left: 2px; vertical-align: -0.15em; background: var(--accent); }
+@media (prefers-reduced-motion: no-preference) { .stt-caret { animation: pulse 1s steps(2) infinite; } }
+.stt-actions { display: flex; align-items: center; gap: 8px; padding: 10px 12px 0; border-top: 1px solid var(--hairline); flex-wrap: wrap; }
+.stt-count { margin-left: auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stage-rec { position: absolute; top: 10px; left: 12px; z-index: 1; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.stage.is-recording .stage-wave { color: var(--ink); }
+.chip-icon { width: 26px; height: 26px; border-radius: 999px; background: var(--subtle); display: inline-flex; align-items: center; justify-content: center; color: var(--body); flex: none; }
+.stt-status .rec-dot { margin: 0 6px; }
+.menu-list.menu-down { bottom: auto; top: calc(100% + 6px); }
+.menu-list.menu-down.is-left { left: 0; right: auto; }
+.menu-list.menu-down.is-right { right: 0; left: auto; }
+@media (max-width: 1023px) { .pane-side.is-empty { display: none; } }
+
+.pane-side .side-list { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px 16px; }
+.transcript-open { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 0; color: inherit; cursor: pointer; }
+.transcript-open:disabled { cursor: default; }
+.transcript-remove { width: 28px; height: 28px; margin-left: auto; }
+.generation-meta { align-items: center; }
+@media (min-width: 1024px) {
+  .pane-side { border-left: 1px solid var(--hairline) !important; display: flex; flex-direction: column; min-height: 0; }
+  .pane-side .side-list { max-height: 560px; overflow-y: auto; scrollbar-width: thin; }
+}
+
+.footer-version { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
