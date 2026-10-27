@@ -5,6 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- The tool is first: the title and subtitle moved from above the tool to the start of the article below it (still the page's H1). The article is one centered reading column (720 px) with larger text, like a long-form guide.
+- Install app moved from the header to the footer, beside the credits. It still appears only where the browser can install the app (or shows the iPhone how-to).
+- Hear a demo keeps one width when it turns into Stop: both labels share one grid cell.
+
+### Fixed
+- Desktop: the effect chips wrapped onto a second line. They now scroll in one row with the edge fade, as on phones.
+
 ### Added
 - Scoped effects: [😊: text], [slow: text] and combinations such as [😊, slow: text] apply to the text inside the brackets only, and the editor tints the whole span. Mood words in any page language ([happy: …], [feliz: …], [fröhlich: …]) turn into the emoji when you type the colon. Scripts in the older style ([slow] … [normal]) still work.
 - Effect picker: the sliders button next to the chips opens a drawer with every effect (emotions with a short description, delivery with its syntax, pauses of 0.5 to 3 s). With text selected, an effect wraps the selection; without, it is inserted at the cursor with the caret inside.

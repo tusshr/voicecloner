@@ -12,7 +12,7 @@ declare global { interface Window { installPrompt?: InstallEvent | null } }
  * iPhone and iPad Safari have no install API, so the button shows a short how-to.
  * The button is hidden when the app is installed or the browser cannot install it.
  */
-export function InstallButton({ ui }: { ui: Pick<UI, 'install' | 'installIos' | 'close'> }) {
+export function InstallButton({ ui, variant = 'icon' }: { ui: Pick<UI, 'install' | 'installIos' | 'close'>; variant?: 'icon' | 'footer' }) {
   const [prompt, setPrompt] = useState<InstallEvent | null>(null)
   const [ios, setIos] = useState(false)
   const [help, setHelp] = useState(false)
@@ -41,9 +41,13 @@ export function InstallButton({ ui }: { ui: Pick<UI, 'install' | 'installIos' | 
 
   return (
     <>
-      <button className="icon-pill" onClick={() => void install()} aria-label={ui.install} title={ui.install}>
-        <Download size={16} aria-hidden />
-      </button>
+      {variant === 'footer' ? (
+        <button className="install-link" onClick={() => void install()}><Download size={14} aria-hidden /> {ui.install}</button>
+      ) : (
+        <button className="icon-pill" onClick={() => void install()} aria-label={ui.install} title={ui.install}>
+          <Download size={16} aria-hidden />
+        </button>
+      )}
       {help && (
         <div className="consent" role="dialog" aria-label={ui.install}>
           <p>{ui.installIos}</p>

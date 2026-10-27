@@ -18,7 +18,6 @@ import { PRESETS, type Preset } from '@/lib/voices'
 import type { UI } from '@/content/ui'
 import { SITE_NAME } from '@/lib/site'
 import { LanguageSwitcher } from '@/components/language-switcher'
-import { InstallButton } from '@/components/install-button'
 const MIN_SECONDS = 5
 const MAX_SECONDS = 20 // recording cap; only the clearest 10 s is used for cloning
 const SCRIPT_LIMIT = 700
@@ -584,15 +583,10 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
           {(base || takes.length > 0) && (
             <button className="btn btn-ghost btn-small" onClick={startOver} disabled={!!busy || voiceBlocked}><RotateCcw size={14} /> {ui.startOver}</button>
           )}
-          <InstallButton ui={ui} />
           <LanguageSwitcher lang={lang} label={languageLabel} />
         </div>
       </header>
 
-      <div className="hero">
-        <h1 className="headline">{ui.headline}</h1>
-        <p className="subhead">{ui.subhead}</p>
-      </div>
 
       {!env.supported && <p className="note is-error">{ui.unsupported}</p>}
 
@@ -614,9 +608,13 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
               <ChevronDown size={14} aria-hidden />
             </label>
             {!ownClip && (
-              <button className="btn btn-outline btn-small demo-btn" disabled={!!busy}
+              <button className="btn btn-outline btn-small demo-btn" disabled={!!busy} aria-pressed={playback.playingId === `preset-${(base?.preset ?? PRESETS[0]).id}`}
                 onClick={() => void previewPreset(base?.preset ?? PRESETS[0])}>
-                {playback.playingId === `preset-${(base?.preset ?? PRESETS[0]).id}` ? <><Square size={13} /> {ui.stop}</> : <><Play size={14} /> {ui.playDemo}</>}
+                {/* Both labels share one grid cell; the hidden one keeps the width, so the button never resizes. */}
+                <span className={playback.playingId === `preset-${(base?.preset ?? PRESETS[0]).id}` ? 'swap' : 'swap is-first'}>
+                  <span className="swap-a"><Play size={14} /> {ui.playDemo}</span>
+                  <span className="swap-b"><Square size={13} /> {ui.stop}</span>
+                </span>
               </button>
             )}
           </div>

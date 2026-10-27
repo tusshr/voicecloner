@@ -1,3 +1,4 @@
+import { InstallButton } from '@/components/install-button'
 import { CHROME } from '@/content/pages'
 import { UI_STRINGS } from '@/content/ui'
 import { LANGUAGE_NAMES, LOCALES, localePath, type Locale } from '@/lib/i18n'
@@ -9,7 +10,10 @@ export function SiteFooter({ lang, page = '' }: { lang: Locale; page?: string })
   const legal = (slug: 'privacy' | 'terms') => localePath('en', slug)
   return (
     <footer className="footer">
-      <p>{chrome.credits}</p>
+      <div className="footer-top">
+        <p>{chrome.credits}</p>
+        <InstallButton ui={UI_STRINGS[lang]} variant="footer" />
+      </div>
       <nav className="footer-nav" aria-label="Site">
         <a href={localePath(lang, 'about')}>{chrome.about}</a>
         <a href={localePath(lang, 'contact')}>{chrome.contact}</a>
