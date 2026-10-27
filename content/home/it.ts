@@ -52,7 +52,7 @@ export const it: HomeContent = {
       h: 'Emozioni, pause e velocità',
       p: [
         'Un campione dà un solo modo di parlare. Per avere più varietà, registra la stessa voce con un’altra emozione. Lo strumento ha cinque emozioni: felice, triste, entusiasta, calmo e sussurro.',
-        'Poi metti dei tag nel testo. Per esempio, [happy] fa usare la registrazione felice al testo che segue. Il tag [pause 1s] aggiunge un secondo di silenzio. I tag [slow], [fast], [soft] e [loud] cambiano velocità e volume. Il tag [normal] riporta tutto al valore predefinito.',
+        'Poi segna il testo con un effetto. Per esempio, [😊: Che bella notizia!] dice quelle parole con la registrazione felice. Puoi anche scrivere [felice: …], che diventa l’emoji. [slow: …], [fast: …], [soft: …] e [loud: …] cambiano velocità e volume del testo all’interno, e [pause 1s] aggiunge un secondo di silenzio. Seleziona del testo e tocca un effetto per applicarlo.',
       ],
     },
     {

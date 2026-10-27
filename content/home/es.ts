@@ -52,7 +52,7 @@ export const es: HomeContent = {
       h: 'Estados de ánimo, pausas y velocidad',
       p: [
         'Una muestra da una sola forma de hablar. Para tener más variedad, graba la misma voz otra vez con otro estado de ánimo. La herramienta tiene cinco: alegre, triste, emocionado, tranquilo y susurro.',
-        'Luego pon etiquetas en tu guion. Por ejemplo, [happy] hace que el texto siguiente use la grabación alegre. La etiqueta [pause 1s] añade un segundo de silencio. Las etiquetas [slow], [fast], [soft] y [loud] cambian la velocidad y el volumen. La etiqueta [normal] vuelve a los valores por defecto.',
+        'Luego marca el texto con un efecto. Por ejemplo, [😊: ¡Qué buena noticia!] dice esas palabras con la grabación alegre. También puedes escribir [feliz: …] y se convierte en el emoji. [slow: …], [fast: …], [soft: …] y [loud: …] cambian la velocidad y el volumen del texto que contienen, y [pause 1s] añade un segundo de silencio. Selecciona texto y toca un efecto para aplicarlo.',
       ],
     },
     {

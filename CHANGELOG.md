@@ -5,6 +5,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Added
+- Scoped effects: [😊: text], [slow: text] and combinations such as [😊, slow: text] apply to the text inside the brackets only, and the editor tints the whole span. Mood words in any page language ([happy: …], [feliz: …], [fröhlich: …]) turn into the emoji when you type the colon. Scripts in the older style ([slow] … [normal]) still work.
+- Effect picker: the sliders button next to the chips opens a drawer with every effect (emotions with a short description, delivery with its syntax, pauses of 0.5 to 3 s). With text selected, an effect wraps the selection; without, it is inserted at the cursor with the caret inside.
+- Your generations: every take is a card below the text card, with a compact player, the text, the voice and when it was made. Playing one loads it in the stage and puts its text in the editor; if that would replace text you typed, the tool asks first.
+
+### Changed
+- Phones: a smaller title (21 px) and subtitle (14 px, two lines); the subtitle no longer mentions the browser. The language menu is on the left of the text card and Hear a demo on the right.
+- The stage is the clean waveform of the first version again (soft color glow, no text, no buttons), a little shorter. It idles, works while generating and moves with whatever plays.
+- The effect chips scroll sideways with an edge fade, beside the character count. Emotion chips are always shown, so people can find them.
+- New link preview image (og.png) and install screenshots in the new design.
+
+### Notes
+- Built-in emotions for the sample voices were planned from Kyutai's Expresso recordings, but those are licensed for non-commercial use only, so they are not used. Emotions use your recorded moods.
+
 ### Changed
 - Text panel order: the player strip (newest result, a demo, or the empty state with Hear a demo) is above the text, then the editor, then earlier takes. While generating, the strip shows the progress ("Speaking part 2 of 3") instead of a line that pushed the result down.
 - Word highlight is back, in the editor itself: while the newest take plays, the word being heard is marked in your text. It turns off if you change the text after generating, because the audio no longer matches.

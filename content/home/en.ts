@@ -54,7 +54,7 @@ export const en: HomeContent = {
       h: 'Moods, pauses and speed',
       p: [
         'One sample gives one way of speaking. To get more range, record the same voice again in a different mood. The tool has five moods: happy, sad, excited, calm and whisper.',
-        'Then put tags in your script. For example, [happy] makes the text after it use the happy recording. The tag [pause 1s] adds one second of silence. The tags [slow], [fast], [soft] and [loud] change speed and volume. The tag [normal] sets all of these back to the default.',
+        'Then mark text with an effect. For example, [😊: Great news!] says those words with the happy recording. Typing [happy: …] also works and turns into the emoji. [slow: …], [fast: …], [soft: …] and [loud: …] change the speed and volume of the text inside, and [pause 1s] adds one second of silence. Select text and tap an effect to wrap it.',
       ],
     },
     {

@@ -32,9 +32,9 @@ export function buildManifest(scheme: 'light' | 'dark'): MetadataRoute.Manifest 
     ],
     screenshots: [
       shot('clone', 'Clone a voice from 10 seconds of speech'),
-      shot('moods', 'Add moods to the voice'),
-      shot('speak', 'Type text and hear the voice say it'),
-      shot('desktop', 'Free voice clone in your browser', true),
+      shot('moods', 'Add emotions, pauses and pace'),
+      shot('speak', 'Type text and hear it spoken'),
+      shot('desktop', 'Free text to voice and voice cloning', true),
     ],
   }
 }

@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Check, ChevronDown, Download, EllipsisVertical, Languages, Mic, Pause, Play, Plus, RotateCcw, Share2, Square, Upload, X } from 'lucide-react'
 import { Drawer } from 'vaul'
+import { ScrollFade } from './scroll-fade'
 import { Waveform, type WaveMode } from '@/components/waveform'
 import { ScriptEditor } from '@/components/script-editor'
 import { attachMic, decodeToMono24k, detachMic, encodeWav, formatTime, player, SAMPLE_RATE } from '@/lib/audio-stage'
@@ -30,7 +31,7 @@ type Busy = { label: string; progress?: number } | null
 /** A sentence of the take and where it is in the audio, in seconds. The read-along uses these. */
 /** `words` are character ranges of the piece's words in the script the take was made from. */
 type Piece = { text: string; start: number; end: number; words?: [number, number][] }
-type Take = { id: string; text: string; script?: string; audio: Float32Array; pieces: Piece[] }
+type Take = { id: string; text: string; script?: string; audio: Float32Array; pieces: Piece[]; voice?: string; at?: number }
 
 /** ONNX Runtime throws bare numbers (WASM pointers) on internal failures, which mean nothing to people. */
 function friendlyError(error: unknown, ui: UI) {
@@ -85,7 +86,6 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   const [stopped, setStopped] = useState(false)
   const [takes, setTakes] = useState<Take[]>([])
   const [pendingGenerate, setPendingGenerate] = useState(false)
-  const [demo, setDemo] = useState<{ take: Take; preset: Preset } | null>(null)
   // Voice panel: sample voices in one tab, your own voice (and its moods) in the other. On phones it is a drawer.
   const [voiceTab, setVoiceTab] = useState<'voices' | 'mine'>('voices')
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -272,7 +272,6 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
     try {
       const demoTake = await loadDemo(preset, speechLang)
       if (demoTake) {
-        setDemo({ take: demoTake, preset })
         player.play(id, demoTake.audio)
       } else player.play(id, await loadPresetAudio(preset))
     } catch (error) {
@@ -337,7 +336,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
     if (script === UI_STRINGS[speechLang].defaultScript) setScript(UI_STRINGS[next].defaultScript)
     setSpeechLang(next)
     setGenError(null)
-    if (demo) { player.stop(); setDemo(null) }
+    if (playback.playingId?.startsWith('preset-')) player.stop()
     // Load the new language only if a model is already in use, so changing the menu alone does not start a download.
     if (modelLangRef.current) void loadModel(next)
   }
@@ -432,9 +431,8 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
           wordCursor = at + match[0].length
         }
       }
-      const take: Take = { id: crypto.randomUUID(), text: script.trim(), script, audio: limitPeak(concat(parts)), pieces }
-      setTakes((current) => [take, ...current].slice(0, 5))
-      requestAnimationFrame(() => document.getElementById('latest-take')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }))
+      const take: Take = { id: crypto.randomUUID(), text: script.trim(), script, audio: limitPeak(concat(parts)), pieces, voice: clipTitle(baseClip), at: Date.now() }
+      setTakes((current) => [take, ...current].slice(0, 10))
       setBusy(null)
       player.play(take.id, take.audio)
     } catch (error) {
@@ -482,7 +480,21 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
   const voiceSummary = base ? clipTitle(base) : presetLabel(PRESETS[0], ui)
 
   const moodCount = MOODS.filter((mood) => moods[mood]).length
-  const spokenWord = currentWord(takes[0], script, playback)
+  const spokenWord = currentWord(takes.find((take) => take.id === playback.activeId), script, playback)
+  // "Just now" / "3 min ago" labels refresh once a minute.
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(timer) }, [])
+
+  /** Play a generation in the main stage. Its text goes into the editor, asking first if that would replace other text. */
+  const playTake = (take: Take) => {
+    if (playback.playingId === take.id) { player.pause(); return }
+    if (take.script !== undefined && take.script !== script) {
+      const edited = script !== speechUi.defaultScript && !takes.some((other) => other.script === script)
+      if (edited && !window.confirm(ui.replaceText)) return
+      setScript(take.script)
+    }
+    player.toggle(take.id, take.audio)
+  }
   const voicePanel = (
     <>
       <div className="tabs-row">
@@ -591,7 +603,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
         {/* ---------- text: what the voice says, and the result ---------- */}
         <section className="pane pane-text" aria-labelledby="pane-text-title">
           <div className="pane-head">
-            <h2 id="pane-text-title" className="pane-title">{ui.textTitle}</h2>
+            <h2 id="pane-text-title" className="sr-only">{ui.textTitle}</h2>
             <label className="select">
               <Languages size={14} aria-hidden />
               <span className="sr-only">{ui.speechLanguage}</span>
@@ -601,35 +613,20 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
               </select>
               <ChevronDown size={14} aria-hidden />
             </label>
+            {!ownClip && (
+              <button className="btn btn-outline btn-small demo-btn" disabled={!!busy}
+                onClick={() => void previewPreset(base?.preset ?? PRESETS[0])}>
+                {playback.playingId === `preset-${(base?.preset ?? PRESETS[0]).id}` ? <><Square size={13} /> {ui.stop}</> : <><Play size={14} /> {ui.playDemo}</>}
+              </button>
+            )}
           </div>
 
-          {/* Player strip: the newest result (or a demo, or an empty state) sits above the text it speaks. */}
+          {/* The stage: a clean waveform that idles, works while generating and moves with whatever plays. */}
           <div className="output" aria-live="polite">
-            {busy ? (
-              <div className="stage is-working">
-                <Waveform mode={stage.mode} className="stage-wave" />
-                <div className="stage-status">{busy.label}</div>
-              </div>
-            ) : takes.length > 0 ? (
-              <div id="latest-take" className="take"><TakeRow ui={ui} take={takes[0]} playback={playback} primary /></div>
-            ) : demo ? (
-              <div className="take">
-                <p className="label">{fmt(ui.demoOf, { voice: presetLabel(demo.preset, ui) })}</p>
-                <TakeRow ui={ui} take={demo.take} playback={playback} primary />
-              </div>
-            ) : (
-              <div className="stage">
-                <Waveform mode={stage.mode} className="stage-wave" />
-                <div className="stage-row">
-                  <span className="stage-status">{stage.text ?? ui.outputEmpty}</span>
-                  {!ownClip && (
-                    <button className="btn btn-outline btn-small" onClick={() => void previewPreset(base?.preset ?? PRESETS[0])}>
-                      <Play size={14} /> {ui.playDemo}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
+            <div className={busy ? 'stage is-working' : 'stage'} aria-hidden>
+              <Waveform mode={stage.mode} className="stage-wave" />
+            </div>
+            <span className="sr-only">{busy ? busy.label : stage.text}</span>
             {model === 'failed' && <p className="note is-error" role="alert">{fmt(ui.modelFailed, { error: modelError ?? '' })}</p>}
             {genError && <p className="note is-error" role="alert">{fmt(ui.genFailed, { error: genError })}</p>}
             {consentMissing && <p className="note is-warn">{ui.consentNeeded}</p>}
@@ -638,11 +635,10 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
           <div className="pane-body">
             <ScriptEditor ui={ui} value={script} onChange={setScript} disabled={!!busy} maxLength={SCRIPT_LIMIT} onSubmit={onGenerate}
-              moodsWithClips={MOODS.filter((mood) => moods[mood])} showMoods={!!ownClip} onFocus={warmUp} highlight={spokenWord} />
-            <div className="meta">
-              <span>{script !== speechUi.defaultScript && <button className="link" onClick={() => setScript(speechUi.defaultScript)} disabled={!!busy}>{ui.resetExample}</button>}</span>
-              <span>{script.length} / {SCRIPT_LIMIT}</span>
-            </div>
+              moodsWithClips={MOODS.filter((mood) => moods[mood])} onFocus={warmUp} highlight={spokenWord} />
+            {script !== speechUi.defaultScript && (
+              <div className="meta"><button className="link" onClick={() => setScript(speechUi.defaultScript)} disabled={!!busy}>{ui.resetExample}</button></div>
+            )}
             {speechLang !== lang && <p className="note">{ui.langNote}</p>}
             {missingMoods.length > 0 && (
               <p className="note is-warn">
@@ -652,13 +648,6 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
             )}
             {parsed.unknownTags.length > 0 && (
               <p className="note is-warn">{fmt(ui.unknownTags, { tags: parsed.unknownTags.join(', ') })}</p>
-            )}
-
-            {takes.length > 1 && (
-              <div className="history">
-                <h3 className="label">{ui.earlier}</h3>
-                {takes.slice(1).map((take) => <TakeRow ui={ui} key={take.id} take={take} playback={playback} />)}
-              </div>
             )}
           </div>
 
@@ -707,6 +696,20 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
           </aside>
         )}
       </div>
+
+      {takes.length > 0 && (
+        <section className="generations" aria-labelledby="generations-title">
+          <div className="generations-head">
+            <h2 id="generations-title" className="generations-title">{ui.generationsTitle}</h2>
+            <span className="hint">{takes.length}</span>
+          </div>
+          <div className="generations-list">
+            {takes.map((take) => (
+              <Generation key={take.id} ui={ui} take={take} playback={playback} now={now} onPlay={() => playTake(take)} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {isPhone && (
         <Drawer.Root open={sheetOpen} onOpenChange={onSheetChange}>
@@ -795,10 +798,11 @@ function RecordingPanel({ ui, text, elapsed, onStop, mood }: { ui: UI; text: str
   )
 }
 
-function PlayButton({ ui, id, audio, playback, primary }: { ui: UI; id: string; audio: Float32Array; playback: Playback; primary?: boolean }) {
+function PlayButton({ ui, id, audio, playback, onToggle }: { ui: UI; id: string; audio: Float32Array; playback: Playback; onToggle?: () => void }) {
   const playing = playback.playingId === id
   return (
-    <button className={primary ? 'icon-btn is-primary' : 'icon-btn'} aria-label={playing ? ui.pause : ui.play} onClick={() => player.toggle(id, audio)}>
+    <button className={playing ? 'icon-btn is-primary' : 'icon-btn is-round'} aria-label={playing ? ui.pause : ui.play}
+      onClick={() => (onToggle ? onToggle() : player.toggle(id, audio))}>
       {playing ? <Pause size={16} /> : <Play size={16} />}
     </button>
   )
@@ -825,11 +829,11 @@ function ClipRow({ ui, id, title, audio, playback, onRemove, disabled, progress 
   )
 }
 
-function TakeRow({ ui, take, playback, primary }: { ui: UI; take: Take; playback: Playback; primary?: boolean }) {
+function TakeRow({ ui, take, playback, onToggle }: { ui: UI; take: Take; playback: Playback; onToggle?: () => void }) {
   const duration = seconds(take.audio)
   const active = playback.activeId === take.id && (playback.playingId === take.id || playback.position > 0)
   const fraction = active && playback.duration ? playback.position / playback.duration : 0
-  const peaks = useMemo(() => wavePeaks(take.audio, 48), [take.audio])
+  const peaks = useMemo(() => wavePeaks(take.audio, 40), [take.audio])
 
   const name = fileName(take.text)
   const download = () => {
@@ -851,21 +855,13 @@ function TakeRow({ ui, take, playback, primary }: { ui: UI; take: Take; playback
     }
   }
 
-  if (!primary) {
-    return (
-      <div className="history-item">
-        <PlayButton ui={ui} id={take.id} audio={take.audio} playback={playback} />
-        <span>{take.text}</span>
-      </div>
-    )
-  }
-
   return (
     <div className="row">
-      <PlayButton ui={ui} id={take.id} audio={take.audio} playback={playback} primary />
+      <PlayButton ui={ui} id={take.id} audio={take.audio} playback={playback} onToggle={onToggle} />
       <div className="track wavebars" role="slider" aria-label={ui.seek} tabIndex={0}
         aria-valuemin={0} aria-valuemax={Math.round(duration)} aria-valuenow={Math.round(fraction * duration)}
         onClick={(event) => {
+          if (!active && onToggle) { onToggle(); return }
           const rect = event.currentTarget.getBoundingClientRect()
           player.seek(take.id, take.audio, (event.clientX - rect.left) / rect.width)
         }}
@@ -908,29 +904,6 @@ function useMediaQuery(query: string) {
   return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches, () => false)
 }
 
-/**
- * A scroll area with no scrollbar that fades out at the edge where more content is hidden.
- * Plain scroll events (not scroll-driven animations), so the fade also works in Firefox.
- */
-function ScrollFade({ className, children }: { className?: string; children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const update = useCallback(() => {
-    const el = ref.current
-    if (!el) return
-    el.dataset.fadeTop = el.scrollTop > 2 ? 'true' : 'false'
-    el.dataset.fadeBottom = el.scrollTop + el.clientHeight < el.scrollHeight - 2 ? 'true' : 'false'
-  }, [])
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    update()
-    const observer = new ResizeObserver(update)
-    observer.observe(el)
-    for (const child of Array.from(el.children)) observer.observe(child)
-    return () => observer.disconnect()
-  })
-  return <div ref={ref} className={`scroll-fade ${className ?? ''}`} onScroll={update}>{children}</div>
-}
 
 /** A small "more" menu for a take (share, download); more export formats go here later. */
 function TakeMenu({ ui, items }: { ui: UI; items: { label: string; icon: React.ReactNode; run: () => void }[] }) {
@@ -979,4 +952,21 @@ function currentWord(take: Take | undefined, script: string, playback: Playback)
   }
   const last = piece.words[piece.words.length - 1]
   return { start: last[0], end: last[1] }
+}
+
+/** One generation: a compact player (waveform you can tap to seek), the text it says, its voice and when it was made. */
+function Generation({ ui, take, playback, now, onPlay }: { ui: UI; take: Take; playback: Playback; now: number; onPlay: () => void }) {
+  const playing = playback.playingId === take.id
+  const minutes = take.at ? Math.floor((now - take.at) / 60_000) : 0
+  return (
+    <article className={playback.activeId === take.id ? 'generation is-loaded' : 'generation'}>
+      <TakeRow ui={ui} take={take} playback={playback} onToggle={onPlay} />
+      <p className="generation-text">{take.text}</p>
+      <p className="generation-meta">
+        {take.voice && <span>{take.voice}</span>}
+        <span>{minutes < 1 ? ui.justNow : fmt(ui.minAgo, { n: minutes })}</span>
+        {playing && <span className="sr-only">{ui.pause}</span>}
+      </p>
+    </article>
+  )
 }

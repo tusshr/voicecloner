@@ -52,7 +52,7 @@ export const de: HomeContent = {
       h: 'Stimmungen, Pausen und Tempo',
       p: [
         'Eine Aufnahme gibt eine Sprechweise. Für mehr Ausdruck nimmst du dieselbe Stimme in einer anderen Stimmung auf. Das Tool hat fünf Stimmungen: fröhlich, traurig, aufgeregt, ruhig und flüsternd.',
-        'Dann setzt du Tags in dein Skript. Zum Beispiel lässt [happy] den folgenden Text die fröhliche Aufnahme nutzen. Das Tag [pause 1s] fügt eine Sekunde Stille ein. Die Tags [slow], [fast], [soft] und [loud] ändern Tempo und Lautstärke. Das Tag [normal] setzt alles auf den Standard zurück.',
+        'Dann markierst du Text mit einem Effekt. Zum Beispiel spricht [😊: Tolle Neuigkeiten!] diese Wörter mit der fröhlichen Aufnahme. Du kannst auch [fröhlich: …] tippen, das wird zum Emoji. [slow: …], [fast: …], [soft: …] und [loud: …] ändern Tempo und Lautstärke des Textes darin, und [pause 1s] fügt eine Sekunde Stille ein. Markiere Text und tippe auf einen Effekt, um ihn anzuwenden.',
       ],
     },
     {

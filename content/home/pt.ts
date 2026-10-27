@@ -52,7 +52,7 @@ export const pt: HomeContent = {
       h: 'Emoções, pausas e velocidade',
       p: [
         'Uma amostra dá um só jeito de falar. Para ter mais variedade, grave a mesma voz de novo com outra emoção. A ferramenta tem cinco: feliz, triste, animado, calmo e sussurro.',
-        'Depois coloque tags no roteiro. Por exemplo, [happy] faz o texto seguinte usar a gravação feliz. A tag [pause 1s] adiciona um segundo de silêncio. As tags [slow], [fast], [soft] e [loud] mudam a velocidade e o volume. A tag [normal] volta tudo ao padrão.',
+        'Depois marque o texto com um efeito. Por exemplo, [😊: Que ótima notícia!] diz essas palavras com a gravação feliz. Você também pode digitar [feliz: …], que vira o emoji. [slow: …], [fast: …], [soft: …] e [loud: …] mudam a velocidade e o volume do texto de dentro, e [pause 1s] adiciona um segundo de silêncio. Selecione um texto e toque em um efeito para aplicá-lo.',
       ],
     },
     {
