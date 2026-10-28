@@ -9,7 +9,7 @@ Project memory for Claude Code. Read this first, then the docs it points to.
 - **Text to voice** (home page `/`): type a script, pick a sample voice or clone your own from ~10 s of audio, download WAV. Effects in the script: `[😊: …]` emotions (need your own recorded mood), `[slow: …]`, `[fast: …]`, `[soft: …]`, `[loud: …]`, `[pause 1s]`.
 - **Voice to text** (`/voice-to-text`): record or upload audio, Whisper transcribes it, copy / .txt / .srt / Read aloud.
 - Live: https://freevoiceclone.vercel.app (Vercel, auto-deploys on push to `main`). Old address: voicecloner-ebon.vercel.app.
-- Current version: see `package.json` (shown in the footer). Last release: **v1.1.1** (2026-10-28).
+- Current version: see `package.json` (shown in the footer). Last release: **v1.1.2** (2026-10-28).
 
 | Doc | What is in it |
 | --- | --- |
@@ -57,7 +57,7 @@ Environment variables (set in Vercel → production): `NEXT_PUBLIC_SITE_URL=http
 
 - **Commit and push as you go.** Pushing to `main` deploys to production on Vercel. Check the deployment after pushing.
 - **No co-author lines** in commits. Author: `tusshr <tusshr@users.noreply.github.com>`.
-- **Tag before risky UI work** so the owner can roll back (existing tags: `ux-v1-bottom-sheet`, `ux-v2-vaul`, `ux-v3-before-redesign`, `ux-v4-final-mobile`, `ux-v5-before-polish`, `ux-v6-before-transitions`, `v1.0.0`, `v1.1.0`, `v1.1.1`).
+- **Tag before risky UI work** so the owner can roll back (existing tags: `ux-v1-bottom-sheet`, `ux-v2-vaul`, `ux-v3-before-redesign`, `ux-v4-final-mobile`, `ux-v5-before-polish`, `ux-v6-before-transitions`, `v1.0.0`, `v1.1.0`, `v1.1.1`, `v1.1.2`).
 - **Every change goes in `CHANGELOG.md`** under `[Unreleased]` (Added / Changed / Fixed). Releases: bump `package.json`, move the section, tag `vX.Y.Z`, create a GitHub release with the notes.
 - **Show a UI mockup first** for bigger design changes (the owner reviews on the design canvas, then says "go ahead").
 - **All 5 languages** for every user-facing string and for SEO content. Keep strings in `content/`, never inline.
