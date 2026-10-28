@@ -44,7 +44,7 @@ Next.js 16 (App Router, Turbopack) with `output: 'export'` — a fully static si
 | Text to voice UI | `components/voice-tool.tsx` (state, generate, voice drawer, generations), `components/script-editor.tsx` (editor, effect chips, effect picker), `components/sheet.tsx` (phone drawer, Vaul, loaded with `next/dynamic`) |
 | Script syntax | `lib/script.ts` (parser, `emojifyTags`, sentence split) |
 | TTS engine | `lib/tts-engine.ts` → worker `public/pocket-tts/inference-worker.js` (Kyutai Pocket TTS, ONNX Runtime Web 1.20 from jsDelivr) |
-| Voice to text | `components/stt-tool.tsx`, `lib/stt-engine.ts` → worker `public/whisper-worker.js` (Whisper base q8 via transformers.js 4.3.1 `dist/transformers.min.js` from jsDelivr) |
+| Voice to text | `components/stt-tool.tsx` (records via `public/recorder-worklet.js`), `lib/stt-engine.ts` → worker `public/whisper-worker.js` (Whisper base q8 via transformers.js 4.3.1 `dist/transformers.min.js` from jsDelivr) |
 | Audio | `lib/audio-stage.ts` (shared AudioContext, analyser, player with audible-time tracking), `lib/audio-fx.ts` (time stretch, gain, fades, concat) |
 | Sample voices / demos | `lib/voices.ts`, `lib/demos.ts`, `public/demos/<lang>/<id>.mp3` (39 files; es/alba-merchant missing on purpose), `tools/make-demos.py` |
 | Text content | `content/ui.ts` (TTS UI, 5 langs), `content/home/<lang>.ts` (home SEO article + FAQ), `content/stt.ts` (voice to text UI + article + FAQ), `content/pages.ts` (about, contact, footer), `content/legal.ts`; small browser-side modules: `content/tools.ts` (tool names), `content/errors.ts` (error screens) |
@@ -68,7 +68,7 @@ Environment variables (set in Vercel → production): `NEXT_PUBLIC_SITE_URL=http
 ## Testing recipes
 
 - Headless Chromium via Playwright (Python) against `out/` served on port 4000 (`npm run preview`).
-- Fake microphone: launch with `--use-fake-ui-for-media-stream --use-fake-device-for-media-stream` and grant `microphone`.
+- Fake microphone: launch with `--use-fake-ui-for-media-stream --use-fake-device-for-media-stream` and grant `microphone`. Add `--use-file-for-fake-audio-capture=<file.wav>` to make the mic play real speech (convert a demo mp3 with ffmpeg); it loops.
 - Phone share button exists only where `navigator.canShare` exists: add the init script `navigator.canShare = () => true; navigator.share = async () => {}` to test the real phone layout (this is how the sideways-overflow bug was found).
 - Always check `document.documentElement.scrollWidth === clientWidth` on phones (no sideways scroll).
 - Real models can be tested in headless Chromium (network is allowed): Whisper loads in ~20 s; transcribe `public/demos/en/bill.mp3` and compare with the line in `lib/demos.ts`.

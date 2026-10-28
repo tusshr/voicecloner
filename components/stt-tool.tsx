@@ -43,7 +43,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
   const router = useRouter()
 
   // Recording state lives in refs: the audio callback and timers must not wait for renders.
-  const rec = useRef<{ stream: MediaStream; ctx: AudioContext; proc: ScriptProcessorNode; rate: number; started: number } | null>(null)
+  const rec = useRef<{ stream: MediaStream; ctx: AudioContext; proc: AudioNode; rate: number; started: number } | null>(null)
   const samples = useRef<Float32Array[]>([])
   const total = useRef(0)
   const segStart = useRef(0)
@@ -151,16 +151,11 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
     void ensureModel()
     const ctx = new AudioContext()
     const source = ctx.createMediaStreamSource(stream)
-    const proc = ctx.createScriptProcessor(4096, 1, 1)
+    samples.current = []; total.current = 0; segStart.current = 0; parts.current = []
+    const proc = await recorderNode(ctx, (block) => { samples.current.push(block); total.current += block.length })
     const mute = ctx.createGain()
     mute.gain.value = 0
     source.connect(proc); proc.connect(mute); mute.connect(ctx.destination)
-    samples.current = []; total.current = 0; segStart.current = 0; parts.current = []
-    proc.onaudioprocess = (event) => {
-      const block = new Float32Array(event.inputBuffer.getChannelData(0))
-      samples.current.push(block)
-      total.current += block.length
-    }
     attachMic(stream)
     rec.current = { stream, ctx, proc, rate: ctx.sampleRate, started: performance.now() }
     baseText.current = transcript.trim()
@@ -372,4 +367,18 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
       </div>
     </div>
   )
+}
+
+/** Taps the mic on the audio thread (AudioWorklet); old browsers fall back to ScriptProcessorNode on the main thread. */
+async function recorderNode(ctx: AudioContext, onBlock: (block: Float32Array) => void): Promise<AudioNode> {
+  try {
+    await ctx.audioWorklet.addModule('/recorder-worklet.js')
+    const node = new AudioWorkletNode(ctx, 'recorder', { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1, channelCountMode: 'explicit' })
+    node.port.onmessage = (event: MessageEvent<Float32Array>) => onBlock(event.data)
+    return node
+  } catch {
+    const proc = ctx.createScriptProcessor(4096, 1, 1)
+    proc.onaudioprocess = (event) => onBlock(new Float32Array(event.inputBuffer.getChannelData(0)))
+    return proc
+  }
 }

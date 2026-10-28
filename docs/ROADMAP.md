@@ -29,7 +29,7 @@ Plan:
 
    TTS threads: 1 → 0.77×, 2 → 0.89×, 4 → 0.44–0.69× (same session), so it is capped at 2. Pocket TTS on this machine is **slower than real time**: a long script takes longer to make than to play. Re-measure on the owner's Android phone (8 cores) and an 8-core desktop; the cap may want to be 4 there. Re-run: `tools/bench.py` (Playwright drives both workers directly; needs `npm run preview`).
 3. **WebGPU for Whisper**: built as opt-in only, `/voice-to-text?device=webgpu` (dtype `{ encoder_model: 'fp32', decoder_model_merged: 'q4' }`, falls back to wasm q8 if loading fails). 2026-10-28 on the test laptop (Intel UHD 620, headless Chromium + Vulkan): the model loads in 7 s, but a 5 s clip **did not finish in 5 minutes**, with a q4 or an fp32 decoder (wasm: ~2 s). Not safe as a default. Next: owner opens `?device=webgpu` on the Android phone and an 8-core desktop with a real GPU, transcribes a clip, and reports the time. Make it the default only where it is clearly faster, and add a timeout that falls back to wasm.
-4. Move recording in voice to text from `ScriptProcessorNode` to an **AudioWorklet** (main-thread jank and deprecation).
+4. ✅ (2026-10-28) Recording in voice to text uses an **AudioWorklet** (`public/recorder-worklet.js`, 2048-frame batches); ScriptProcessorNode stays as the fallback. Tested with Chrome's fake mic playing `en/bill.mp3`: both paths transcribe it.
 5. Move audio post-processing (`timeStretch`, gain, fades, concat, peaks) into the TTS worker or a small DSP worker.
 6. Optional: start the Whisper model download on Upload-button hover / page idle with low priority.
 
