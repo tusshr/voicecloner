@@ -53,13 +53,10 @@ export function ScriptEditor({
   /** Where the caret goes after the next render (set when a change rewrites text before the caret). */
   const caretRef = useRef<number | null>(null)
 
-  // Grow with the text. CSS caps the height (max-height), then the field scrolls.
-  // Also put the caret back in the same commit, so the next keystroke lands where the person expects.
+  // Put the caret back in the same commit, so the next keystroke lands where the person expects.
   useLayoutEffect(() => {
     const el = textareaRef.current
     if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight + 2}px`
     if (caretRef.current !== null) {
       el.setSelectionRange(caretRef.current, caretRef.current)
       caretRef.current = null

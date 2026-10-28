@@ -5,6 +5,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- Both text boxes grow with their text through CSS (`field-sizing: content`) instead of JavaScript. Browsers without it (Firefox for now) keep the box at its minimum height and scroll inside; both tools still match.
+
 ## [1.1.1] - 2026-10-28
 
 ### Changed

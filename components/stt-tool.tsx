@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Copy, Download, FileText, Mic, Play, Plus, Square, Upload, Volume2, X } from 'lucide-react'
@@ -40,7 +40,6 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
   const [copied, setCopied] = useState(false)
   const [now, setNow] = useState(() => Date.now())
   const fileRef = useRef<HTMLInputElement>(null)
-  const textRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
 
   // Recording state lives in refs: the audio callback and timers must not wait for renders.
@@ -246,14 +245,6 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
     if (activeId === entry.id) setActiveId(null)
   }
 
-  // Grow with the text like the text to voice editor, so both cards keep the same height.
-  useLayoutEffect(() => {
-    const el = textRef.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight + 2}px`
-  }, [transcript, phase])
-
   const working = phase !== 'idle' && phase !== 'recording'
   const hasText = phase === 'idle' && !!transcript.trim()
   const waveMode: WaveMode = phase === 'recording' ? 'live' : working || model === 'loading' ? 'working' : 'idle'
@@ -312,7 +303,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
 
           <div className="pane-body">
             {phase === 'idle' ? (
-              <textarea ref={textRef} className="stt-text" value={transcript} placeholder={ui.placeholder} aria-label={TOOL_NAMES[lang].stt}
+              <textarea className="stt-text" value={transcript} placeholder={ui.placeholder} aria-label={TOOL_NAMES[lang].stt}
                 onChange={(event) => setTranscript(event.target.value)} spellCheck />
             ) : (
               <div className="stt-text is-live" aria-live="polite">
