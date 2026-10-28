@@ -10,7 +10,6 @@ export function SiteFooter({ lang, page = '' }: { lang: Locale; page?: string })
   const chrome = CHROME[lang]
   // Privacy and terms are English only; other languages link to them.
   const legal = (slug: 'privacy' | 'terms') => localePath('en', slug)
-  // Language links stay plain <a>: each language has its own root layout, so that is a full page load anyway.
   return (
     <footer className="footer">
       <div className="footer-top">

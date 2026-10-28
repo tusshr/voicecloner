@@ -2,10 +2,7 @@
 
 import { Drawer } from 'vaul'
 
-/**
- * Phone bottom sheet: handle, title + Done, fixed height (see `.sheet` in globals.css).
- * Import it with next/dynamic so Vaul and Radix stay out of the first page load.
- */
+/** Phone bottom sheet. Import with next/dynamic to keep Vaul out of the first load. */
 export default function Sheet({ open, onOpenChange, title, done, className, children }: {
   open: boolean; onOpenChange: (open: boolean) => void; title: string; done: string; className?: string; children: React.ReactNode
 }) {

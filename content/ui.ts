@@ -248,7 +248,7 @@ const pt: UI = {
   recordMoods: 'Gravar um humor',
   voicesTab: 'Vozes',
   done: 'Pronto',
-  playDemo: 'Ouvir uma demonstração',
+  playDemo: 'Ouvir demo',
   demoOf: 'Demonstração: {voice}',
   demoHint: 'Uma demonstração pronta, para ouvir a voz antes de baixar o modelo. Toque em Gerar para ouvir o seu texto.',
   readAlong: 'Leitura acompanhada',

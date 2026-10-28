@@ -1,6 +1,6 @@
 import type { Locale } from '@/lib/i18n'
 
-/** Error screens (route error pages and the tool error boundary). Small on purpose: these load in the browser. */
+/** Error screens. Client code imports this, so keep it small. */
 export const ERRORS: Record<Locale, { title: string; text: string; tryAgain: string; home: string }> = {
   en: {
     title: 'An error occurred',

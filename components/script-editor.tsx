@@ -8,7 +8,6 @@ import { fmt } from '@/lib/i18n'
 import type { UI } from '@/content/ui'
 import { ScrollFade } from './scroll-fade'
 
-// Phones only, and only after the page is up: Vaul stays out of the first load.
 const Sheet = dynamic(() => import('./sheet'), { ssr: false })
 const PAUSES = [0.5, 1, 2, 3]
 

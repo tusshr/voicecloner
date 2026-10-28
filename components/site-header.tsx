@@ -7,10 +7,7 @@ import { CHROME } from '@/content/pages'
 import { localePath, type Locale } from '@/lib/i18n'
 import { SITE_NAME } from '@/lib/site'
 
-/**
- * The sticky header stays put while the page under it cross-fades. Every page's header carries this name,
- * so each navigation pairs old and new header (see `site-header` in globals.css).
- */
+/** Every page's header: it stays still while the page cross-fades. */
 export function PinnedHeader({ children }: { children: React.ReactNode }) {
   return <ViewTransition name="site-header" share="auto" default="none">{children}</ViewTransition>
 }

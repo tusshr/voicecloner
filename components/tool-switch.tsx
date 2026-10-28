@@ -3,11 +3,7 @@ import { ViewTransition } from 'react'
 import { localePath, type Locale } from '@/lib/i18n'
 import { TOOL_NAMES } from '@/content/tools'
 
-/**
- * The two tools of the studio, as a two-part switch. Links, so each tool is its own page for search.
- * Switching here slides the pill to the other tool; the label sits above it. Names are per variant
- * because the header and inline switches are both in the DOM (CSS shows one).
- */
+/** The two tools as links (each is its own page). Names include `variant`: both switches are in the DOM. */
 export function ToolSwitch({ lang, active, variant }: { lang: Locale; active: 'tts' | 'stt'; variant: 'header' | 'inline' }) {
   const names = TOOL_NAMES[lang]
   const tabs = [

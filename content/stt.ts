@@ -11,7 +11,7 @@ export type SttContent = {
     microphone: string; listening: string; loading: string; finishing: string; transcribing: string
     copy: string; copied: string; readAloud: string; downloadTxt: string; downloadSrt: string; moreActions: string
     words: string; transcripts: string; emptyHistory: string; justNow: string; minAgo: string; remove: string; open: string
-    speechLanguage: string; noMic: string; failed: string; firstRun: string; unsupported: string; clear: string
+    speechLanguage: string; noMic: string; failed: string; unsupported: string; newTranscript: string
   }
   sections: { h: string; p: string[] }[]
   faqTitle: string
@@ -32,9 +32,8 @@ const en: SttContent = {
     speechLanguage: 'Speech language',
     noMic: 'The microphone is not available. Allow it in the browser, or upload a recording.',
     failed: 'The transcription failed: {error}',
-    firstRun: 'The first use downloads the speech model (about 80 MB). After that, it starts quickly.',
     unsupported: 'This browser cannot run the speech model. Try a recent Chrome, Edge, Firefox or Safari.',
-    clear: 'Clear',
+    newTranscript: 'New transcript',
   },
   sections: [
     { h: 'Voice to text online, free and without an account', p: [
@@ -77,9 +76,8 @@ const es: SttContent = {
     speechLanguage: 'Idioma de la voz',
     noMic: 'El micrófono no está disponible. Permítelo en el navegador o sube una grabación.',
     failed: 'La transcripción falló: {error}',
-    firstRun: 'El primer uso descarga el modelo de voz (unos 80 MB). Después arranca rápido.',
     unsupported: 'Este navegador no puede ejecutar el modelo de voz. Prueba un Chrome, Edge, Firefox o Safari reciente.',
-    clear: 'Borrar',
+    newTranscript: 'Nueva transcripción',
   },
   sections: [
     { h: 'Voz a texto online, gratis y sin cuenta', p: [
@@ -122,9 +120,8 @@ const pt: SttContent = {
     speechLanguage: 'Idioma da fala',
     noMic: 'O microfone não está disponível. Permita no navegador ou envie uma gravação.',
     failed: 'A transcrição falhou: {error}',
-    firstRun: 'O primeiro uso baixa o modelo de voz (cerca de 80 MB). Depois ele inicia rápido.',
     unsupported: 'Este navegador não consegue rodar o modelo de voz. Tente um Chrome, Edge, Firefox ou Safari recente.',
-    clear: 'Limpar',
+    newTranscript: 'Nova transcrição',
   },
   sections: [
     { h: 'Voz para texto online, grátis e sem conta', p: [
@@ -167,9 +164,8 @@ const de: SttContent = {
     speechLanguage: 'Sprache der Aufnahme',
     noMic: 'Das Mikrofon ist nicht verfügbar. Erlaube es im Browser oder lade eine Aufnahme hoch.',
     failed: 'Die Transkription ist fehlgeschlagen: {error}',
-    firstRun: 'Beim ersten Mal wird das Sprachmodell geladen (etwa 80 MB). Danach startet es schnell.',
     unsupported: 'Dieser Browser kann das Sprachmodell nicht ausführen. Versuche ein aktuelles Chrome, Edge, Firefox oder Safari.',
-    clear: 'Leeren',
+    newTranscript: 'Neues Transkript',
   },
   sections: [
     { h: 'Sprache in Text umwandeln, kostenlos und ohne Konto', p: [
@@ -212,9 +208,8 @@ const it: SttContent = {
     speechLanguage: 'Lingua del parlato',
     noMic: 'Il microfono non è disponibile. Consentilo nel browser o carica una registrazione.',
     failed: 'La trascrizione non è riuscita: {error}',
-    firstRun: 'Il primo utilizzo scarica il modello vocale (circa 80 MB). Dopo parte subito.',
     unsupported: 'Questo browser non può eseguire il modello vocale. Prova un Chrome, Edge, Firefox o Safari recente.',
-    clear: 'Svuota',
+    newTranscript: 'Nuova trascrizione',
   },
   sections: [
     { h: 'Da voce a testo online, gratis e senza account', p: [

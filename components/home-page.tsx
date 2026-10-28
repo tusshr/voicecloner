@@ -11,7 +11,7 @@ import { localePath, type Locale } from '@/lib/i18n'
 import { pageMetadata } from '@/lib/seo'
 import { SITE_NAME, SITE_URL } from '@/lib/site'
 
-/* One module per tool page: a page bundles every client component its modules import, so each tool page ships only its own tool. */
+/* One module per tool page, so each page bundles only its own tool. */
 
 export function homeMetadata(lang: Locale): Metadata {
   const content = HOME[lang]

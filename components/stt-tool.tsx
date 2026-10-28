@@ -3,15 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, Copy, Download, EllipsisVertical, FileText, Languages, Mic, Square, Upload, Volume2, X } from 'lucide-react'
+import { Copy, Download, EllipsisVertical, FileText, Mic, Plus, Square, Upload, Volume2, X } from 'lucide-react'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { SpeechLanguageSelect } from '@/components/speech-language-select'
 import { PinnedHeader } from '@/components/site-header'
 import { ToolSwitch } from '@/components/tool-switch'
 import { Waveform, type WaveMode } from '@/components/waveform'
 import type { SttContent } from '@/content/stt'
 import { TOOL_NAMES } from '@/content/tools'
 import { attachMic, detachMic, formatTime } from '@/lib/audio-stage'
-import { fmt, LANGUAGE_NAMES, LOCALES, localePath, WHISPER_LANGUAGE, type Locale } from '@/lib/i18n'
+import { fmt, localePath, WHISPER_LANGUAGE, type Locale } from '@/lib/i18n'
 import { SITE_NAME } from '@/lib/site'
 import { decodeTo16k, getSttEngine, resampleTo16k, STT_RATE, sttSupported, toSrt, type SttChunk } from '@/lib/stt-engine'
 
@@ -54,7 +55,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
     const timer = setInterval(() => setNow(Date.now()), 30_000)
     return () => {
       clearInterval(timer)
-      // Leaving the page by client navigation must free the microphone.
+      // Free the mic when leaving by client navigation.
       const r = rec.current
       if (r) { r.stream.getTracks().forEach((track) => track.stop()); r.proc.disconnect(); detachMic(); void r.ctx.close() }
     }
@@ -236,6 +237,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
     router.push(localePath(lang))
   }
 
+  const startNew = () => { setTranscript(''); setChunks([]); setActiveId(null); setError(null) }
   const open = (entry: Entry) => { setTranscript(entry.text); setChunks(entry.chunks); setActiveId(entry.id) }
   const remove = (entry: Entry) => {
     saveHistory(history.filter((e) => e.id !== entry.id))
@@ -279,14 +281,14 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
       <div className="workspace">
         <section className="pane pane-text" aria-label={TOOL_NAMES[lang].stt}>
           <div className="pane-head">
-            <label className="select">
-              <Languages size={14} aria-hidden />
-              <select value={speechLang} disabled={phase !== 'idle'} aria-label={ui.speechLanguage}
-                onChange={(event) => setSpeechLang(event.target.value as Locale)}>
-                {LOCALES.map((locale) => <option key={locale} value={locale} lang={locale}>{LANGUAGE_NAMES[locale]}</option>)}
-              </select>
-              <ChevronDown size={14} aria-hidden />
-            </label>
+            <div className="head-left">
+              <SpeechLanguageSelect value={speechLang} onChange={setSpeechLang} disabled={phase !== 'idle'} label={ui.speechLanguage} />
+              {transcript && phase === 'idle' && (
+                <button className="icon-btn reset-btn" aria-label={ui.newTranscript} title={ui.newTranscript} onClick={startNew}>
+                  <Plus size={16} />
+                </button>
+              )}
+            </div>
             <button className="btn btn-outline btn-small" onClick={() => fileRef.current?.click()} disabled={phase !== 'idle' || !supported}>
               <Upload size={14} /> {ui.upload}
             </button>
@@ -298,7 +300,6 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
               <Waveform mode={waveMode} className="stage-wave" />
             </div>
             {error && <p className="note is-error" role="alert">{error}</p>}
-            {model === 'idle' && phase === 'idle' && !transcript && <p className="hint">{ui.firstRun}</p>}
           </div>
 
           <div className="pane-body">

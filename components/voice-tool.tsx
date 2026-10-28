@@ -2,7 +2,7 @@
 
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { Check, ChevronDown, Download, EllipsisVertical, Languages, Mic, Pause, Play, Plus, RotateCcw, Share2, Square, Upload, X } from 'lucide-react'
+import { Check, ChevronDown, Download, EllipsisVertical, Mic, Pause, Play, Plus, RotateCcw, Share2, Square, Upload, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { ScrollFade } from './scroll-fade'
 import Link from 'next/link'
@@ -15,14 +15,14 @@ import { applyGain, concat, fadeEdges, limitPeak, prepareVoiceSample, silence, t
 import { DEMO_LINES, demoUrl } from '@/lib/demos'
 import { MOOD_EMOJI, MOODS, parseScript, SPEED_FACTOR, splitSentences, VOLUME_GAIN, type Mood } from '@/lib/script'
 import { canRecord, createEngine, isLowPowerDevice, isSupported, StoppedError, type LoadProgress, type TTSEngine } from '@/lib/tts-engine'
-import { ENGINE_LANGUAGE, fmt, isLocale, LANGUAGE_NAMES, LOCALES, type Locale } from '@/lib/i18n'
+import { ENGINE_LANGUAGE, fmt, isLocale, type Locale } from '@/lib/i18n'
 import { UI_STRINGS } from '@/content/ui'
 import { PRESETS, type Preset } from '@/lib/voices'
 import type { UI } from '@/content/ui'
 import { SITE_NAME } from '@/lib/site'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { SpeechLanguageSelect } from '@/components/speech-language-select'
 
-// Phones only, and only after the page is up: Vaul stays out of the first load.
 const Sheet = dynamic(() => import('./sheet'), { ssr: false })
 const MIN_SECONDS = 5
 const MAX_SECONDS = 20 // recording cap; only the clearest 10 s is used for cloning
@@ -609,21 +609,13 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
           <div className="pane-head">
             <h2 id="pane-text-title" className="sr-only">{ui.textTitle}</h2>
             <div className="head-left">
-            <label className="select">
-              <Languages size={14} aria-hidden />
-              <span className="sr-only">{ui.speechLanguage}</span>
-              <select value={speechLang} disabled={!!busy} aria-label={ui.speechLanguage}
-                onChange={(event) => changeSpeechLang(event.target.value as Locale)}>
-                {LOCALES.map((locale) => <option key={locale} value={locale} lang={locale}>{LANGUAGE_NAMES[locale]}</option>)}
-              </select>
-              <ChevronDown size={14} aria-hidden />
-            </label>
-            {script !== speechUi.defaultScript && (
-              <button className="icon-btn reset-btn" aria-label={ui.resetExample} title={ui.resetExample}
-                onClick={() => setScript(speechUi.defaultScript)} disabled={!!busy}>
-                <RotateCcw size={15} />
-              </button>
-            )}
+              <SpeechLanguageSelect value={speechLang} onChange={changeSpeechLang} disabled={!!busy} label={ui.speechLanguage} />
+              {script !== speechUi.defaultScript && (
+                <button className="icon-btn reset-btn" aria-label={ui.resetExample} title={ui.resetExample}
+                  onClick={() => setScript(speechUi.defaultScript)} disabled={!!busy}>
+                  <RotateCcw size={15} />
+                </button>
+              )}
             </div>
             {!ownClip && (
               <button className="btn btn-outline btn-small demo-btn" disabled={!!busy} aria-pressed={playback.playingId === `preset-${(base?.preset ?? PRESETS[0]).id}`}
