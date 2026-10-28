@@ -1,5 +1,5 @@
 # Times TTS (load, clone, generate) and Whisper (load, transcribe) in headless Chromium.
-# usage: npm run build && npm run preview, then: uv run --with playwright python tools/bench.py <label> [runs] [tts]
+# usage: npm run build && npm run preview, then: uv run --with playwright python tools/bench.py <label> [runs] [tts | stt-wasm | stt-webgpu]
 # Models stay cached in ~/.cache/vocalis-bench, so only the first run downloads them (that run's numbers are not warm).
 import json, sys, pathlib
 from playwright.sync_api import sync_playwright
@@ -28,6 +28,7 @@ async ([runs, only]) => {
   })
   const r = { isolated: self.crossOriginIsolated, cores: navigator.hardwareConcurrency, tts: [], stt: [] }
 
+  if (!only.startsWith('stt')) {
   // Text to voice
   const ref = await decode('/demos/en/bill.mp3', 24000)
   const text = 'The morning light moves softly across the room. This is a short sample of my voice, spoken naturally and clearly. We will measure how long it takes to speak these sentences.'
@@ -49,13 +50,15 @@ async ([runs, only]) => {
     r.tts.push({ ms: Math.round(ms), first_audio_ms: Math.round(first - t), audio_s: +(samples / 24000).toFixed(2), rtf: +((samples / 24000) / (ms / 1000)).toFixed(2) })
   }
   tts.terminate()
+  }
 
   if (only === 'tts') return r
   // Voice to text
   const audio = concat(await Promise.all(clips.map(c => decode(`/demos/en/${c}.mp3`, 16000))))
   const stt = new Worker('/whisper-worker.js', { type: 'module' })
   t = performance.now()
-  stt.postMessage({ type: 'load' }); await wait(stt, d => d.type === 'ready')
+  stt.addEventListener('message', (e) => { if (e.data.type === 'device') r.stt_device = e.data.device })
+  stt.postMessage({ type: 'load', device: only.split('-')[1] }); await wait(stt, d => d.type === 'ready')
   r.stt_load_ms = performance.now() - t
   for (let i = 0; i < runs; i++) {
     t = performance.now()
@@ -71,7 +74,7 @@ async ([runs, only]) => {
 """
 
 with sync_playwright() as p:
-    ctx = p.chromium.launch_persistent_context(str(profile), headless=True)
+    ctx = p.chromium.launch_persistent_context(str(profile), headless=True, args=['--enable-unsafe-webgpu', '--enable-features=Vulkan'])
     page = ctx.new_page()
     ctx.new_cdp_session(page).send('Network.clearBrowserCache')  # stale page copies without the new headers
     page.on('console', lambda m: m.type == 'error' and print('console:', m.text, file=sys.stderr))

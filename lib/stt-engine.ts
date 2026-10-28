@@ -44,7 +44,7 @@ class WorkerEngine implements SttEngine {
         }
         this.worker.addEventListener('message', onMessage)
         this.worker.onerror = () => { this.loading = null; reject(new Error('The speech model could not start.')) }
-        this.worker.postMessage({ type: 'load' })
+        this.worker.postMessage({ type: 'load', device: new URLSearchParams(location.search).get('device') })
       })
     }
     return this.loading

@@ -28,7 +28,7 @@ Plan:
    | Whisper transcribe | 1.7–1.9× | 2.4–2.9× (library default: 2 threads) |
 
    TTS threads: 1 → 0.77×, 2 → 0.89×, 4 → 0.44–0.69× (same session), so it is capped at 2. Pocket TTS on this machine is **slower than real time**: a long script takes longer to make than to play. Re-measure on the owner's Android phone (8 cores) and an 8-core desktop; the cap may want to be 4 there. Re-run: `tools/bench.py` (Playwright drives both workers directly; needs `npm run preview`).
-3. **WebGPU for Whisper** where available (`device: 'webgpu'`, dtype `{ encoder_model: 'fp32', decoder_model_merged: 'q4' }`), fall back to wasm q8. Measure.
+3. **WebGPU for Whisper**: built as opt-in only, `/voice-to-text?device=webgpu` (dtype `{ encoder_model: 'fp32', decoder_model_merged: 'q4' }`, falls back to wasm q8 if loading fails). 2026-10-28 on the test laptop (Intel UHD 620, headless Chromium + Vulkan): the model loads in 7 s, but a 5 s clip **did not finish in 5 minutes**, with a q4 or an fp32 decoder (wasm: ~2 s). Not safe as a default. Next: owner opens `?device=webgpu` on the Android phone and an 8-core desktop with a real GPU, transcribes a clip, and reports the time. Make it the default only where it is clearly faster, and add a timeout that falls back to wasm.
 4. Move recording in voice to text from `ScriptProcessorNode` to an **AudioWorklet** (main-thread jank and deprecation).
 5. Move audio post-processing (`timeStretch`, gain, fades, concat, peaks) into the TTS worker or a small DSP worker.
 6. Optional: start the Whisper model download on Upload-button hover / page idle with low priority.
@@ -36,6 +36,9 @@ Plan:
 Test after: phone (Android Chrome) and desktop; first-load time, warm generation time, transcription speed (seconds of audio per second), no UI freezes while recording (Performance panel), memory.
 
 ## 2. Cactus Whistle evaluation (voice to text)
+
+**Researched 2026-10-28: not now.** A browser build exists (official `needle.wasm` + `needle.js`, 930 KB, single-threaded; community npm packages `cactus-needle@0.3.0` (Apache-2.0) and `@tiny-stt/whistle`; a community ONNX export `mrfakename/whistle-ONNX`, 72–145 MB). Blockers: **no Portuguese** (two engines, or a pt fine-tune we'd have to make), 30 s per call (we'd chunk), and the accuracy gain is vendor-reported only: independent tests show a small English edge (Big Iron: 4.75 vs 6.03 % WER on LibriSpeech clean) and **no independent non-English numbers**; vendor's own MLS average has Whisper base ahead. Revisit if a pt version appears or if Whisper is too slow on phones; then A/B on our own es/de/it clips first.
+
 
 Facts (2026-10): 16.9 MB, Apache-2.0, released 2026-10-02 by Cactus Compute; languages en, de, fr, es, it, nl, pl — **no Portuguese**; 16 kHz mono, 30 s windows; word timestamps; keyword biasing; runs on the Needle C++ engine (`.cact` files), lists WebAssembly among 17 platforms; company-reported WER beats Whisper base; users report weaker results for natural non-English speech.
 
