@@ -51,6 +51,18 @@ Steps:
 - [ ] Per-language keyword pass when the owner sends Ahrefs exports.
 - [ ] Decide on brand-name FAQs ("YouTube", "Google Docs"): currently kept (they are platforms, not competitors).
 
+### AEO / GEO (answer engines: ChatGPT search, Perplexity, Google AI Overviews, Claude)
+
+Already in place (checked 2026-10-28): article and FAQ are in the server HTML (no JS needed to read them); JSON-LD WebApplication + WebSite + FAQPage on both tools; robots.txt allows every crawler (GPTBot, ClaudeBot, PerplexityBot, Google-Extended included); sitemap with hreflang in 5 languages; fast pages (PageSpeed 97–100).
+
+To do, most useful first:
+- [ ] **Bing Webmaster Tools** (import from Search Console) + submit the sitemap. ChatGPT search and Copilot use Bing's index; not being in Bing means not being cited there.
+- [ ] **IndexNow** ping on deploy (Bing, Yandex; a key file in `public/` + one request after each release).
+- [ ] **Answer-first sections**: each H2 starts with a one-sentence direct answer (engines quote the first sentence). Same for FAQ answers (already short).
+- [ ] **Entity facts**: Organization JSON-LD (name, logo, sameAs once social profiles exist), "last updated" date on the articles, an About page that says who makes it and why (trust signals).
+- [ ] Optional: `llms.txt` (a short Markdown map of the site). Few engines use it today; cheap to add.
+- [ ] Off-site (owner): mentions on Reddit / Quora / tool directories (There's An AI For That, Product Hunt, AlternativeTo). Answer engines cite sites that other sites talk about; this matters more than any on-page change.
+
 ## 5. Features (after the above)
 
 1. Export for sharing: small files (OGG/Opus for WhatsApp voice notes, M4A), **captioned video** (waveform + highlighted words, MP4 for Reels/TikTok/Status — nobody free does this), subtitles for text to voice takes.
