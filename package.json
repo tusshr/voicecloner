@@ -5,12 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "preview": "serve out -l 4000"
   },
   "dependencies": {
     "@vercel/analytics": "2.0.1",
     "lucide-react": "^1.16.0",
-    "next": "16.4.0",
+    "next": "16.4.3",
     "react": "^19",
     "react-dom": "^19",
     "vaul": "1.1.2"
@@ -21,6 +22,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "postcss": "^8.5",
+    "serve": "14.2.4",
     "tailwindcss": "^4.3.3",
     "typescript": "5.7.3"
   }

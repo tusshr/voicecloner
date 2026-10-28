@@ -26,7 +26,7 @@ npm install
 npm run dev                         # http://localhost:3000
 npm run build                       # static export to out/
 npx tsc --noEmit                    # type check (run before every commit)
-python3 tools/serve.py              # serve out/ on :4000 with clean URLs like Vercel (plain http.server breaks client navigation)
+npm run preview                     # serve out/ on :4000 with clean URLs like Vercel (`serve`; plain http.server breaks client navigation)
 ```
 
 Append `?engine=mock` to any page to use fake engines (no model download): text to voice and voice to text both support it.
@@ -67,7 +67,7 @@ Environment variables (set in Vercel → production): `NEXT_PUBLIC_SITE_URL=http
 
 ## Testing recipes
 
-- Headless Chromium via Playwright (Python) against `out/` served on port 4000.
+- Headless Chromium via Playwright (Python) against `out/` served on port 4000 (`npm run preview`).
 - Fake microphone: launch with `--use-fake-ui-for-media-stream --use-fake-device-for-media-stream` and grant `microphone`.
 - Phone share button exists only where `navigator.canShare` exists: add the init script `navigator.canShare = () => true; navigator.share = async () => {}` to test the real phone layout (this is how the sideways-overflow bug was found).
 - Always check `document.documentElement.scrollWidth === clientWidth` on phones (no sideways scroll).

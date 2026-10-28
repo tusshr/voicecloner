@@ -14,7 +14,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Changed
 - Pages for es / pt / de / it no longer await their route params (they use `params.then()`), so the page shell stays synchronous.
 - Desktop: the workbench is narrower (1080 px page, about 1016 px workbench), so the editor reads at about 72 characters per line and lines up better with the 720 px article column.
-- `tools/serve.py` serves the build with clean URLs like Vercel; plain `python3 -m http.server` breaks client navigation.
+- Next.js 16.4.0 → 16.4.3 (security advisory).
+- `npm run preview` serves the build with clean URLs like Vercel (`serve`); plain `python3 -m http.server` breaks client navigation.
 
 ### Fixed
 - Voice to text releases the microphone when you leave the page while recording (needed now that pages change without a reload).
