@@ -608,15 +608,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
         <section className="pane pane-text" aria-labelledby="pane-text-title">
           <div className="pane-head">
             <h2 id="pane-text-title" className="sr-only">{ui.textTitle}</h2>
-            <div className="head-left">
-              <SpeechLanguageSelect value={speechLang} onChange={changeSpeechLang} disabled={!!busy} label={ui.speechLanguage} />
-              {script !== speechUi.defaultScript && (
-                <button className="icon-btn reset-btn" aria-label={ui.resetExample} title={ui.resetExample}
-                  onClick={() => setScript(speechUi.defaultScript)} disabled={!!busy}>
-                  <RotateCcw size={15} />
-                </button>
-              )}
-            </div>
+            <SpeechLanguageSelect value={speechLang} onChange={changeSpeechLang} disabled={!!busy} label={ui.speechLanguage} />
             {!ownClip && (
               <button className="btn btn-outline btn-small demo-btn" disabled={!!busy} aria-pressed={playback.playingId === `preset-${(base?.preset ?? PRESETS[0]).id}`}
                 onClick={() => void previewPreset(base?.preset ?? PRESETS[0])}>
@@ -643,7 +635,8 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
           <div className="pane-body">
             <ScriptEditor ui={ui} value={script} onChange={setScript} disabled={!!busy} maxLength={SCRIPT_LIMIT} onSubmit={onGenerate}
-              moodsWithClips={MOODS.filter((mood) => moods[mood])} onFocus={warmUp} highlight={spokenWord} />
+              moodsWithClips={MOODS.filter((mood) => moods[mood])} onFocus={warmUp} highlight={spokenWord}
+              onReset={script !== speechUi.defaultScript ? () => setScript(speechUi.defaultScript) : undefined} />
             {speechLang !== lang && <p className="note">{ui.langNote}</p>}
             {missingMoods.length > 0 && (
               <p className="note is-warn">

@@ -73,9 +73,6 @@ body {
   -webkit-backdrop-filter: saturate(1.5) blur(14px); backdrop-filter: saturate(1.5) blur(14px);
   border-bottom: 1px solid color-mix(in srgb, var(--hairline) 70%, transparent);
 }
-.head-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.icon-btn.reset-btn { width: 30px; height: 30px; color: var(--muted); }
-@media (max-width: 1023px) { .icon-btn.reset-btn { width: 36px; height: 36px; } }
 .wordmark { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; letter-spacing: -0.01em; color: var(--ink); text-decoration: none; }
 .wordmark-mark {
   width: 18px; height: 18px; border-radius: 5px; flex: none;
@@ -102,7 +99,7 @@ body {
   padding: 12px 12px 12px 16px; border-top: 1px solid var(--hairline); background: var(--raised);
 }
 .pane-text .pane-body { padding: 4px 4px 12px; gap: 10px; }
-.pane-text .pane-body > :not(.editor, .stt-text) { margin: 0 12px; }
+.pane-text .pane-body > :not(.editor, .stt-text, .effects-row) { margin: 0 12px; }
 .output { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 4px; }
 
 .section { display: flex; flex-direction: column; gap: 10px; }
@@ -160,9 +157,6 @@ body {
 .select select, .lang select { color-scheme: light dark; }
 .select option, .lang option { background-color: var(--panel); color: var(--ink); }
 .select:has(select:disabled) { opacity: 0.5; }
-.select select { position: absolute; inset: 0; width: 100%; opacity: 0; }
-.select-short { display: none; }
-@media (max-width: 1023px) { .select-full { display: none; } .select-short { display: inline; } }
 
 /* ---------- editor ---------- */
 .editor { display: flex; flex-direction: column; gap: 8px; }
@@ -197,6 +191,7 @@ body {
 }
 .chip:hover:not(:disabled) { color: var(--ink); border-color: var(--hairline-strong); }
 .chip-muted { color: var(--muted); }
+.chip-icon-text { display: inline-flex; align-items: center; gap: 5px; }
 .chip:disabled { opacity: 0.4; }
 /* Emotion tags: each mood has its own tint, in the editor and on its chip. */
 :root { --mood-happy: 245 180 40; --mood-sad: 90 140 230; --mood-excited: 236 90 160; --mood-calm: 40 180 130; --mood-whisper: 150 110 230; }
@@ -432,11 +427,15 @@ body {
 .lede { font-size: 16px; color: var(--body); }
 .plain-list { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
 
-.footer { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--hairline); padding-top: 20px; font-size: 13px; color: var(--muted); }
-.footer-nav { display: flex; flex-wrap: wrap; gap: 4px 16px; padding-top: 6px; }
-.footer-nav a { color: var(--muted); text-decoration: none; }
+.footer { display: flex; flex-direction: column; gap: 20px; border-top: 1px solid var(--hairline); padding-top: 28px; }
+.footer-nav { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; }
+.footer-nav a { color: var(--body); text-decoration: none; }
 .footer-nav a:hover { color: var(--ink); }
-.footer-nav a[aria-current='page'] { color: var(--ink); }
+.footer-fine { display: flex; flex-direction: column; gap: 10px; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12px; line-height: 1.6; color: var(--muted); }
+.footer-bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.footer-langs { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.footer-langs a { color: var(--muted); text-decoration: none; }
+.footer-langs a:hover, .footer-langs a[aria-current='page'] { color: var(--ink); }
 
 .consent {
   position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 20;
@@ -569,8 +568,7 @@ html, body { overflow-x: clip; }
 .swap > span { grid-area: 1 / 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .swap.is-first .swap-b, .swap:not(.is-first) .swap-a { visibility: hidden; }
 
-/* Footer: credits with Install app beside them. */
-.footer-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.footer-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .install-link {
   flex: none; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px;
   border: 1px solid var(--hairline-strong); background: var(--panel); color: var(--ink); font-size: 13px; font-weight: 500;
@@ -628,15 +626,10 @@ html, body { overflow-x: clip; }
 .stt-pending { color: var(--muted); }
 .stt-caret { display: inline-block; width: 2px; height: 1.1em; margin-left: 2px; vertical-align: -0.15em; background: var(--accent); }
 @media (prefers-reduced-motion: no-preference) { .stt-caret { animation: pulse 1s steps(2) infinite; } }
-.stt-actions { display: flex; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid var(--hairline); flex-wrap: wrap; }
-.stt-count { margin-left: auto; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .stage-rec { position: absolute; top: 10px; left: 12px; z-index: 1; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
 .stage.is-recording .stage-wave { color: var(--ink); }
 .chip-icon { width: 26px; height: 26px; border-radius: 999px; background: var(--subtle); display: inline-flex; align-items: center; justify-content: center; color: var(--body); flex: none; }
 .stt-status .rec-dot { margin: 0 6px; }
-.menu-list.menu-down { bottom: auto; top: calc(100% + 6px); }
-.menu-list.menu-down.is-left { left: 0; right: auto; }
-.menu-list.menu-down.is-right { right: 0; left: auto; }
 @media (max-width: 1023px) { .pane-side.is-empty { display: none; } }
 /* Phones: the voice panel is in the drawer; hide the server-rendered pane so the page does not jump. */
 @media (max-width: 1023px) { .pane-voice { display: none; } }
@@ -651,7 +644,7 @@ html, body { overflow-x: clip; }
   .pane-side .side-list { max-height: 560px; overflow-y: auto; scrollbar-width: thin; }
 }
 
-.footer-version { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.footer-version { font-variant-numeric: tabular-nums; }
 
 /* ---------- view transitions ---------- */
 ::view-transition-old(site-header) { display: none; }

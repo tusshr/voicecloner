@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Copy, Download, EllipsisVertical, FileText, Mic, Plus, Square, Upload, Volume2, X } from 'lucide-react'
+import { Copy, Download, FileText, Mic, Plus, Square, Upload, Volume2, X } from 'lucide-react'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { SpeechLanguageSelect } from '@/components/speech-language-select'
+import { ScrollFade } from '@/components/scroll-fade'
 import { PinnedHeader } from '@/components/site-header'
 import { ToolSwitch } from '@/components/tool-switch'
 import { Waveform, type WaveMode } from '@/components/waveform'
@@ -281,14 +282,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
       <div className="workspace">
         <section className="pane pane-text" aria-label={TOOL_NAMES[lang].stt}>
           <div className="pane-head">
-            <div className="head-left">
-              <SpeechLanguageSelect value={speechLang} onChange={setSpeechLang} disabled={phase !== 'idle'} label={ui.speechLanguage} />
-              {transcript && phase === 'idle' && (
-                <button className="icon-btn reset-btn" aria-label={ui.newTranscript} title={ui.newTranscript} onClick={startNew}>
-                  <Plus size={16} />
-                </button>
-              )}
-            </div>
+            <SpeechLanguageSelect value={speechLang} onChange={setSpeechLang} disabled={phase !== 'idle'} label={ui.speechLanguage} />
             <button className="btn btn-outline btn-small" onClick={() => fileRef.current?.click()} disabled={phase !== 'idle' || !supported}>
               <Upload size={14} /> {ui.upload}
             </button>
@@ -314,14 +308,26 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
               </div>
             )}
             {transcript && phase === 'idle' && (
-              <div className="stt-actions">
-                <button className="btn btn-outline btn-small" onClick={() => void copy()}><Copy size={14} /> {copied ? ui.copied : ui.copy}</button>
-                <button className="btn btn-outline btn-small" onClick={readAloud}><Volume2 size={14} /> {ui.readAloud}</button>
-                <SttMenu ui={ui} items={[
-                  { label: ui.downloadTxt, icon: <FileText size={16} />, run: () => download(transcript, 'txt') },
-                  ...(chunks.length ? [{ label: ui.downloadSrt, icon: <Download size={16} />, run: () => download(toSrt(chunks), 'srt') }] : []),
-                ]} />
-                <span className="stt-count">{fmt(ui.words, { n: words })}</span>
+              <div className="effects-row">
+                <button type="button" className="effects-all" aria-label={ui.newTranscript} title={ui.newTranscript} onClick={startNew}>
+                  <Plus size={16} />
+                </button>
+                <ScrollFade axis="x" className="chips" role="toolbar" aria-label={ui.moreActions}>
+                  <button type="button" className="chip chip-icon-text" onClick={() => void copy()}>
+                    <Copy size={14} aria-hidden />
+                    <span className={copied ? 'swap' : 'swap is-first'}><span className="swap-a">{ui.copy}</span><span className="swap-b">{ui.copied}</span></span>
+                  </button>
+                  <button type="button" className="chip chip-icon-text" onClick={readAloud}><Volume2 size={14} aria-hidden /> {ui.readAloud}</button>
+                  <button type="button" className="chip chip-icon-text" title={ui.downloadTxt} aria-label={ui.downloadTxt} onClick={() => download(transcript, 'txt')}>
+                    <FileText size={14} aria-hidden /> .txt
+                  </button>
+                  {chunks.length > 0 && (
+                    <button type="button" className="chip chip-icon-text" title={ui.downloadSrt} aria-label={ui.downloadSrt} onClick={() => download(toSrt(chunks), 'srt')}>
+                      <Download size={14} aria-hidden /> .srt
+                    </button>
+                  )}
+                </ScrollFade>
+                <span className="char-count">{fmt(ui.words, { n: words })}</span>
               </div>
             )}
           </div>
@@ -362,39 +368,6 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
           </div>
         </aside>
       </div>
-    </div>
-  )
-}
-
-function SttMenu({ ui, items }: { ui: { moreActions: string }; items: { label: string; icon: React.ReactNode; run: () => void }[] }) {
-  const [open, setOpen] = useState(false)
-  const [side, setSide] = useState<'left' | 'right'>('right')
-  const ref = useRef<HTMLDivElement>(null)
-  // Open toward the side with room, so the menu never leaves the screen.
-  const toggle = () => {
-    const rect = ref.current?.getBoundingClientRect()
-    if (rect) setSide(rect.left + 220 > window.innerWidth ? 'right' : 'left')
-    setOpen(!open)
-  }
-  useEffect(() => {
-    if (!open) return
-    const onDown = (event: PointerEvent) => { if (!ref.current?.contains(event.target as Node)) setOpen(false) }
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false) }
-    document.addEventListener('pointerdown', onDown); document.addEventListener('keydown', onKey)
-    return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey) }
-  }, [open])
-  return (
-    <div ref={ref} className="menu">
-      <button className="btn btn-outline btn-small" aria-label={ui.moreActions} aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
-        <Download size={14} /><EllipsisVertical size={14} />
-      </button>
-      {open && (
-        <div className={`menu-list menu-down is-${side}`} role="menu">
-          {items.map((item) => (
-            <button key={item.label} role="menuitem" className="menu-item" onClick={() => { setOpen(false); item.run() }}>{item.icon}{item.label}</button>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

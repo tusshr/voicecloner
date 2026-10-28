@@ -9,11 +9,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Project docs for new sessions: `CLAUDE.md` (project memory), `docs/PRD.md`, `docs/DESIGN.md`, `docs/ROADMAP.md` (next steps and tests: performance, Cactus Whistle, hosting, SEO) and `docs/RELEASE-CHECKLIST.md`.
 - Page transitions: links between pages of the same language (tool switch, wordmark, footer, Read aloud) now open without a page reload. The page cross-fades under a header that stays still, and on the Text to voice / Voice to text switch the highlight slides to the other tool. Reduced motion turns the animation off.
 - About and contact show the wordmark logo mark, like the tool pages, so the header looks the same on every page.
-- Voice to text: a New transcript button (＋, next to the language menu) clears the text box to start fresh; saved transcripts stay in the list.
+- Voice to text: a rail under the text, like the effects row in text to voice: ＋ New transcript (clears the text box to start fresh; saved transcripts stay), Copy, Read aloud, .txt and .srt. The downloads are chips now instead of a ⋮ menu.
 - Error boundary around each tool: if the tool crashes, the header, article and footer stay, with a Try again button that restarts only the tool (5 languages, works offline).
 
 ### Changed
-- Phones: the speech language menu shows the language code (EN, ES…) so the card head fits at 360 px in every language; the menu still lists full names. Desktop is unchanged.
+- Text to voice: the ↺ reset button moved from the card head into the effects row; it is always there and disabled while the text is the example, so nothing shifts.
+- Footer: logo and Install app on top, all links in one row, then credits, languages and the version as small print.
 - The script text in text to voice is 17 px, like voice to text, and the voice to text text box no longer has extra side padding (both start at the same edge, with the action buttons under them).
 - Voice to text no longer shows the first-use download note under the stage.
 - Portuguese demo button: "Ouvir demo" (shorter, fits on phones).
@@ -24,8 +25,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `npm run preview` serves the build with clean URLs like Vercel (`serve`); plain `python3 -m http.server` breaks client navigation.
 
 ### Fixed
-- The language menu no longer moves when you switch between the two tools: the reset button was taller than the menu (CSS order), so the card head grew by 1–4 px.
-- Phones at 360 px: the card head buttons no longer overlap in Spanish, Portuguese, German and Italian.
+- The language menu no longer moves when you switch between the two tools: the reset button in the card head was taller than the menu and made the head grow; the head now holds only the menu and one button.
+- Phones at 360 px: the card head buttons no longer overlap in Spanish, Portuguese, German and Italian (the head now holds only the language menu and one button).
+- The Copy button keeps its width when it shows Copied.
 - Phones: the page no longer jumps up about 250 px after loading (the server-rendered voice panel is hidden on phones from the first paint). This layout shift (CLS 0.19) cost about 10 Lighthouse points on mobile.
 - Text contrast meets WCAG AA (Lighthouse accessibility 100): `--muted` is a little darker in light mode (#6b6b74), and small teal text uses the new `--accent-ink` (#0f766e).
 - Voice to text releases the microphone when you leave the page while recording (needed now that pages change without a reload).

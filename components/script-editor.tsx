@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import dynamic from 'next/dynamic'
-import { SlidersHorizontal, X } from 'lucide-react'
+import { RotateCcw, SlidersHorizontal, X } from 'lucide-react'
 import { DELIVERY, emojifyTags, MOOD_EMOJI, MOODS, TAG_RE, tagLook, type Delivery, type Mood } from '@/lib/script'
 import { fmt } from '@/lib/i18n'
 import type { UI } from '@/content/ui'
@@ -16,9 +16,11 @@ const PAUSES = [0.5, 1, 2, 3]
  * (scrolling, with the character count beside it) and a drawer with every effect.
  */
 export function ScriptEditor({
-  ui, value, onChange, disabled, moodsWithClips, maxLength, onSubmit, onFocus, highlight,
+  ui, value, onChange, disabled, moodsWithClips, maxLength, onSubmit, onFocus, highlight, onReset,
 }: {
   ui: UI
+  /** Back to the example text; the button stays in place and is disabled while the text is the example. */
+  onReset?: () => void
   value: string
   onChange: (value: string) => void
   disabled?: boolean
@@ -185,6 +187,10 @@ export function ScriptEditor({
           aria-expanded={pickerOpen} aria-haspopup="dialog"
           onMouseDown={(event) => event.preventDefault()} onClick={() => (pickerOpen ? setPickerOpen(false) : openPicker())}>
           <SlidersHorizontal size={16} />
+        </button>
+        <button type="button" className="effects-all" aria-label={ui.resetExample} title={ui.resetExample}
+          disabled={disabled || !onReset} onClick={onReset}>
+          <RotateCcw size={15} />
         </button>
         <ScrollFade axis="x" className="chips" role="toolbar" aria-label={ui.insertTag}>
           {MOODS.map((mood) => (
