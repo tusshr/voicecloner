@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- Rails on desktop: the mouse wheel scrolls them sideways (no Shift needed) and you can drag them with the mouse, like a swipe on a phone. The ‹ › arrow buttons from 1.1.0 are gone. At the end of a rail the wheel scrolls the page again.
+- Voice to text placeholder is short, like text to voice: "Tap Record and start speaking…" (all five languages).
+
 ## [1.1.0] - 2026-10-28
 
 Voice studio polish: page transitions, both tools aligned, 100 on PageSpeed desktop and 98–100 on mobile.
