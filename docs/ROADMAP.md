@@ -39,6 +39,18 @@ Test after: phone (Android Chrome) and desktop; first-load time, warm generation
 
 **Researched 2026-10-28: not now.** A browser build exists (official `needle.wasm` + `needle.js`, 930 KB, single-threaded; community npm packages `cactus-needle@0.3.0` (Apache-2.0) and `@tiny-stt/whistle`; a community ONNX export `mrfakename/whistle-ONNX`, 72–145 MB). Blockers: **no Portuguese** (two engines, or a pt fine-tune we'd have to make), 30 s per call (we'd chunk), and the accuracy gain is vendor-reported only: independent tests show a small English edge (Big Iron: 4.75 vs 6.03 % WER on LibriSpeech clean) and **no independent non-English numbers**; vendor's own MLS average has Whisper base ahead. Revisit if a pt version appears or if Whisper is too slow on phones; then A/B on our own es/de/it clips first.
 
+**A/B 2026-10-28** (same headless Chromium, 4-core laptop, cross-origin isolated; Whisper base q8 through our worker with 2 threads, Whistle through `cactus-needle@0.3.0`, single-threaded; real = 6–10 audiobook clips per language from LibriSpeech test-clean (en) / Multilingual LibriSpeech test (es, de, it, pt); demo = our 7–8 TTS demo clips; WER = word error rate, lower is better; speed = × real time, higher is faster):
+
+| | Whisper WER real / demo | Whistle WER real / demo | Whisper speed | Whistle speed |
+| --- | --- | --- | --- | --- |
+| en | 8.6 % / 0.7 % | **2.3 %** / 1.4 % | 1.5× | **3.9×** |
+| es | 19.7 % / 24.1 % | **13.3 % / 17.9 %** | 2.0× | **3.3×** |
+| de | **18.1 %** / 18.8 % | 19.9 % / **17.2 %** | 2.2× | **3.2×** |
+| it | 28.9 % / 13.2 % | **24.6 % / 11.2 %** | 1.8× | **3.2×** |
+| pt | 30.1 % / 30.3 % | — (not supported) | 1.9× | — |
+
+Download: Whisper ~77 MB, Whistle ~18 MB. Load from cache: Whisper 16 s, Whistle 4 s (same run). Caveats: ~300 words per language, so gaps of a few points are noise (de is a tie); clean read speech, not phone recordings or conversation; Whistle is 30 s per call (needs chunking or its `stream()` for longer audio). Verdict: worth a beta with Whistle for en/es/de/it and Whisper for pt, downloading only the engine the chosen language needs. Next: owner tries real phone recordings.
+
 
 Facts (2026-10): 16.9 MB, Apache-2.0, released 2026-10-02 by Cactus Compute; languages en, de, fr, es, it, nl, pl — **no Portuguese**; 16 kHz mono, 30 s windows; word timestamps; keyword biasing; runs on the Needle C++ engine (`.cact` files), lists WebAssembly among 17 platforms; company-reported WER beats Whisper base; users report weaker results for natural non-English speech.
 

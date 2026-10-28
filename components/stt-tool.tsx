@@ -15,6 +15,7 @@ import { TOOL_NAMES } from '@/content/tools'
 import { attachMic, detachMic, formatTime } from '@/lib/audio-stage'
 import { fmt, localePath, timeAgo, WHISPER_LANGUAGE, type Locale } from '@/lib/i18n'
 import { SITE_NAME } from '@/lib/site'
+import { useWakeLock } from '@/lib/wake-lock'
 import { decodeTo16k, getSttEngine, resampleTo16k, STT_RATE, sttSupported, toSrt, type SttChunk } from '@/lib/stt-engine'
 
 type Entry = { id: string; text: string; chunks: SttChunk[]; seconds: number; at: number }
@@ -138,6 +139,9 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
     return () => { clearInterval(timer); clearInterval(live) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, model])
+
+  // Keep the phone screen on while recording, transcribing or loading the model.
+  useWakeLock(phase !== 'idle' || model === 'loading')
 
   const start = async () => {
     setError(null)

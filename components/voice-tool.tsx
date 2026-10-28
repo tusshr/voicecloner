@@ -19,6 +19,7 @@ import { canRecord, createEngine, isLowPowerDevice, isSupported, StoppedError, t
 import { ENGINE_LANGUAGE, fmt, isLocale, timeAgo, type Locale } from '@/lib/i18n'
 import { UI_STRINGS } from '@/content/ui'
 import { PRESETS, type Preset } from '@/lib/voices'
+import { useWakeLock } from '@/lib/wake-lock'
 import type { UI } from '@/content/ui'
 import { SITE_NAME } from '@/lib/site'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -152,6 +153,9 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
   /** Start the ~150 MB model download as soon as the person starts on a voice, so it is ready sooner. */
   const warmUp = () => { void loadModel() }
+
+  // Keep the phone screen on while the model loads, a voice records or a script is spoken.
+  useWakeLock(model === 'loading' || busy !== null || recording !== null || decoding !== null)
 
   const startRecording = async (target: Target) => {
     warmUp()
