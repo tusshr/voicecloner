@@ -26,7 +26,7 @@ npm install
 npm run dev                         # http://localhost:3000
 npm run build                       # static export to out/
 npx tsc --noEmit                    # type check (run before every commit)
-python3 -m http.server 4000 -d out  # serve the build; pages are /voice-to-text.html, /es.html … (no clean URLs locally)
+python3 tools/serve.py              # serve out/ on :4000 with clean URLs like Vercel (plain http.server breaks client navigation)
 ```
 
 Append `?engine=mock` to any page to use fake engines (no model download): text to voice and voice to text both support it.
@@ -39,6 +39,8 @@ Next.js 16 (App Router, Turbopack) with `output: 'export'` — a fully static si
 | --- | --- |
 | Routes | `app/(en)/…` English at the root; `app/(intl)/[lang]/…` the other languages. Pages: home, voice-to-text, about, contact, privacy + terms (English only), 404, 500 |
 | Page assembly, metadata, JSON-LD | `components/pages.tsx`, `lib/seo.ts`, `app/sitemap.ts`, `app/robots.ts` |
+| Navigation and transitions | `next/link` for same-language links (client navigation); `components/site-header.tsx` (`PinnedHeader`: header stays still while the page cross-fades), `components/tool-switch.tsx` (sliding pill, transition type `tool-switch`), CSS at the end of `globals.css`. Language links stay `<a>` (each language is its own root layout) |
+| Error handling | `components/error-boundary.tsx` (`catchError` around each tool in `pages.tsx`), `app/**/error.tsx` + `components/error-view.tsx` (route level), `app/global-error.tsx` |
 | Text to voice UI | `components/voice-tool.tsx` (state, generate, voice drawer, generations), `components/script-editor.tsx` (editor, effect chips, effect picker) |
 | Script syntax | `lib/script.ts` (parser, `emojifyTags`, sentence split) |
 | TTS engine | `lib/tts-engine.ts` → worker `public/pocket-tts/inference-worker.js` (Kyutai Pocket TTS, ONNX Runtime Web 1.20 from jsDelivr) |
@@ -82,4 +84,6 @@ Environment variables (set in Vercel → production): `NEXT_PUBLIC_SITE_URL=http
 - **Sticky header** must be a child of the scrolling page; on home the tool wrapper is `display: contents` for this reason.
 - **Kyutai Expresso emotion voices are CC BY-NC** (non-commercial). Do not use them; emotions need the user's own recorded moods.
 - **Vercel Hobby is non-commercial only.** Move hosting to Cloudflare Pages before adding ads (see ROADMAP).
+- **Pages change without a reload** (client navigation): tools must release what they hold on unmount (mic, player, workers). Every page's header must be wrapped in `PinnedHeader`; that shared name is what starts the page cross-fade.
+- **Two tool switches are in the DOM** (header on desktop, inline on phones; CSS hides one), so view transition names include the variant. Never give two mounted elements the same name.
 - Killing processes with `pkill -f <pattern>` can kill your own shell when the pattern is in the command line; kill by PID from a script file instead.

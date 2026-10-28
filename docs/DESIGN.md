@@ -37,7 +37,7 @@ Radii: 6 / 8 / 12 px (`--r-sm/md/lg`); drawers 18 px top corners; stage 16 px. F
 | Component | Rules |
 | --- | --- |
 | Header | Wordmark left, tool switch centered (desktop), language pill right. No install button here (it is in the footer). |
-| Tool switch | Two-part segmented control: "Text to voice │ Voice to text". Links, not tabs (each tool is its own page). |
+| Tool switch | Two-part segmented control: "Text to voice │ Voice to text". Links, not tabs (each tool is its own page). Switching slides the white pill to the other tool (220 ms). |
 | Text card head | Language menu left (with ↺ reset when the text differs from the example), Hear a demo / Upload audio right. |
 | Stage | The first version's clean waveform: soft mint/peach/lavender glow, slim white bars, **no text, no buttons**. Idle, working (generating / loading), live (playing / recording). ~136 px phones, 160 px desktop. Recording shows a red dot + timer top-left. |
 | Editor | Textarea over a mirrored backdrop that tints whole effect spans and marks the spoken word. Effects row: sliders button, chips (scroll, edge fade), character count. |
@@ -55,7 +55,8 @@ Radii: 6 / 8 / 12 px (`--r-sm/md/lg`); drawers 18 px top corners; stage 16 px. F
 - Typing `[happy:` becomes `[😊:` (any page language); chips wrap the selection or insert `[effect: ]` with the caret inside.
 - Loading a generation replaces the editor text only after confirming, if the user typed their own text.
 - Demos play without downloading the model.
-- Reduced motion: no ring spin, no sheet animation, no caret blink.
+- Page changes: the page cross-fades (browser default, ~250 ms) under a still header. No directional slides: the pages are siblings, not deeper levels.
+- Reduced motion: no ring spin, no sheet animation, no caret blink, no page transitions.
 
 ## Don'ts
 

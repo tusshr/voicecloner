@@ -7,9 +7,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 - Project docs for new sessions: `CLAUDE.md` (project memory), `docs/PRD.md`, `docs/DESIGN.md`, `docs/ROADMAP.md` (next steps and tests: performance, Cactus Whistle, hosting, SEO) and `docs/RELEASE-CHECKLIST.md`.
+- Page transitions: links between pages of the same language (tool switch, wordmark, footer, Read aloud) now open without a page reload. The page cross-fades under a header that stays still, and on the Text to voice / Voice to text switch the highlight slides to the other tool. Reduced motion turns the animation off.
+- About and contact show the wordmark logo mark, like the tool pages, so the header looks the same on every page.
+- Error boundary around each tool: if the tool crashes, the header, article and footer stay, with a Try again button that restarts only the tool (5 languages, works offline).
 
 ### Changed
+- Pages for es / pt / de / it no longer await their route params (they use `params.then()`), so the page shell stays synchronous.
 - Desktop: the workbench is narrower (1080 px page, about 1016 px workbench), so the editor reads at about 72 characters per line and lines up better with the 720 px article column.
+- `tools/serve.py` serves the build with clean URLs like Vercel; plain `python3 -m http.server` breaks client navigation.
+
+### Fixed
+- Voice to text releases the microphone when you leave the page while recording (needed now that pages change without a reload).
 
 ## [1.0.0] - 2026-10-27
 

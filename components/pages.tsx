@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { HomeArticle } from '@/components/home-article'
 import { ProsePage } from '@/components/prose-page'
 import { SiteFooter } from '@/components/site-footer'
@@ -63,7 +64,9 @@ export function HomePage({ lang }: { lang: Locale }) {
   ]
   return (
     <main className="shell shell-home">
-      <VoiceTool ui={UI_STRINGS[lang]} lang={lang} homeHref={localePath(lang)} languageLabel={CHROME[lang].language} />
+      <ErrorBoundary lang={lang}>
+        <VoiceTool ui={UI_STRINGS[lang]} lang={lang} homeHref={localePath(lang)} languageLabel={CHROME[lang].language} />
+      </ErrorBoundary>
       <HomeArticle content={content} title={UI_STRINGS[lang].headline} lede={UI_STRINGS[lang].subhead} />
       <SiteFooter lang={lang} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />
@@ -109,7 +112,9 @@ export function SttPage({ lang }: { lang: Locale }) {
   ]
   return (
     <main className="shell shell-home">
-      <SttTool lang={lang} languageLabel={CHROME[lang].language} />
+      <ErrorBoundary lang={lang} page="voice-to-text">
+        <SttTool lang={lang} languageLabel={CHROME[lang].language} />
+      </ErrorBoundary>
       <HomeArticle content={{ ...HOME[lang], sections: content.sections, faqTitle: content.faqTitle, faq: content.faq }} title={content.headline} lede={content.lede} />
       <SiteFooter lang={lang} page="voice-to-text" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }} />

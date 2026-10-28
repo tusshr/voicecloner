@@ -1,8 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ChevronDown, Copy, Download, EllipsisVertical, FileText, Languages, Mic, Square, Upload, Volume2, X } from 'lucide-react'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { PinnedHeader } from '@/components/site-header'
 import { ToolSwitch } from '@/components/tool-switch'
 import { Waveform, type WaveMode } from '@/components/waveform'
 import { STT, WHISPER_LANGUAGE } from '@/content/stt'
@@ -35,6 +38,7 @@ export function SttTool({ lang, languageLabel }: { lang: Locale; languageLabel: 
   const [copied, setCopied] = useState(false)
   const [now, setNow] = useState(() => Date.now())
   const fileRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
 
   // Recording state lives in refs: the audio callback and timers must not wait for renders.
   const rec = useRef<{ stream: MediaStream; ctx: AudioContext; proc: ScriptProcessorNode; rate: number; started: number } | null>(null)
@@ -48,7 +52,12 @@ export function SttTool({ lang, languageLabel }: { lang: Locale; languageLabel: 
   useEffect(() => {
     try { setHistory(JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]')) } catch {}
     const timer = setInterval(() => setNow(Date.now()), 30_000)
-    return () => clearInterval(timer)
+    return () => {
+      clearInterval(timer)
+      // Leaving the page by client navigation must free the microphone.
+      const r = rec.current
+      if (r) { r.stream.getTracks().forEach((track) => track.stop()); r.proc.disconnect(); detachMic(); void r.ctx.close() }
+    }
   }, [])
   const saveHistory = (next: Entry[]) => {
     setHistory(next)
@@ -224,7 +233,7 @@ export function SttTool({ lang, languageLabel }: { lang: Locale; languageLabel: 
       localStorage.setItem(`script:${lang}`, transcript.slice(0, 700))
       if (speechLang === lang) localStorage.removeItem(`speech-lang:${lang}`); else localStorage.setItem(`speech-lang:${lang}`, speechLang)
     } catch {}
-    window.location.href = localePath(lang)
+    router.push(localePath(lang))
   }
 
   const open = (entry: Entry) => { setTranscript(entry.text); setChunks(entry.chunks); setActiveId(entry.id) }
@@ -252,14 +261,16 @@ export function SttTool({ lang, languageLabel }: { lang: Locale; languageLabel: 
 
   return (
     <div className="tool">
-      <header className="topbar">
-        <a className="wordmark" href={localePath(lang)}><span className="wordmark-mark" aria-hidden />{SITE_NAME}</a>
-        <ToolSwitch lang={lang} active="stt" className="tool-switch-header" />
-        <div className="topbar-actions">
-          <LanguageSwitcher lang={lang} page="voice-to-text" label={languageLabel} />
-        </div>
-      </header>
-      <ToolSwitch lang={lang} active="stt" className="tool-switch-inline" />
+      <PinnedHeader>
+        <header className="topbar">
+          <Link className="wordmark" href={localePath(lang)}><span className="wordmark-mark" aria-hidden />{SITE_NAME}</Link>
+          <ToolSwitch lang={lang} active="stt" variant="header" />
+          <div className="topbar-actions">
+            <LanguageSwitcher lang={lang} page="voice-to-text" label={languageLabel} />
+          </div>
+        </header>
+      </PinnedHeader>
+      <ToolSwitch lang={lang} active="stt" variant="inline" />
 
       {!supported && <p className="note is-error">{ui.unsupported}</p>}
       <input ref={fileRef} type="file" accept="audio/*,video/*" className="sr-only" tabIndex={-1} aria-label={ui.upload}

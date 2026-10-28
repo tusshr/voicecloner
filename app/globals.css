@@ -600,10 +600,13 @@ html, body { overflow-x: clip; }
 .tool-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; border-radius: 10px; background: var(--subtle); }
 .tool-switch a {
   height: 30px; display: flex; align-items: center; justify-content: center; padding: 0 14px; border-radius: 8px;
-  font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; white-space: nowrap;
+  position: relative; font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; white-space: nowrap;
 }
 .tool-switch a:hover { color: var(--ink); }
-.tool-switch a[aria-current='page'] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--hairline); }
+.tool-switch a[aria-current='page'] { color: var(--ink); }
+/* The active tool's background is its own element, so it can slide to the other tool on switch. */
+.tool-pill { position: absolute; inset: 0; border-radius: 8px; background: var(--panel); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--hairline); }
+.tool-label { position: relative; }
 .tool-switch-header { display: none; }
 @media (max-width: 1023px) { .tool-switch a { height: 36px; font-size: 14px; } }
 @media (min-width: 1024px) {
@@ -643,3 +646,19 @@ html, body { overflow-x: clip; }
 }
 
 .footer-version { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ---------- view transitions (React <ViewTransition>, client navigation) ---------- */
+/* Pages cross-fade (the browser's root animation); the sticky header stays put. Its old snapshot is hidden
+   because a frozen copy of backdrop-filter flashes. */
+::view-transition-old(site-header) { display: none; }
+::view-transition-new(site-header), ::view-transition-group(site-header) { animation: none; }
+/* Tool switch: the pill slides; old and new are the same solid shape, so no cross-fade inside it. */
+::view-transition-group(.tool-pill) { animation-duration: 220ms; animation-timing-function: cubic-bezier(0.5, 0, 0.2, 1); }
+::view-transition-old(.tool-pill), ::view-transition-new(.tool-pill) { animation: none; height: 100%; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*), ::view-transition-new(*), ::view-transition-group(*) { animation-duration: 0s !important; animation-delay: 0s !important; }
+}
+
+/* A tool that crashed: the rest of the page stays. */
+.error-box { display: grid; justify-items: center; gap: 10px; padding: 40px 16px; text-align: center; background: var(--panel); border: 1px solid var(--hairline); border-radius: var(--r-lg); }
+.error-box h2 { font-size: 17px; color: var(--ink); }

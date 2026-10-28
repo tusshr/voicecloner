@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { Check, ChevronDown, Download, EllipsisVertical, Languages, Mic, Pause, Play, Plus, RotateCcw, Share2, Square, Upload, X } from 'lucide-react'
 import { Drawer } from 'vaul'
 import { ScrollFade } from './scroll-fade'
+import Link from 'next/link'
+import { PinnedHeader } from './site-header'
 import { ToolSwitch } from './tool-switch'
 import { Waveform, type WaveMode } from '@/components/waveform'
 import { ScriptEditor } from '@/components/script-editor'
@@ -578,17 +580,19 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
   return (
     <div className="tool">
-      <header className="topbar">
-        <a className="wordmark" href={homeHref}><span className="wordmark-mark" aria-hidden />{SITE_NAME}</a>
-        <ToolSwitch lang={lang} active="tts" className="tool-switch-header" />
-        <div className="topbar-actions">
-          {(base || takes.length > 0) && (
-            <button className="btn btn-ghost btn-small" onClick={startOver} disabled={!!busy || voiceBlocked}><RotateCcw size={14} /> {ui.startOver}</button>
-          )}
-          <LanguageSwitcher lang={lang} label={languageLabel} />
-        </div>
-      </header>
-      <ToolSwitch lang={lang} active="tts" className="tool-switch-inline" />
+      <PinnedHeader>
+        <header className="topbar">
+          <Link className="wordmark" href={homeHref}><span className="wordmark-mark" aria-hidden />{SITE_NAME}</Link>
+          <ToolSwitch lang={lang} active="tts" variant="header" />
+          <div className="topbar-actions">
+            {(base || takes.length > 0) && (
+              <button className="btn btn-ghost btn-small" onClick={startOver} disabled={!!busy || voiceBlocked}><RotateCcw size={14} /> {ui.startOver}</button>
+            )}
+            <LanguageSwitcher lang={lang} label={languageLabel} />
+          </div>
+        </header>
+      </PinnedHeader>
+      <ToolSwitch lang={lang} active="tts" variant="inline" />
 
 
       {!env.supported && <p className="note is-error">{ui.unsupported}</p>}

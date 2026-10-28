@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { InstallButton } from '@/components/install-button'
 import { CHROME } from '@/content/pages'
 import { UI_STRINGS } from '@/content/ui'
@@ -9,6 +10,7 @@ export function SiteFooter({ lang, page = '' }: { lang: Locale; page?: string })
   const chrome = CHROME[lang]
   // Privacy and terms are English only; other languages link to them.
   const legal = (slug: 'privacy' | 'terms') => localePath('en', slug)
+  // Language links stay plain <a>: each language has its own root layout, so that is a full page load anyway.
   return (
     <footer className="footer">
       <div className="footer-top">
@@ -16,14 +18,14 @@ export function SiteFooter({ lang, page = '' }: { lang: Locale; page?: string })
         <InstallButton ui={UI_STRINGS[lang]} variant="footer" />
       </div>
       <nav className="footer-nav" aria-label="Tools">
-        <a href={localePath(lang)}>{STT[lang].ui.toolTts}</a>
-        <a href={localePath(lang, 'voice-to-text')}>{STT[lang].ui.toolStt}</a>
+        <Link href={localePath(lang)}>{STT[lang].ui.toolTts}</Link>
+        <Link href={localePath(lang, 'voice-to-text')}>{STT[lang].ui.toolStt}</Link>
       </nav>
       <nav className="footer-nav" aria-label="Site">
-        <a href={localePath(lang, 'about')}>{chrome.about}</a>
-        <a href={localePath(lang, 'contact')}>{chrome.contact}</a>
-        <a href={legal('privacy')} hrefLang={lang === 'en' ? undefined : 'en'}>{chrome.privacy}</a>
-        <a href={legal('terms')} hrefLang={lang === 'en' ? undefined : 'en'}>{chrome.terms}</a>
+        <Link href={localePath(lang, 'about')}>{chrome.about}</Link>
+        <Link href={localePath(lang, 'contact')}>{chrome.contact}</Link>
+        <Link href={legal('privacy')} hrefLang={lang === 'en' ? undefined : 'en'}>{chrome.privacy}</Link>
+        <Link href={legal('terms')} hrefLang={lang === 'en' ? undefined : 'en'}>{chrome.terms}</Link>
       </nav>
       <nav className="footer-nav" aria-label={chrome.language}>
         {LOCALES.map((locale) => (
