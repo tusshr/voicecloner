@@ -64,7 +64,8 @@ Rules from the owner: never target keywords that contain a competitor's brand ("
 
 ### Voice to text (`/voice-to-text`)
 - Record (live preview every 3 s, parts closed at 24 s for Whisper's 30 s window) or upload audio/video.
-- Editable transcript, Copy, Read aloud (hands the text and language to text to voice), download .txt / .srt (timestamps from Whisper chunks), word count, transcripts history in localStorage (20 max).
+- Engines (2026-10-28, beta): **Whistle** (Cactus Compute, ~18 MB) by default for en/es/de/it, **Whisper base** (~77 MB) for Portuguese and for visitors who pick "Use Whisper instead" (saved in localStorage `stt-engine`). Only the engine the language needs is downloaded. Why: A/B in ROADMAP §2 (smaller download, ~2× faster, as accurate or better on our test clips).
+- Editable transcript, Copy, Read aloud (hands the text and language to text to voice), download .txt / .srt (timestamps from the engine: Whisper chunks, or Whistle word times grouped into lines), word count, transcripts history in localStorage (20 max).
 
 ### Site
 - 5 languages with hreflang, canonical, sitemap, robots, JSON-LD (WebApplication, WebSite, FAQPage), sticky frosted header with the tool switch, footer with tools, pages, languages, Install app (PWA) and version.

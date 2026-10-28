@@ -13,14 +13,15 @@ import { Waveform, type WaveMode } from '@/components/waveform'
 import type { SttContent } from '@/content/stt'
 import { TOOL_NAMES } from '@/content/tools'
 import { attachMic, detachMic, formatTime } from '@/lib/audio-stage'
-import { fmt, localePath, timeAgo, WHISPER_LANGUAGE, type Locale } from '@/lib/i18n'
+import { fmt, localePath, timeAgo, type Locale } from '@/lib/i18n'
 import { SITE_NAME } from '@/lib/site'
 import { useWakeLock } from '@/lib/wake-lock'
-import { decodeTo16k, getSttEngine, resampleTo16k, STT_RATE, sttSupported, toSrt, type SttChunk } from '@/lib/stt-engine'
+import { decodeTo16k, engineFor, getSttEngine, resampleTo16k, STT_RATE, sttSupported, toSrt, type SttChunk } from '@/lib/stt-engine'
 
 type Entry = { id: string; text: string; chunks: SttChunk[]; seconds: number; at: number }
 type Phase = 'idle' | 'recording' | 'finishing' | 'transcribing'
 const HISTORY_KEY = 'stt-history'
+const ENGINE_KEY = 'stt-engine' // 'whisper' when the visitor switched away from the Whistle beta
 const SEGMENT_SECONDS = 24 // Whisper hears 30 s at a time; a recording is split into parts a bit shorter than that
 const LIVE_EVERY_MS = 3000
 
@@ -29,6 +30,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
   const [speechLang, setSpeechLang] = useState<Locale>(lang)
   const [phase, setPhase] = useState<Phase>('idle')
   const [model, setModel] = useState<'idle' | 'loading' | 'ready' | 'failed'>('idle')
+  const [preferWhisper, setPreferWhisper] = useState(false)
   const [progress, setProgress] = useState<number | undefined>()
   const [elapsed, setElapsed] = useState(0)
   const [transcript, setTranscript] = useState('')
@@ -54,6 +56,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
 
   useEffect(() => {
     try { setHistory(JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]')) } catch {}
+    try { setPreferWhisper(localStorage.getItem(ENGINE_KEY) === 'whisper') } catch {}
     const timer = setInterval(() => setNow(Date.now()), 30_000)
     return () => {
       clearInterval(timer)
@@ -67,11 +70,20 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
     try { localStorage.setItem(HISTORY_KEY, JSON.stringify(next.slice(0, 20))) } catch {}
   }
 
+  // Each engine loads on first use; a new engine (other language or the visitor's choice) starts from 'idle'.
+  const kind = engineFor(speechLang, preferWhisper)
+  useEffect(() => { setModel('idle'); setProgress(undefined) }, [kind])
+  const switchEngine = () => {
+    const next = !preferWhisper
+    setPreferWhisper(next)
+    try { if (next) localStorage.setItem(ENGINE_KEY, 'whisper'); else localStorage.removeItem(ENGINE_KEY) } catch {}
+  }
+
   const ensureModel = useCallback(async () => {
     if (model === 'ready') return true
     setModel('loading')
     try {
-      await getSttEngine().load((value) => setProgress(value))
+      await getSttEngine(kind).load((value) => setProgress(value))
       setModel('ready')
       return true
     } catch (err) {
@@ -79,7 +91,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
       setError(fmt(ui.failed, { error: err instanceof Error ? err.message : String(err) }))
       return false
     }
-  }, [model, ui.failed])
+  }, [model, kind, ui.failed])
 
   const audioBetween = (from: number, to: number) => {
     const out = new Float32Array(to - from)
@@ -107,7 +119,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
     busy.current = true
     try {
       const audio = resampleTo16k(audioBetween(from, end), r)
-      const result = await getSttEngine().transcribe(audio, WHISPER_LANGUAGE[speechLang])
+      const result = await getSttEngine(kind).transcribe(audio, speechLang)
       if (final) {
         const offset = from / r
         parts.current.push({ text: result.text, chunks: result.chunks.map((c) => ({ ...c, start: c.start + offset, end: (c.end ?? c.start) + offset })) })
@@ -203,7 +215,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
     try {
       const [audio, ready] = await Promise.all([decodeTo16k(file), ensureModel()])
       if (!ready) { setPhase('idle'); return }
-      const result = await getSttEngine().transcribe(audio, WHISPER_LANGUAGE[speechLang], (text) => setLive(text))
+      const result = await getSttEngine(kind).transcribe(audio, speechLang, (text) => setLive(text))
       setTranscript(result.text)
       setChunks(result.chunks)
       const entry: Entry = { id: crypto.randomUUID(), text: result.text, chunks: result.chunks, seconds: audio.length / STT_RATE, at: Date.now() }
@@ -369,6 +381,12 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
           </div>
         </aside>
       </div>
+      {/* Outside the workspace, so both tools keep the same workbench height. */}
+      <p className="note stt-model">
+        {kind === 'whistle' ? ui.modelWhistle : ui.modelWhisper}
+        {speechLang !== 'pt' && <> · <button type="button" className="link" onClick={switchEngine} disabled={phase !== 'idle'}>
+          {kind === 'whistle' ? ui.useWhisper : ui.useWhistle}</button></>}
+      </p>
     </div>
   )
 }

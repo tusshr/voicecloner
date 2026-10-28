@@ -51,6 +51,8 @@ Test after: phone (Android Chrome) and desktop; first-load time, warm generation
 
 Download: Whisper ~77 MB, Whistle ~18 MB. Load from cache: Whisper 16 s, Whistle 4 s (same run). Caveats: ~300 words per language, so gaps of a few points are noise (de is a tie); clean read speech, not phone recordings or conversation; Whistle is 30 s per call (needs chunking or its `stream()` for longer audio). Verdict: worth a beta with Whistle for en/es/de/it and Whisper for pt, downloading only the engine the chosen language needs. Next: owner tries real phone recordings.
 
+**Shipped as beta default 2026-10-28** (tag `before-whistle` = state before). Known quirk: the same sentence repeated many times in a row can be collapsed (seen on a looped test clip; real 36 s speech across a cut came out complete, 102/102 words). Watch for the reported "Thank you." output on silence. Before calling it stable: phone recordings in 4 languages, a 5-minute upload, and real visitors' switch-to-Whisper rate once analytics exist.
+
 
 Facts (2026-10): 16.9 MB, Apache-2.0, released 2026-10-02 by Cactus Compute; languages en, de, fr, es, it, nl, pl — **no Portuguese**; 16 kHz mono, 30 s windows; word timestamps; keyword biasing; runs on the Needle C++ engine (`.cact` files), lists WebAssembly among 17 platforms; company-reported WER beats Whisper base; users report weaker results for natural non-English speech.
 

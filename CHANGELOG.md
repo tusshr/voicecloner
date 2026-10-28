@@ -6,6 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [Unreleased]
 
 ### Added
+- Voice to text uses **Whistle** (Cactus Compute, Apache-2.0) as a beta for English, Spanish, German and Italian: a ~18 MB download instead of ~77 MB, about twice as fast, and as accurate or better on our test clips. Portuguese keeps Whisper (Whistle does not speak it). A line under the tool shows the model and lets you switch to Whisper and back (remembered in this browser). Only the model your language needs is downloaded. Audio longer than 28 s is cut at quiet moments; subtitles come from Whistle's word times.
 - The phone screen stays on while a model loads, a voice is recorded, a script is spoken or audio is transcribed (Screen Wake Lock API; browsers without it behave as before).
 
 ### Changed

@@ -44,7 +44,7 @@ Next.js 16 (App Router, Turbopack) with `output: 'export'` — a fully static si
 | Text to voice UI | `components/voice-tool.tsx` (state, generate, voice drawer, generations), `components/script-editor.tsx` (editor, effect chips, effect picker), `components/sheet.tsx` (phone drawer, Vaul, loaded with `next/dynamic`) |
 | Script syntax | `lib/script.ts` (parser, `emojifyTags`, sentence split) |
 | TTS engine | `lib/tts-engine.ts` → worker `public/pocket-tts/inference-worker.js` (Kyutai Pocket TTS, ONNX Runtime Web 1.20 from jsDelivr) |
-| Voice to text | `components/stt-tool.tsx` (records via `public/recorder-worklet.js`), `lib/stt-engine.ts` → worker `public/whisper-worker.js` (Whisper base q8 via transformers.js 4.3.1 `dist/transformers.min.js` from jsDelivr) |
+| Voice to text | `components/stt-tool.tsx` (records via `public/recorder-worklet.js`), `lib/stt-engine.ts` (`engineFor` picks per language) → **Whistle** (beta default for en/es/de/it: `cactus-needle@0.3.0` main-thread module from jsDelivr + `public/whistle-worker.js`, a same-origin copy of its worker; 30 s per call, `splitAudio` cuts longer audio) or worker `public/whisper-worker.js` (Whisper base q8 via transformers.js 4.3.1 `dist/transformers.min.js` from jsDelivr; Portuguese and "Use Whisper instead") |
 | Audio | `lib/audio-stage.ts` (shared AudioContext, analyser, player with audible-time tracking), `lib/audio-fx.ts` (time stretch, gain, fades, concat) |
 | Sample voices / demos | `lib/voices.ts`, `lib/demos.ts`, `public/demos/<lang>/<id>.mp3` (39 files; es/alba-merchant missing on purpose), `tools/make-demos.py` |
 | Text content | `content/ui.ts` (TTS UI, 5 langs), `content/home/<lang>.ts` (home SEO article + FAQ), `content/stt.ts` (voice to text UI + article + FAQ), `content/pages.ts` (about, contact, footer), `content/legal.ts`; small browser-side modules: `content/tools.ts` (tool names), `content/errors.ts` (error screens) |
@@ -57,7 +57,7 @@ Environment variables (set in Vercel → production): `NEXT_PUBLIC_SITE_URL=http
 
 - **Commit and push as you go.** Pushing to `main` deploys to production on Vercel. Check the deployment after pushing.
 - **No co-author lines** in commits. Author: `tusshr <tusshr@users.noreply.github.com>`.
-- **Tag before risky UI work** so the owner can roll back (existing tags: `ux-v1-bottom-sheet`, `ux-v2-vaul`, `ux-v3-before-redesign`, `ux-v4-final-mobile`, `ux-v5-before-polish`, `ux-v6-before-transitions`, `v1.0.0`, `v1.1.0`, `v1.1.1`, `v1.1.2`).
+- **Tag before risky UI work** so the owner can roll back (existing tags: `ux-v1-bottom-sheet`, `ux-v2-vaul`, `ux-v3-before-redesign`, `ux-v4-final-mobile`, `ux-v5-before-polish`, `ux-v6-before-transitions`, `before-whistle`, `v1.0.0`, `v1.1.0`, `v1.1.1`, `v1.1.2`).
 - **Every change goes in `CHANGELOG.md`** under `[Unreleased]` (Added / Changed / Fixed). Releases: bump `package.json`, move the section, tag `vX.Y.Z`, create a GitHub release with the notes.
 - **Show a UI mockup first** for bigger design changes (the owner reviews on the design canvas, then says "go ahead").
 - **All 5 languages** for every user-facing string and for SEO content. Keep strings in `content/`, never inline.
@@ -85,6 +85,7 @@ Environment variables (set in Vercel → production): `NEXT_PUBLIC_SITE_URL=http
 - **Kyutai Expresso emotion voices are CC BY-NC** (non-commercial). Do not use them; emotions need the user's own recorded moods.
 - **Vercel Hobby is non-commercial only.** Move hosting to Cloudflare Pages before adding ads (see ROADMAP).
 - **Pages change without a reload** (client navigation): tools must release what they hold on unmount (mic, player, workers). Every page's header must be wrapped in `PinnedHeader`; that shared name is what starts the page cross-fade.
+- **`public/whistle-worker.js` is a vendored copy**: never edit it; to upgrade, copy `dist/browser/worker.js` from the new `cactus-needle` version and bump `NEEDLE` in `lib/stt-engine.ts` together (the worker and the main-thread module must match).
 - **Two tool switches are in the DOM** (header on desktop, inline on phones; CSS hides one), so view transition names include the variant. Never give two mounted elements the same name.
 - **Bundle size = what client modules import.** A page ships every client component its server modules import, and a client component ships every content file it imports (all 5 languages). Keep tool pages in separate modules, pass page text to client components as props, and keep content that client code imports small (`content/tools.ts`, `content/errors.ts`). Check first-load JS after changes: about ≈148 KB gz is the Next.js + React floor.
 - **The server renders the desktop layout** (`useMediaQuery` is false on the server). Anything that appears only on desktop must also be hidden by CSS on phones, or the page jumps after hydration (CLS; this cost 10 Lighthouse points on mobile).
