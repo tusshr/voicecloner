@@ -7,7 +7,7 @@ export type SttContent = {
   headline: string
   lede: string
   ui: {
-    upload: string; placeholder: string; record: string; recordMore: string; stop: string
+    placeholder: string; record: string; recordMore: string; stop: string
     microphone: string; listening: string; loading: string; finishing: string; transcribing: string
     copy: string; copied: string; readAloud: string; downloadTxt: string; downloadSrt: string; moreActions: string
     words: string; transcripts: string; emptyHistory: string; justNow: string; minAgo: string; remove: string; open: string
@@ -24,7 +24,7 @@ const en: SttContent = {
   headline: 'Free voice to text online',
   lede: 'Speak or upload a recording, and get the text in seconds. Copy it, download it as text or subtitles, or have it read aloud.',
   ui: {
-    upload: 'Upload audio', placeholder: 'Tap Record and start speaking. Your words appear here as you talk.',
+    placeholder: 'Tap Record and start speaking. Your words appear here as you talk.',
     record: 'Record', recordMore: 'Record more', stop: 'Stop',
     microphone: 'Microphone', listening: 'Listening', loading: 'Loading', finishing: 'Finishing', transcribing: 'Transcribing',
     copy: 'Copy', copied: 'Copied', readAloud: 'Read aloud', downloadTxt: 'Download text (.txt)', downloadSrt: 'Download subtitles (.srt)', moreActions: 'More actions',
@@ -68,7 +68,7 @@ const es: SttContent = {
   headline: 'Voz a texto gratis online',
   lede: 'Habla o sube una grabación y recibe el texto en segundos. Cópialo, descárgalo como texto o subtítulos, o haz que lo lea una voz.',
   ui: {
-    upload: 'Subir audio', placeholder: 'Pulsa Grabar y empieza a hablar. Tus palabras aparecen aquí mientras hablas.',
+    placeholder: 'Pulsa Grabar y empieza a hablar. Tus palabras aparecen aquí mientras hablas.',
     record: 'Grabar', recordMore: 'Grabar más', stop: 'Parar',
     microphone: 'Micrófono', listening: 'Escuchando', loading: 'Cargando', finishing: 'Terminando', transcribing: 'Transcribiendo',
     copy: 'Copiar', copied: 'Copiado', readAloud: 'Leer en voz alta', downloadTxt: 'Descargar texto (.txt)', downloadSrt: 'Descargar subtítulos (.srt)', moreActions: 'Más acciones',
@@ -112,7 +112,7 @@ const pt: SttContent = {
   headline: 'Voz para texto grátis online',
   lede: 'Fale ou envie uma gravação e receba o texto em segundos. Copie, baixe como texto ou legendas, ou ouça o texto em voz alta.',
   ui: {
-    upload: 'Enviar áudio', placeholder: 'Toque em Gravar e comece a falar. Suas palavras aparecem aqui enquanto você fala.',
+    placeholder: 'Toque em Gravar e comece a falar. Suas palavras aparecem aqui enquanto você fala.',
     record: 'Gravar', recordMore: 'Gravar mais', stop: 'Parar',
     microphone: 'Microfone', listening: 'Ouvindo', loading: 'Carregando', finishing: 'Finalizando', transcribing: 'Transcrevendo',
     copy: 'Copiar', copied: 'Copiado', readAloud: 'Ler em voz alta', downloadTxt: 'Baixar texto (.txt)', downloadSrt: 'Baixar legendas (.srt)', moreActions: 'Mais ações',
@@ -156,7 +156,7 @@ const de: SttContent = {
   headline: 'Sprache zu Text kostenlos online',
   lede: 'Sprich oder lade eine Aufnahme hoch und erhalte den Text in Sekunden. Kopiere ihn, lade ihn als Text oder Untertitel herunter oder lass ihn vorlesen.',
   ui: {
-    upload: 'Audio hochladen', placeholder: 'Tippe auf Aufnehmen und sprich los. Deine Wörter erscheinen hier, während du sprichst.',
+    placeholder: 'Tippe auf Aufnehmen und sprich los. Deine Wörter erscheinen hier, während du sprichst.',
     record: 'Aufnehmen', recordMore: 'Weiter aufnehmen', stop: 'Stopp',
     microphone: 'Mikrofon', listening: 'Hört zu', loading: 'Lädt', finishing: 'Wird fertig', transcribing: 'Transkribiert',
     copy: 'Kopieren', copied: 'Kopiert', readAloud: 'Vorlesen', downloadTxt: 'Text herunterladen (.txt)', downloadSrt: 'Untertitel herunterladen (.srt)', moreActions: 'Weitere Aktionen',
@@ -200,7 +200,7 @@ const it: SttContent = {
   headline: 'Da voce a testo gratis online',
   lede: 'Parla o carica una registrazione e ricevi il testo in pochi secondi. Copialo, scaricalo come testo o sottotitoli, o fallo leggere ad alta voce.',
   ui: {
-    upload: 'Carica audio', placeholder: 'Tocca Registra e inizia a parlare. Le tue parole appaiono qui mentre parli.',
+    placeholder: 'Tocca Registra e inizia a parlare. Le tue parole appaiono qui mentre parli.',
     record: 'Registra', recordMore: 'Registra ancora', stop: 'Stop',
     microphone: 'Microfono', listening: 'In ascolto', loading: 'Caricamento', finishing: 'Quasi fatto', transcribing: 'Trascrizione',
     copy: 'Copia', copied: 'Copiato', readAloud: 'Leggi ad alta voce', downloadTxt: 'Scarica testo (.txt)', downloadSrt: 'Scarica sottotitoli (.srt)', moreActions: 'Altre azioni',

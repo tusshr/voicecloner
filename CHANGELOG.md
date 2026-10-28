@@ -5,19 +5,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-28
+
+Voice studio polish: page transitions, both tools aligned, 100 on PageSpeed desktop and 98–100 on mobile.
+
 ### Added
 - Project docs for new sessions: `CLAUDE.md` (project memory), `docs/PRD.md`, `docs/DESIGN.md`, `docs/ROADMAP.md` (next steps and tests: performance, Cactus Whistle, hosting, SEO) and `docs/RELEASE-CHECKLIST.md`.
 - Page transitions: links between pages of the same language (tool switch, wordmark, footer, Read aloud) now open without a page reload. The page cross-fades under a header that stays still, and on the Text to voice / Voice to text switch the highlight slides to the other tool. Reduced motion turns the animation off.
 - About and contact show the wordmark logo mark, like the tool pages, so the header looks the same on every page.
-- Voice to text: a rail under the text, like the effects row in text to voice: ＋ New transcript (clears the text box to start fresh; saved transcripts stay), Copy, Read aloud, .txt and .srt. The downloads are chips now instead of a ⋮ menu.
+- Voice to text: a rail under the text, like the effects row in text to voice: ＋ New transcript (clears the text box to start fresh; saved transcripts stay), Copy, Read aloud, .txt and .srt, and the word count. It is there from the start, with the actions disabled until there is text. The downloads are chips now instead of a ⋮ menu.
+- Rails scroll with ‹ › buttons over the edge fades (swiping still works).
 - Error boundary around each tool: if the tool crashes, the header, article and footer stay, with a Try again button that restarts only the tool (5 languages, works offline).
 
 ### Changed
-- Text to voice: the ↺ reset button moved from the card head into the effects row; it is always there and disabled while the text is the example, so nothing shifts.
+- Text to voice: the ↺ reset button moved from the card head to the start of the effects row; it is always there and disabled while the text is the example, so nothing shifts.
 - Footer: logo and Install app on top, all links in one row, then credits, languages and the version as small print.
 - The script text in text to voice is 17 px, like voice to text, and the voice to text text box no longer has extra side padding (both start at the same edge, with the action buttons under them).
 - Voice to text no longer shows the first-use download note under the stage.
-- Portuguese demo button: "Ouvir demo" (shorter, fits on phones).
+- Hear a demo and Upload audio have the same width (each fits both labels), so the button does not change size when you switch tools. Shorter labels so they fit on 360 px phones: "Ouvir demo", "Escuchar demo", "Ascolta demo", "Audio laden".
 - Pages for es / pt / de / it no longer await their route params (they use `params.then()`), so the page shell stays synchronous.
 - Desktop: the workbench is narrower (1080 px page, about 1016 px workbench), so the editor reads at about 72 characters per line and lines up better with the 720 px article column.
 - Next.js 16.4.0 → 16.4.3 (security advisory).

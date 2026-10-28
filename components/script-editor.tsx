@@ -183,14 +183,14 @@ export function ScriptEditor({
       </div>
 
       <div className="effects-row">
+        <button type="button" className="effects-all" aria-label={ui.resetExample} title={ui.resetExample}
+          disabled={disabled || !onReset} onClick={onReset}>
+          <RotateCcw size={15} />
+        </button>
         <button type="button" className="effects-all" aria-label={ui.allEffects} title={ui.allEffects} disabled={disabled}
           aria-expanded={pickerOpen} aria-haspopup="dialog"
           onMouseDown={(event) => event.preventDefault()} onClick={() => (pickerOpen ? setPickerOpen(false) : openPicker())}>
           <SlidersHorizontal size={16} />
-        </button>
-        <button type="button" className="effects-all" aria-label={ui.resetExample} title={ui.resetExample}
-          disabled={disabled || !onReset} onClick={onReset}>
-          <RotateCcw size={15} />
         </button>
         <ScrollFade axis="x" className="chips" role="toolbar" aria-label={ui.insertTag}>
           {MOODS.map((mood) => (

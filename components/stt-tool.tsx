@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Copy, Download, FileText, Mic, Plus, Square, Upload, Volume2, X } from 'lucide-react'
+import { Copy, Download, FileText, Mic, Play, Plus, Square, Upload, Volume2, X } from 'lucide-react'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import { SpeechLanguageSelect } from '@/components/speech-language-select'
 import { ScrollFade } from '@/components/scroll-fade'
@@ -246,6 +246,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
   }
 
   const working = phase !== 'idle' && phase !== 'recording'
+  const hasText = phase === 'idle' && !!transcript.trim()
   const waveMode: WaveMode = phase === 'recording' ? 'live' : working || model === 'loading' ? 'working' : 'idle'
   const words = transcript.trim() ? transcript.trim().split(/\s+/).length : 0
   const supported = typeof window === 'undefined' || sttSupported()
@@ -276,7 +277,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
       <ToolSwitch lang={lang} active="stt" variant="inline" />
 
       {!supported && <p className="note is-error">{ui.unsupported}</p>}
-      <input ref={fileRef} type="file" accept="audio/*,video/*" className="sr-only" tabIndex={-1} aria-label={ui.upload}
+      <input ref={fileRef} type="file" accept="audio/*,video/*" className="sr-only" tabIndex={-1} aria-label={TOOL_NAMES[lang].upload}
         onChange={(event) => { void onFile(event.target.files?.[0]); event.target.value = '' }} />
 
       <div className="workspace">
@@ -284,7 +285,11 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
           <div className="pane-head">
             <SpeechLanguageSelect value={speechLang} onChange={setSpeechLang} disabled={phase !== 'idle'} label={ui.speechLanguage} />
             <button className="btn btn-outline btn-small" onClick={() => fileRef.current?.click()} disabled={phase !== 'idle' || !supported}>
-              <Upload size={14} /> {ui.upload}
+              {/* Sized to fit the demo button's label too, so the button keeps its width when you switch tools. */}
+              <span className="swap is-first">
+                <span className="swap-a"><Upload size={14} /> {TOOL_NAMES[lang].upload}</span>
+                <span className="swap-sizer" aria-hidden><Play size={14} /> {TOOL_NAMES[lang].demo}</span>
+              </span>
             </button>
           </div>
 
@@ -307,29 +312,27 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
                 <span className="stt-caret" aria-hidden />
               </div>
             )}
-            {transcript && phase === 'idle' && (
-              <div className="effects-row">
-                <button type="button" className="effects-all" aria-label={ui.newTranscript} title={ui.newTranscript} onClick={startNew}>
-                  <Plus size={16} />
+            <div className="effects-row">
+              <button type="button" className="effects-all" aria-label={ui.newTranscript} title={ui.newTranscript} disabled={!hasText} onClick={startNew}>
+                <Plus size={16} />
+              </button>
+              <ScrollFade axis="x" className="chips" role="toolbar" aria-label={ui.moreActions}>
+                <button type="button" className="chip chip-icon-text" disabled={!hasText} onClick={() => void copy()}>
+                  <Copy size={14} aria-hidden />
+                  <span className={copied ? 'swap' : 'swap is-first'}><span className="swap-a">{ui.copy}</span><span className="swap-b">{ui.copied}</span></span>
                 </button>
-                <ScrollFade axis="x" className="chips" role="toolbar" aria-label={ui.moreActions}>
-                  <button type="button" className="chip chip-icon-text" onClick={() => void copy()}>
-                    <Copy size={14} aria-hidden />
-                    <span className={copied ? 'swap' : 'swap is-first'}><span className="swap-a">{ui.copy}</span><span className="swap-b">{ui.copied}</span></span>
+                <button type="button" className="chip chip-icon-text" disabled={!hasText} onClick={readAloud}><Volume2 size={14} aria-hidden /> {ui.readAloud}</button>
+                <button type="button" className="chip chip-icon-text" title={ui.downloadTxt} aria-label={ui.downloadTxt} disabled={!hasText} onClick={() => download(transcript, 'txt')}>
+                  <FileText size={14} aria-hidden /> .txt
+                </button>
+                {hasText && chunks.length > 0 && (
+                  <button type="button" className="chip chip-icon-text" title={ui.downloadSrt} aria-label={ui.downloadSrt} onClick={() => download(toSrt(chunks), 'srt')}>
+                    <Download size={14} aria-hidden /> .srt
                   </button>
-                  <button type="button" className="chip chip-icon-text" onClick={readAloud}><Volume2 size={14} aria-hidden /> {ui.readAloud}</button>
-                  <button type="button" className="chip chip-icon-text" title={ui.downloadTxt} aria-label={ui.downloadTxt} onClick={() => download(transcript, 'txt')}>
-                    <FileText size={14} aria-hidden /> .txt
-                  </button>
-                  {chunks.length > 0 && (
-                    <button type="button" className="chip chip-icon-text" title={ui.downloadSrt} aria-label={ui.downloadSrt} onClick={() => download(toSrt(chunks), 'srt')}>
-                      <Download size={14} aria-hidden /> .srt
-                    </button>
-                  )}
-                </ScrollFade>
-                <span className="char-count">{fmt(ui.words, { n: words })}</span>
-              </div>
-            )}
+                )}
+              </ScrollFade>
+              <span className="char-count">{fmt(ui.words, { n: words })}</span>
+            </div>
           </div>
 
           <div className="pane-foot">

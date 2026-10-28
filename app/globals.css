@@ -486,6 +486,14 @@ body {
 .scroll-fade-y[data-fade-end='true'] { --fade-end: 40px; }
 .scroll-fade-x[data-fade-start='true'] { --fade-start: 24px; }
 .scroll-fade-x[data-fade-end='true'] { --fade-end: 36px; }
+.scroll-rail { position: relative; display: flex; flex: 1; min-width: 0; }
+.scroll-arrow {
+  position: absolute; top: 0; bottom: 0; width: 28px; display: flex; align-items: center; justify-content: center;
+  color: var(--ink); opacity: 0; pointer-events: none; transition: opacity 150ms ease;
+}
+.scroll-arrow.is-start { left: -2px; }
+.scroll-arrow.is-end { right: -2px; }
+.scroll-fade[data-fade-start='true'] ~ .scroll-arrow.is-start, .scroll-fade[data-fade-end='true'] ~ .scroll-arrow.is-end { opacity: 1; pointer-events: auto; }
 
 /* ---------- result player: a voice-message waveform ---------- */
 .wavebars { display: flex; align-items: center; gap: 2px; height: 36px; padding: 0 2px; min-width: 0; overflow: hidden; }
@@ -566,7 +574,7 @@ html, body { overflow-x: clip; }
 /* The demo button: both labels sit in one grid cell; the hidden one holds the width, so the button never resizes. */
 .swap { display: inline-grid; }
 .swap > span { grid-area: 1 / 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-.swap.is-first .swap-b, .swap:not(.is-first) .swap-a { visibility: hidden; }
+.swap.is-first .swap-b, .swap:not(.is-first) .swap-a , .swap-sizer { visibility: hidden; }
 
 .footer-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .install-link {

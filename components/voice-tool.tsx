@@ -8,6 +8,7 @@ import { ScrollFade } from './scroll-fade'
 import Link from 'next/link'
 import { PinnedHeader } from './site-header'
 import { ToolSwitch } from './tool-switch'
+import { TOOL_NAMES } from '@/content/tools'
 import { Waveform, type WaveMode } from '@/components/waveform'
 import { ScriptEditor } from '@/components/script-editor'
 import { attachMic, decodeToMono24k, detachMic, encodeWav, formatTime, player, SAMPLE_RATE } from '@/lib/audio-stage'
@@ -612,10 +613,11 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
             {!ownClip && (
               <button className="btn btn-outline btn-small demo-btn" disabled={!!busy} aria-pressed={playback.playingId === `preset-${(base?.preset ?? PRESETS[0]).id}`}
                 onClick={() => void previewPreset(base?.preset ?? PRESETS[0])}>
-                {/* Both labels share one grid cell; the hidden one keeps the width, so the button never resizes. */}
+                {/* All labels share one grid cell; hidden ones keep the width (Stop, and voice to text's Upload audio). */}
                 <span className={playback.playingId === `preset-${(base?.preset ?? PRESETS[0]).id}` ? 'swap' : 'swap is-first'}>
-                  <span className="swap-a"><Play size={14} /> {ui.playDemo}</span>
+                  <span className="swap-a"><Play size={14} /> {TOOL_NAMES[lang].demo}</span>
                   <span className="swap-b"><Square size={13} /> {ui.stop}</span>
+                  <span className="swap-sizer" aria-hidden><Upload size={14} /> {TOOL_NAMES[lang].upload}</span>
                 </span>
               </button>
             )}
