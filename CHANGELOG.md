@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Changed
+- Faster voice to text: the site is now cross-origin isolated (`Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Embedder-Policy: credentialless` in `vercel.json` and `public/_headers`), so the models can use several CPU threads. Transcription went from about 1.8× to 2.6× real time on a 4-core test machine. Safari has no `credentialless` and stays single-threaded, as before.
+- Text to voice uses 2 threads when isolated (measured fastest on 4 cores: 1 thread 0.77×, 2 threads 0.89×, 4 threads slower). Small gain: about +5–15% depending on machine load.
+- `npm run preview` sends the same isolation headers as production (`serve.json`).
+
 ## [1.1.2] - 2026-10-28
 
 ### Changed

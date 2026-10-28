@@ -617,8 +617,10 @@ async function loadOrt() {
     ort = ortModule.default || ortModule;
     ort.env.wasm.wasmPaths = cdnBase;
     ort.env.wasm.simd = true;
+    // ponytail: 2 threads measured fastest on 4 cores (1: 0.77x, 2: 0.89x, 4: 0.56x real time);
+    // the steps are small, so more threads mostly wait on each other. Re-measure on 8-core phones/desktops.
     ort.env.wasm.numThreads = self.crossOriginIsolated
-        ? Math.min(navigator.hardwareConcurrency || 4, 8)
+        ? Math.min(navigator.hardwareConcurrency || 2, 2)
         : 1;
     precomputeFlowBuffers();
 }

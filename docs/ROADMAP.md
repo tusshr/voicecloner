@@ -18,8 +18,16 @@ Current state:
 - Still on the main thread: recording via `ScriptProcessorNode` (stt-tool.tsx; voice-tool uses MediaRecorder), `timeStretch` / `applyGain` / `concat` / `limitPeak` in `lib/audio-fx.ts` during generate, `resampleTo16k`, `wavePeaks`.
 
 Plan:
-1. **Cross-origin isolation** to enable WASM threads: `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: credentialless` (Chrome/Edge/Firefox; Safari lacks `credentialless`, so it stays single-threaded — acceptable). Add to `vercel.json` headers and `public/_headers`. Check jsDelivr, Hugging Face, Google Fonts (self-hosted by next/font, fine) and later **AdSense / GA under COEP** — ads iframes can break with COEP; test before enabling ads, and consider isolating only the tool routes.
-2. Verify `self.crossOriginIsolated === true` in both workers; measure generation time and transcription time before/after (use the demo clips; log in ROADMAP).
+1. ✅ **Cross-origin isolation** (done 2026-10-28) to enable WASM threads: `Cross-Origin-Opener-Policy: same-origin` + `Cross-Origin-Embedder-Policy: credentialless` (Chrome/Edge/Firefox; Safari lacks `credentialless`, so it stays single-threaded — acceptable). Add to `vercel.json` headers and `public/_headers`. Check jsDelivr, Hugging Face, Google Fonts (self-hosted by next/font, fine) and later **AdSense / GA under COEP** — ads iframes can break with COEP; test before enabling ads, and consider isolating only the tool routes.
+2. ✅ Verified `crossOriginIsolated === true` in both workers. Measurements 2026-10-28 (headless Chromium, 4-core Linux, other load on the machine; warm cache; TTS: ~11 s of speech cloned from `en/bill.mp3`; STT: all 8 English demos joined, 47 s; ×real time, higher is faster):
+
+   | | Before (1 thread) | After |
+   | --- | --- | --- |
+   | TTS generate | 0.59–0.62× | 0.63–0.71× (2 threads; 0.88–0.91× in a quieter run) |
+   | TTS first audio | 760–890 ms | 450–860 ms |
+   | Whisper transcribe | 1.7–1.9× | 2.4–2.9× (library default: 2 threads) |
+
+   TTS threads: 1 → 0.77×, 2 → 0.89×, 4 → 0.44–0.69× (same session), so it is capped at 2. Pocket TTS on this machine is **slower than real time**: a long script takes longer to make than to play. Re-measure on the owner's Android phone (8 cores) and an 8-core desktop; the cap may want to be 4 there. Re-run: `tools/bench.py` (Playwright drives both workers directly; needs `npm run preview`).
 3. **WebGPU for Whisper** where available (`device: 'webgpu'`, dtype `{ encoder_model: 'fp32', decoder_model_merged: 'q4' }`), fall back to wasm q8. Measure.
 4. Move recording in voice to text from `ScriptProcessorNode` to an **AudioWorklet** (main-thread jank and deprecation).
 5. Move audio post-processing (`timeStretch`, gain, fades, concat, peaks) into the TTS worker or a small DSP worker.

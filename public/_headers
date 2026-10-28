@@ -6,6 +6,9 @@ https://:project.pages.dev/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), geolocation=(), microphone=(self)
+  # Cross-origin isolation: lets the models use WASM threads (SharedArrayBuffer).
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless
 
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable

@@ -26,7 +26,7 @@ npm install
 npm run dev                         # http://localhost:3000
 npm run build                       # static export to out/
 npx tsc --noEmit                    # type check (run before every commit)
-npm run preview                     # serve out/ on :4000 with clean URLs like Vercel (`serve`; plain http.server breaks client navigation)
+npm run preview                     # serve out/ on :4000 with clean URLs and COOP/COEP headers like Vercel (`serve` + serve.json; plain http.server breaks client navigation and isolation)
 ```
 
 Append `?engine=mock` to any page to use fake engines (no model download): text to voice and voice to text both support it.
@@ -89,4 +89,5 @@ Environment variables (set in Vercel → production): `NEXT_PUBLIC_SITE_URL=http
 - **Bundle size = what client modules import.** A page ships every client component its server modules import, and a client component ships every content file it imports (all 5 languages). Keep tool pages in separate modules, pass page text to client components as props, and keep content that client code imports small (`content/tools.ts`, `content/errors.ts`). Check first-load JS after changes: about ≈148 KB gz is the Next.js + React floor.
 - **The server renders the desktop layout** (`useMediaQuery` is false on the server). Anything that appears only on desktop must also be hidden by CSS on phones, or the page jumps after hydration (CLS; this cost 10 Lighthouse points on mobile).
 - **Lighthouse locally is noisy** (±10 points). Score with PageSpeed Insights on the deployed site; use local runs only for before/after comparisons on the same machine.
+- **Cross-origin isolation (COOP/COEP)** is on for the whole site; it is what gives the models threads. Any new cross-origin resource (scripts, iframes, ads, embeds) must work under `COEP: credentialless`; test with `self.crossOriginIsolated` still true. A stale HTTP-cached page without the headers makes a test browser look non-isolated: clear the cache.
 - Killing processes with `pkill -f <pattern>` can kill your own shell when the pattern is in the command line; kill by PID from a script file instead.

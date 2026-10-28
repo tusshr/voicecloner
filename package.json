@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "preview": "serve out -l 4000"
+    "preview": "serve out -l 4000 -c ../serve.json"
   },
   "dependencies": {
     "@vercel/analytics": "2.0.1",
