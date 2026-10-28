@@ -65,6 +65,9 @@ To do, most useful first:
 
 ## 5. Features (after the above)
 
+0. **Emotions for sample voices** (owner asked 2026-10-28). Today mood clips belong to the user, not to the selected voice: with a sample voice selected, an emotion tag either falls back to the sample voice (no clip) or, if the user recorded that mood, speaks in the *user's* voice (mismatch). Steps: (a) quick fix: show "Record a mood" only when the base is the user's own voice, and say that emotions need your own voice; (b) find emotional recordings of one speaker per voice with a commercial-friendly license (CC0 / CC BY) and bundle them as per-preset moods (Pocket TTS has no emotion control; a mood = a clip in that mood). Kyutai Expresso is CC BY-NC (not usable). Alba MacKenna's casual / announcer / merchant / gentle clips are styles, not emotions; at most "gentle" could stand in for calm.
+   - **Not doing: celebrity presets** (Trump etc.). Cloning a real person without consent breaks right-of-publicity and deepfake laws in many places, Kyutai's terms forbid impersonation, and ad networks ban it. Real risk to the site; no upside worth it.
+
 1. Export for sharing: small files (OGG/Opus for WhatsApp voice notes, M4A), **captioned video** (waveform + highlighted words, MP4 for Reels/TikTok/Status — nobody free does this), subtitles for text to voice takes.
 2. Voice cleaner (third tool): open-source denoiser vs. Desert Ant Labs Clear; "clean before cloning" option.
 3. Multi-speaker dialogue (`[Alba]: … [Bill]: …`).
