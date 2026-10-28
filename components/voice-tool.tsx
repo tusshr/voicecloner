@@ -16,7 +16,7 @@ import { applyGain, concat, fadeEdges, limitPeak, prepareVoiceSample, silence, t
 import { DEMO_LINES, demoUrl } from '@/lib/demos'
 import { MOOD_EMOJI, MOODS, parseScript, SPEED_FACTOR, splitSentences, VOLUME_GAIN, type Mood } from '@/lib/script'
 import { canRecord, createEngine, isLowPowerDevice, isSupported, StoppedError, type LoadProgress, type TTSEngine } from '@/lib/tts-engine'
-import { ENGINE_LANGUAGE, fmt, isLocale, type Locale } from '@/lib/i18n'
+import { ENGINE_LANGUAGE, fmt, isLocale, timeAgo, type Locale } from '@/lib/i18n'
 import { UI_STRINGS } from '@/content/ui'
 import { PRESETS, type Preset } from '@/lib/voices'
 import type { UI } from '@/content/ui'
@@ -487,7 +487,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
 
   const moodCount = MOODS.filter((mood) => moods[mood]).length
   const spokenWord = currentWord(takes.find((take) => take.id === playback.activeId), script, playback)
-  // "Just now" / "3 min ago" labels refresh once a minute.
+  // "Just now" / "5 minutes ago" labels refresh once a minute.
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(timer) }, [])
 
@@ -705,7 +705,7 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
           </div>
           <div className="generations-list">
             {takes.map((take) => (
-              <Generation key={take.id} ui={ui} take={take} playback={playback} now={now} onPlay={() => playTake(take)} />
+              <Generation key={take.id} ui={ui} lang={lang} take={take} playback={playback} now={now} onPlay={() => playTake(take)} />
             ))}
           </div>
         </section>
@@ -945,16 +945,15 @@ function currentWord(take: Take | undefined, script: string, playback: Playback)
 }
 
 /** One generation: a compact player (waveform you can tap to seek), the text it says, its voice and when it was made. */
-function Generation({ ui, take, playback, now, onPlay }: { ui: UI; take: Take; playback: Playback; now: number; onPlay: () => void }) {
+function Generation({ ui, lang, take, playback, now, onPlay }: { ui: UI; lang: Locale; take: Take; playback: Playback; now: number; onPlay: () => void }) {
   const playing = playback.playingId === take.id
-  const minutes = take.at ? Math.floor((now - take.at) / 60_000) : 0
   return (
     <article className={playback.activeId === take.id ? 'generation is-loaded' : 'generation'}>
       <TakeRow ui={ui} take={take} playback={playback} onToggle={onPlay} />
       <p className="generation-text">{take.text}</p>
       <p className="generation-meta">
         {take.voice && <span>{take.voice}</span>}
-        <span>{minutes < 1 ? ui.justNow : fmt(ui.minAgo, { n: minutes })}</span>
+        <span>{timeAgo(take.at ? now - take.at : 0, lang, ui.justNow)}</span>
         {playing && <span className="sr-only">{ui.pause}</span>}
       </p>
     </article>

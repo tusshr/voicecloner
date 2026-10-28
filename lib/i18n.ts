@@ -22,6 +22,18 @@ export function localePath(locale: Locale, page = '') {
   return page ? `${prefix}/${page}` : prefix || '/'
 }
 
+/** "Just now" under a minute, then the browser's own wording: "5 minutes ago", "2 hours ago", "yesterday", "3 days ago". */
+export function timeAgo(ms: number, locale: Locale, justNow: string) {
+  const minutes = Math.floor(ms / 60_000)
+  if (minutes < 1) return justNow
+  const format = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+  if (minutes < 60) return format.format(-minutes, 'minute')
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return format.format(-hours, 'hour')
+  const days = Math.floor(hours / 24)
+  return days < 30 ? format.format(-days, 'day') : new Date(Date.now() - ms).toLocaleDateString(locale, { day: 'numeric', month: 'short' })
+}
+
 /** Fill {placeholders} in a UI string. */
 export function fmt(template: string, values: Record<string, string | number>) {
   return template.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''))

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Copy, Download, FileText, Mic, Play, Plus, Square, Upload, Volume2, X } from 'lucide-react'
@@ -13,7 +13,7 @@ import { Waveform, type WaveMode } from '@/components/waveform'
 import type { SttContent } from '@/content/stt'
 import { TOOL_NAMES } from '@/content/tools'
 import { attachMic, detachMic, formatTime } from '@/lib/audio-stage'
-import { fmt, localePath, WHISPER_LANGUAGE, type Locale } from '@/lib/i18n'
+import { fmt, localePath, timeAgo, WHISPER_LANGUAGE, type Locale } from '@/lib/i18n'
 import { SITE_NAME } from '@/lib/site'
 import { decodeTo16k, getSttEngine, resampleTo16k, STT_RATE, sttSupported, toSrt, type SttChunk } from '@/lib/stt-engine'
 
@@ -40,6 +40,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
   const [copied, setCopied] = useState(false)
   const [now, setNow] = useState(() => Date.now())
   const fileRef = useRef<HTMLInputElement>(null)
+  const textRef = useRef<HTMLTextAreaElement>(null)
   const router = useRouter()
 
   // Recording state lives in refs: the audio callback and timers must not wait for renders.
@@ -245,6 +246,14 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
     if (activeId === entry.id) setActiveId(null)
   }
 
+  // Grow with the text like the text to voice editor, so both cards keep the same height.
+  useLayoutEffect(() => {
+    const el = textRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight + 2}px`
+  }, [transcript, phase])
+
   const working = phase !== 'idle' && phase !== 'recording'
   const hasText = phase === 'idle' && !!transcript.trim()
   const waveMode: WaveMode = phase === 'recording' ? 'live' : working || model === 'loading' ? 'working' : 'idle'
@@ -303,7 +312,7 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
 
           <div className="pane-body">
             {phase === 'idle' ? (
-              <textarea className="stt-text" value={transcript} placeholder={ui.placeholder} aria-label={TOOL_NAMES[lang].stt}
+              <textarea ref={textRef} className="stt-text" value={transcript} placeholder={ui.placeholder} aria-label={TOOL_NAMES[lang].stt}
                 onChange={(event) => setTranscript(event.target.value)} spellCheck />
             ) : (
               <div className="stt-text is-live" aria-live="polite">
@@ -350,24 +359,23 @@ export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttCont
         </section>
 
         <aside className={history.length ? 'pane pane-side' : 'pane pane-side is-empty'} aria-labelledby="transcripts-title">
-          <div className="pane-head"><h2 id="transcripts-title" className="pane-title">{ui.transcripts}</h2><span className="hint">{history.length || ''}</span></div>
-          <div className="side-list">
-            {history.length === 0 && <p className="hint">{ui.emptyHistory}</p>}
-            {history.map((entry) => {
-              const minutes = Math.floor((now - entry.at) / 60_000)
-              return (
+          <div className="pane-fill">
+            <div className="pane-head"><h2 id="transcripts-title" className="pane-title">{ui.transcripts}</h2><span className="hint">{history.length || ''}</span></div>
+            <div className="side-list">
+              {history.length === 0 && <p className="hint">{ui.emptyHistory}</p>}
+              {history.map((entry) => (
                 <article key={entry.id} className={entry.id === activeId ? 'generation is-loaded' : 'generation'}>
                   <button className="transcript-open" onClick={() => open(entry)} disabled={phase !== 'idle'} aria-label={`${ui.open}: ${entry.text.slice(0, 40)}`}>
                     <p className="generation-text">{entry.text}</p>
                   </button>
                   <p className="generation-meta">
                     <span>{formatTime(entry.seconds)}</span>
-                    <span>{minutes < 1 ? ui.justNow : fmt(ui.minAgo, { n: minutes })}</span>
+                    <span>{timeAgo(now - entry.at, lang, ui.justNow)}</span>
                     <button className="icon-btn transcript-remove" aria-label={ui.remove} onClick={() => remove(entry)}><X size={14} /></button>
                   </p>
                 </article>
-              )
-            })}
+              ))}
+            </div>
           </div>
         </aside>
       </div>

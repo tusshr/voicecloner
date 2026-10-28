@@ -5,9 +5,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-28
+
 ### Changed
 - Rails on desktop: the mouse wheel scrolls them sideways (no Shift needed) and you can drag them with the mouse, like a swipe on a phone. The ‹ › arrow buttons from 1.1.0 are gone. At the end of a rail the wheel scrolls the page again.
 - Voice to text placeholder is short, like text to voice: "Tap Record and start speaking…" (all five languages).
+
+### Fixed
+- Both workbenches have the same height, so switching tools no longer makes the card shrink or grow: the voice to text box has the same size as the text to voice editor and grows with its text the same way, and on desktop a long transcript list scrolls inside its pane.
+- Times read naturally in all five languages ("5 minutes ago", "2 hours ago", "yesterday", "3 days ago") instead of "945 min ago". The browser's built-in formatter (`Intl.RelativeTimeFormat`) does it, so there is no extra package.
 
 ## [1.1.0] - 2026-10-28
 

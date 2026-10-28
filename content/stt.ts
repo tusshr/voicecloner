@@ -10,7 +10,7 @@ export type SttContent = {
     placeholder: string; record: string; recordMore: string; stop: string
     microphone: string; listening: string; loading: string; finishing: string; transcribing: string
     copy: string; copied: string; readAloud: string; downloadTxt: string; downloadSrt: string; moreActions: string
-    words: string; transcripts: string; emptyHistory: string; justNow: string; minAgo: string; remove: string; open: string
+    words: string; transcripts: string; emptyHistory: string; justNow: string; remove: string; open: string
     speechLanguage: string; noMic: string; failed: string; unsupported: string; newTranscript: string
   }
   sections: { h: string; p: string[] }[]
@@ -28,7 +28,7 @@ const en: SttContent = {
     record: 'Record', recordMore: 'Record more', stop: 'Stop',
     microphone: 'Microphone', listening: 'Listening', loading: 'Loading', finishing: 'Finishing', transcribing: 'Transcribing',
     copy: 'Copy', copied: 'Copied', readAloud: 'Read aloud', downloadTxt: 'Download text (.txt)', downloadSrt: 'Download subtitles (.srt)', moreActions: 'More actions',
-    words: '{n} words', transcripts: 'Your transcripts', emptyHistory: 'Your transcripts appear here.', justNow: 'Just now', minAgo: '{n} min ago', remove: 'Remove', open: 'Open',
+    words: '{n} words', transcripts: 'Your transcripts', emptyHistory: 'Your transcripts appear here.', justNow: 'Just now', remove: 'Remove', open: 'Open',
     speechLanguage: 'Speech language',
     noMic: 'The microphone is not available. Allow it in the browser, or upload a recording.',
     failed: 'The transcription failed: {error}',
@@ -72,7 +72,7 @@ const es: SttContent = {
     record: 'Grabar', recordMore: 'Grabar más', stop: 'Parar',
     microphone: 'Micrófono', listening: 'Escuchando', loading: 'Cargando', finishing: 'Terminando', transcribing: 'Transcribiendo',
     copy: 'Copiar', copied: 'Copiado', readAloud: 'Leer en voz alta', downloadTxt: 'Descargar texto (.txt)', downloadSrt: 'Descargar subtítulos (.srt)', moreActions: 'Más acciones',
-    words: '{n} palabras', transcripts: 'Tus transcripciones', emptyHistory: 'Tus transcripciones aparecen aquí.', justNow: 'Ahora mismo', minAgo: 'Hace {n} min', remove: 'Quitar', open: 'Abrir',
+    words: '{n} palabras', transcripts: 'Tus transcripciones', emptyHistory: 'Tus transcripciones aparecen aquí.', justNow: 'Ahora mismo', remove: 'Quitar', open: 'Abrir',
     speechLanguage: 'Idioma de la voz',
     noMic: 'El micrófono no está disponible. Permítelo en el navegador o sube una grabación.',
     failed: 'La transcripción falló: {error}',
@@ -116,7 +116,7 @@ const pt: SttContent = {
     record: 'Gravar', recordMore: 'Gravar mais', stop: 'Parar',
     microphone: 'Microfone', listening: 'Ouvindo', loading: 'Carregando', finishing: 'Finalizando', transcribing: 'Transcrevendo',
     copy: 'Copiar', copied: 'Copiado', readAloud: 'Ler em voz alta', downloadTxt: 'Baixar texto (.txt)', downloadSrt: 'Baixar legendas (.srt)', moreActions: 'Mais ações',
-    words: '{n} palavras', transcripts: 'Suas transcrições', emptyHistory: 'Suas transcrições aparecem aqui.', justNow: 'Agora mesmo', minAgo: 'Há {n} min', remove: 'Remover', open: 'Abrir',
+    words: '{n} palavras', transcripts: 'Suas transcrições', emptyHistory: 'Suas transcrições aparecem aqui.', justNow: 'Agora mesmo', remove: 'Remover', open: 'Abrir',
     speechLanguage: 'Idioma da fala',
     noMic: 'O microfone não está disponível. Permita no navegador ou envie uma gravação.',
     failed: 'A transcrição falhou: {error}',
@@ -160,7 +160,7 @@ const de: SttContent = {
     record: 'Aufnehmen', recordMore: 'Weiter aufnehmen', stop: 'Stopp',
     microphone: 'Mikrofon', listening: 'Hört zu', loading: 'Lädt', finishing: 'Wird fertig', transcribing: 'Transkribiert',
     copy: 'Kopieren', copied: 'Kopiert', readAloud: 'Vorlesen', downloadTxt: 'Text herunterladen (.txt)', downloadSrt: 'Untertitel herunterladen (.srt)', moreActions: 'Weitere Aktionen',
-    words: '{n} Wörter', transcripts: 'Deine Transkripte', emptyHistory: 'Deine Transkripte erscheinen hier.', justNow: 'Gerade eben', minAgo: 'Vor {n} Min.', remove: 'Entfernen', open: 'Öffnen',
+    words: '{n} Wörter', transcripts: 'Deine Transkripte', emptyHistory: 'Deine Transkripte erscheinen hier.', justNow: 'Gerade eben', remove: 'Entfernen', open: 'Öffnen',
     speechLanguage: 'Sprache der Aufnahme',
     noMic: 'Das Mikrofon ist nicht verfügbar. Erlaube es im Browser oder lade eine Aufnahme hoch.',
     failed: 'Die Transkription ist fehlgeschlagen: {error}',
@@ -204,7 +204,7 @@ const it: SttContent = {
     record: 'Registra', recordMore: 'Registra ancora', stop: 'Stop',
     microphone: 'Microfono', listening: 'In ascolto', loading: 'Caricamento', finishing: 'Quasi fatto', transcribing: 'Trascrizione',
     copy: 'Copia', copied: 'Copiato', readAloud: 'Leggi ad alta voce', downloadTxt: 'Scarica testo (.txt)', downloadSrt: 'Scarica sottotitoli (.srt)', moreActions: 'Altre azioni',
-    words: '{n} parole', transcripts: 'Le tue trascrizioni', emptyHistory: 'Le tue trascrizioni appaiono qui.', justNow: 'Proprio ora', minAgo: '{n} min fa', remove: 'Rimuovi', open: 'Apri',
+    words: '{n} parole', transcripts: 'Le tue trascrizioni', emptyHistory: 'Le tue trascrizioni appaiono qui.', justNow: 'Proprio ora', remove: 'Rimuovi', open: 'Apri',
     speechLanguage: 'Lingua del parlato',
     noMic: 'Il microfono non è disponibile. Consentilo nel browser o carica una registrazione.',
     failed: 'La trascrizione non è riuscita: {error}',
