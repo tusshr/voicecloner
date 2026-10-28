@@ -18,9 +18,10 @@ Rules agreed with the owner during the v1.0.0 redesign. Read before changing UI.
 | `--raised` | #fbfbfc | #17171b | Inner surfaces, action bar |
 | `--subtle` | #f1f1f3 | #1e1e23 | Hover, segmented control track |
 | `--hairline` / `--hairline-strong` | #e4e4e7 / #d4d4d8 | #26262c / #34343c | Borders |
-| `--ink` / `--body` / `--muted` | #18181b / #3f3f46 / #71717a | #ededf0 / #c4c4cc / #8b8b95 | Text |
+| `--ink` / `--body` / `--muted` | #18181b / #3f3f46 / #6b6b74 | #ededf0 / #c4c4cc / #8b8b95 | Text |
 | `--primary` / `--on-primary` | ink / white | light / near-black | Primary button |
 | `--accent` | #0d9488 | #2dd4bf | Teal: progress ring, played waveform, spoken word, selected voice |
+| `--accent-ink` | #0f766e | #2dd4bf | Teal **text** (small labels, Done). `--accent` is below 4.5:1 for text in light mode |
 | `--mint --peach --lavender --sky --rose` | pastels | | Voice avatars, stage glow, wordmark |
 | Mood tints `--mood-*` | happy amber, sad blue, excited pink, calm green, whisper violet | | Emotion chips and spans |
 
@@ -50,6 +51,7 @@ Radii: 6 / 8 / 12 px (`--r-sm/md/lg`); drawers 18 px top corners; stage 16 px. F
 
 ## Interaction rules
 
+- Text contrast ≥4.5:1 (Lighthouse accessibility 100): `--muted` is the lightest text color; never put `--accent` on small text.
 - Touch targets ≥44 px on phones; chips 36 px; text 15–17 px.
 - Closing a drawer while recording stops the mic (keep ≥5 s, drop shorter).
 - Typing `[happy:` becomes `[😊:` (any page language); chips wrap the selection or insert `[effect: ]` with the caret inside.

@@ -15,9 +15,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Pages for es / pt / de / it no longer await their route params (they use `params.then()`), so the page shell stays synchronous.
 - Desktop: the workbench is narrower (1080 px page, about 1016 px workbench), so the editor reads at about 72 characters per line and lines up better with the 720 px article column.
 - Next.js 16.4.0 → 16.4.3 (security advisory).
+- Smaller first page load (compressed JavaScript): home 207 → 182 KB, voice to text 207 → 160 KB. Each tool page now has its own module (`components/home-page.tsx`, `components/stt-page.tsx`), so it no longer ships the other tool. The phone drawer library (Vaul) loads after the page, and only on phones (`components/sheet.tsx`). Voice to text gets its interface text as a prop instead of bundling the articles of all five languages; tool names and error texts moved to small `content/tools.ts` and `content/errors.ts`.
 - `npm run preview` serves the build with clean URLs like Vercel (`serve`); plain `python3 -m http.server` breaks client navigation.
 
 ### Fixed
+- Phones: the page no longer jumps up about 250 px after loading (the server-rendered voice panel is hidden on phones from the first paint). This layout shift (CLS 0.19) cost about 10 Lighthouse points on mobile.
+- Text contrast meets WCAG AA (Lighthouse accessibility 100): `--muted` is a little darker in light mode (#6b6b74), and small teal text uses the new `--accent-ink` (#0f766e).
 - Voice to text releases the microphone when you leave the page while recording (needed now that pages change without a reload).
 
 ## [1.0.0] - 2026-10-27

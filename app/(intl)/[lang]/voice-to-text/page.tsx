@@ -1,4 +1,4 @@
-import { SttPage, sttMetadata } from '@/components/pages'
+import { SttPage, sttMetadata } from '@/components/stt-page'
 import type { Locale } from '@/lib/i18n'
 
 type Props = { params: Promise<{ lang: string }> }

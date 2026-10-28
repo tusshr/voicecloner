@@ -1,13 +1,15 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { Drawer } from 'vaul'
+import dynamic from 'next/dynamic'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { DELIVERY, emojifyTags, MOOD_EMOJI, MOODS, TAG_RE, tagLook, type Delivery, type Mood } from '@/lib/script'
 import { fmt } from '@/lib/i18n'
 import type { UI } from '@/content/ui'
 import { ScrollFade } from './scroll-fade'
 
+// Phones only, and only after the page is up: Vaul stays out of the first load.
+const Sheet = dynamic(() => import('./sheet'), { ssr: false })
 const PAUSES = [0.5, 1, 2, 3]
 
 /**
@@ -217,19 +219,11 @@ export function ScriptEditor({
         </div>
       )}
 
-      {isPhone && <Drawer.Root open={pickerOpen} onOpenChange={setPickerOpen}>
-        <Drawer.Portal>
-          <Drawer.Overlay className="sheet-backdrop" />
-          <Drawer.Content className="sheet sheet-effects" aria-describedby={undefined}>
-            <Drawer.Handle className="sheet-handle" />
-            <div className="sheet-head">
-              <Drawer.Title className="sheet-title">{ui.effectsTitle}</Drawer.Title>
-              <button className="btn btn-ghost btn-small sheet-done" onClick={() => setPickerOpen(false)}>{ui.done}</button>
-            </div>
-            {pickerBody}
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>}
+      {isPhone && (
+        <Sheet open={pickerOpen} onOpenChange={setPickerOpen} title={ui.effectsTitle} done={ui.done} className="sheet-effects">
+          {pickerBody}
+        </Sheet>
+      )}
     </div>
   )
 }

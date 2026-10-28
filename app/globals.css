@@ -10,11 +10,12 @@
   --hairline-strong: #d4d4d8;
   --ink: #18181b;
   --body: #3f3f46;
-  --muted: #71717a;
+  --muted: #6b6b74; /* 4.5:1 on --subtle (WCAG AA) */
   --primary: #18181b;
   --on-primary: #ffffff;
   --accent: #0d9488;
   --accent-soft: rgb(13 148 136 / 0.12);
+  --accent-ink: #0f766e; /* teal for text: --accent is too light for small text on white and tints */
   --error: #dc2626;
   --warn: #b45309;
   --tag-bg: rgb(13 148 136 / 0.14);
@@ -39,6 +40,7 @@
     --on-primary: #0b0b0d;
     --accent: #2dd4bf;
     --accent-soft: rgb(45 212 191 / 0.14);
+    --accent-ink: #2dd4bf;
     --error: #f87171;
     --warn: #fbbf24;
     --tag-bg: rgb(45 212 191 / 0.18);
@@ -269,7 +271,7 @@ body {
 .preset-main { flex: 1; min-width: 0; display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; }
 .preset-name { font-size: 13px; font-weight: 500; }
 .preset-tag { font-size: 12px; color: var(--muted); }
-.selected { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--accent); padding: 0 8px; }
+.selected { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--accent-ink); padding: 0 8px; }
 
 .pills { display: flex; flex-wrap: wrap; gap: 6px; }
 .pill {
@@ -302,7 +304,7 @@ body {
 .tabs button:hover { color: var(--ink); }
 .tabs button[aria-selected='true'] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--hairline); }
 .tab-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); }
-.tab-count { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; font-size: 11px; line-height: 18px; text-align: center; background: var(--accent-soft); color: var(--accent); }
+.tab-count { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; font-size: 11px; line-height: 18px; text-align: center; background: var(--accent-soft); color: var(--accent-ink); }
 .voice-chip-caret { color: var(--muted); flex: none; }
 
 /* ---------- phones and tablets: an app, not a workbench ---------- */
@@ -354,7 +356,7 @@ body {
   .sheet-handle { margin: 10px auto 2px !important; width: 40px !important; height: 5px !important; background: var(--hairline-strong) !important; flex: none; }
   .sheet-head { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 0 8px 0 20px; flex: none; }
   .sheet-title { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
-  .sheet-done { font-weight: 600; color: var(--accent); }
+  .sheet-done { font-weight: 600; color: var(--accent-ink); }
   .sheet-backdrop { position: fixed; inset: 0; z-index: 45; background: rgb(0 0 0 / 0.45); }
   .sheet .tabs-row { padding: 2px 16px 4px; }
   .sheet .panel-scroll { padding: 12px 16px 16px; }
@@ -553,7 +555,7 @@ html, body { overflow-x: clip; }
   .sheet-handle { margin: 10px auto 2px !important; width: 40px !important; height: 5px !important; background: var(--hairline-strong) !important; flex: none; }
   .sheet-head { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 0 8px 0 20px; flex: none; }
   .sheet-title { font-size: 17px; font-weight: 600; }
-  .sheet-done { font-weight: 600; color: var(--accent); }
+  .sheet-done { font-weight: 600; color: var(--accent-ink); }
   .sheet-backdrop { position: fixed; inset: 0; z-index: 45; background: rgb(0 0 0 / 0.45); }
   .generations-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stage { height: 160px; }
@@ -634,6 +636,9 @@ html, body { overflow-x: clip; }
 .menu-list.menu-down.is-left { left: 0; right: auto; }
 .menu-list.menu-down.is-right { right: 0; left: auto; }
 @media (max-width: 1023px) { .pane-side.is-empty { display: none; } }
+/* The server renders the desktop layout (it cannot know the screen). On phones the voice panel lives in the drawer,
+   so hide the server-rendered pane from the first paint; otherwise the page jumps up when it is removed (CLS). */
+@media (max-width: 1023px) { .pane-voice { display: none; } }
 
 .pane-side .side-list { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px 16px; }
 .transcript-open { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 0; color: inherit; cursor: pointer; }

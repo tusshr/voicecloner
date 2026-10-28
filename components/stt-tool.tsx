@@ -8,9 +8,10 @@ import { LanguageSwitcher } from '@/components/language-switcher'
 import { PinnedHeader } from '@/components/site-header'
 import { ToolSwitch } from '@/components/tool-switch'
 import { Waveform, type WaveMode } from '@/components/waveform'
-import { STT, WHISPER_LANGUAGE } from '@/content/stt'
+import type { SttContent } from '@/content/stt'
+import { TOOL_NAMES } from '@/content/tools'
 import { attachMic, detachMic, formatTime } from '@/lib/audio-stage'
-import { fmt, LANGUAGE_NAMES, LOCALES, localePath, type Locale } from '@/lib/i18n'
+import { fmt, LANGUAGE_NAMES, LOCALES, localePath, WHISPER_LANGUAGE, type Locale } from '@/lib/i18n'
 import { SITE_NAME } from '@/lib/site'
 import { decodeTo16k, getSttEngine, resampleTo16k, STT_RATE, sttSupported, toSrt, type SttChunk } from '@/lib/stt-engine'
 
@@ -21,8 +22,7 @@ const SEGMENT_SECONDS = 24 // Whisper hears 30 s at a time; a recording is split
 const LIVE_EVERY_MS = 3000
 
 /** Voice to text: record or upload, Whisper writes it down, then copy, download or read it aloud. */
-export function SttTool({ lang, languageLabel }: { lang: Locale; languageLabel: string }) {
-  const ui = STT[lang].ui
+export function SttTool({ lang, ui, languageLabel }: { lang: Locale; ui: SttContent['ui']; languageLabel: string }) {
   const [speechLang, setSpeechLang] = useState<Locale>(lang)
   const [phase, setPhase] = useState<Phase>('idle')
   const [model, setModel] = useState<'idle' | 'loading' | 'ready' | 'failed'>('idle')
@@ -277,7 +277,7 @@ export function SttTool({ lang, languageLabel }: { lang: Locale; languageLabel: 
         onChange={(event) => { void onFile(event.target.files?.[0]); event.target.value = '' }} />
 
       <div className="workspace">
-        <section className="pane pane-text" aria-label={ui.toolStt}>
+        <section className="pane pane-text" aria-label={TOOL_NAMES[lang].stt}>
           <div className="pane-head">
             <label className="select">
               <Languages size={14} aria-hidden />
@@ -303,7 +303,7 @@ export function SttTool({ lang, languageLabel }: { lang: Locale; languageLabel: 
 
           <div className="pane-body">
             {phase === 'idle' ? (
-              <textarea className="stt-text" value={transcript} placeholder={ui.placeholder} aria-label={ui.toolStt}
+              <textarea className="stt-text" value={transcript} placeholder={ui.placeholder} aria-label={TOOL_NAMES[lang].stt}
                 onChange={(event) => setTranscript(event.target.value)} spellCheck />
             ) : (
               <div className="stt-text is-live" aria-live="polite">

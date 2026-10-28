@@ -38,16 +38,16 @@ Next.js 16 (App Router, Turbopack) with `output: 'export'` — a fully static si
 | Area | Files |
 | --- | --- |
 | Routes | `app/(en)/…` English at the root; `app/(intl)/[lang]/…` the other languages. Pages: home, voice-to-text, about, contact, privacy + terms (English only), 404, 500 |
-| Page assembly, metadata, JSON-LD | `components/pages.tsx`, `lib/seo.ts`, `app/sitemap.ts`, `app/robots.ts` |
+| Page assembly, metadata, JSON-LD | `components/home-page.tsx`, `components/stt-page.tsx` (one module per tool page), `components/pages.tsx` (about, contact, legal), `lib/seo.ts`, `app/sitemap.ts`, `app/robots.ts` |
 | Navigation and transitions | `next/link` for same-language links (client navigation); `components/site-header.tsx` (`PinnedHeader`: header stays still while the page cross-fades), `components/tool-switch.tsx` (sliding pill, transition type `tool-switch`), CSS at the end of `globals.css`. Language links stay `<a>` (each language is its own root layout) |
-| Error handling | `components/error-boundary.tsx` (`catchError` around each tool in `pages.tsx`), `app/**/error.tsx` + `components/error-view.tsx` (route level), `app/global-error.tsx` |
-| Text to voice UI | `components/voice-tool.tsx` (state, generate, voice drawer, generations), `components/script-editor.tsx` (editor, effect chips, effect picker) |
+| Error handling | `components/error-boundary.tsx` (`catchError` around each tool in the page modules; header passed as a prop), `app/**/error.tsx` + `components/error-view.tsx` (route level), `app/global-error.tsx` |
+| Text to voice UI | `components/voice-tool.tsx` (state, generate, voice drawer, generations), `components/script-editor.tsx` (editor, effect chips, effect picker), `components/sheet.tsx` (phone drawer, Vaul, loaded with `next/dynamic`) |
 | Script syntax | `lib/script.ts` (parser, `emojifyTags`, sentence split) |
 | TTS engine | `lib/tts-engine.ts` → worker `public/pocket-tts/inference-worker.js` (Kyutai Pocket TTS, ONNX Runtime Web 1.20 from jsDelivr) |
 | Voice to text | `components/stt-tool.tsx`, `lib/stt-engine.ts` → worker `public/whisper-worker.js` (Whisper base q8 via transformers.js 4.3.1 `dist/transformers.min.js` from jsDelivr) |
 | Audio | `lib/audio-stage.ts` (shared AudioContext, analyser, player with audible-time tracking), `lib/audio-fx.ts` (time stretch, gain, fades, concat) |
 | Sample voices / demos | `lib/voices.ts`, `lib/demos.ts`, `public/demos/<lang>/<id>.mp3` (39 files; es/alba-merchant missing on purpose), `tools/make-demos.py` |
-| Text content | `content/ui.ts` (TTS UI, 5 langs), `content/home/<lang>.ts` (home SEO article + FAQ), `content/stt.ts` (voice to text UI + article + FAQ), `content/pages.ts` (about, contact, footer), `content/legal.ts` |
+| Text content | `content/ui.ts` (TTS UI, 5 langs), `content/home/<lang>.ts` (home SEO article + FAQ), `content/stt.ts` (voice to text UI + article + FAQ), `content/pages.ts` (about, contact, footer), `content/legal.ts`; small browser-side modules: `content/tools.ts` (tool names), `content/errors.ts` (error screens) |
 | Site config | `lib/site.ts` (env vars), `lib/i18n.ts`, `next.config.mjs` (version → `NEXT_PUBLIC_APP_VERSION`), `vercel.json` (rewrite for the Search Console file), `public/_headers` (Cloudflare Pages) |
 | Styles | `app/globals.css` (one file, CSS variables; Tailwind is imported but barely used) |
 
@@ -86,4 +86,7 @@ Environment variables (set in Vercel → production): `NEXT_PUBLIC_SITE_URL=http
 - **Vercel Hobby is non-commercial only.** Move hosting to Cloudflare Pages before adding ads (see ROADMAP).
 - **Pages change without a reload** (client navigation): tools must release what they hold on unmount (mic, player, workers). Every page's header must be wrapped in `PinnedHeader`; that shared name is what starts the page cross-fade.
 - **Two tool switches are in the DOM** (header on desktop, inline on phones; CSS hides one), so view transition names include the variant. Never give two mounted elements the same name.
+- **Bundle size = what client modules import.** A page ships every client component its server modules import, and a client component ships every content file it imports (all 5 languages). Keep tool pages in separate modules, pass page text to client components as props, and keep content that client code imports small (`content/tools.ts`, `content/errors.ts`). Check first-load JS after changes: about ≈148 KB gz is the Next.js + React floor.
+- **The server renders the desktop layout** (`useMediaQuery` is false on the server). Anything that appears only on desktop must also be hidden by CSS on phones, or the page jumps after hydration (CLS; this cost 10 Lighthouse points on mobile).
+- **Lighthouse locally is noisy** (±10 points). Score with PageSpeed Insights on the deployed site; use local runs only for before/after comparisons on the same machine.
 - Killing processes with `pkill -f <pattern>` can kill your own shell when the pattern is in the command line; kill by PID from a script file instead.

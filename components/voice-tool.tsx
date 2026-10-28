@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Check, ChevronDown, Download, EllipsisVertical, Languages, Mic, Pause, Play, Plus, RotateCcw, Share2, Square, Upload, X } from 'lucide-react'
-import { Drawer } from 'vaul'
+import dynamic from 'next/dynamic'
 import { ScrollFade } from './scroll-fade'
 import Link from 'next/link'
 import { PinnedHeader } from './site-header'
@@ -21,6 +21,9 @@ import { PRESETS, type Preset } from '@/lib/voices'
 import type { UI } from '@/content/ui'
 import { SITE_NAME } from '@/lib/site'
 import { LanguageSwitcher } from '@/components/language-switcher'
+
+// Phones only, and only after the page is up: Vaul stays out of the first load.
+const Sheet = dynamic(() => import('./sheet'), { ssr: false })
 const MIN_SECONDS = 5
 const MAX_SECONDS = 20 // recording cap; only the clearest 10 s is used for cloning
 const SCRIPT_LIMIT = 700
@@ -722,19 +725,9 @@ export function VoiceTool({ ui, lang, homeHref, languageLabel }: { ui: UI; lang:
       )}
 
       {isPhone && (
-        <Drawer.Root open={sheetOpen} onOpenChange={onSheetChange}>
-          <Drawer.Portal>
-            <Drawer.Overlay className="sheet-backdrop" />
-            <Drawer.Content className="sheet" aria-describedby={undefined}>
-              <Drawer.Handle className="sheet-handle" />
-              <div className="sheet-head">
-                <Drawer.Title className="sheet-title">{ui.stepVoice}</Drawer.Title>
-                <button className="btn btn-ghost btn-small sheet-done" onClick={() => onSheetChange(false)}>{ui.done}</button>
-              </div>
-              {voicePanel}
-            </Drawer.Content>
-          </Drawer.Portal>
-        </Drawer.Root>
+        <Sheet open={sheetOpen} onOpenChange={onSheetChange} title={ui.stepVoice} done={ui.done}>
+          {voicePanel}
+        </Sheet>
       )}
 
     </div>

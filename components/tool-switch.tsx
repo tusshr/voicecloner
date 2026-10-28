@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ViewTransition } from 'react'
 import { localePath, type Locale } from '@/lib/i18n'
-import { STT } from '@/content/stt'
+import { TOOL_NAMES } from '@/content/tools'
 
 /**
  * The two tools of the studio, as a two-part switch. Links, so each tool is its own page for search.
@@ -9,10 +9,10 @@ import { STT } from '@/content/stt'
  * because the header and inline switches are both in the DOM (CSS shows one).
  */
 export function ToolSwitch({ lang, active, variant }: { lang: Locale; active: 'tts' | 'stt'; variant: 'header' | 'inline' }) {
-  const ui = STT[lang].ui
+  const names = TOOL_NAMES[lang]
   const tabs = [
-    { id: 'tts', href: localePath(lang), label: ui.toolTts },
-    { id: 'stt', href: localePath(lang, 'voice-to-text'), label: ui.toolStt },
+    { id: 'tts', href: localePath(lang), label: names.tts },
+    { id: 'stt', href: localePath(lang, 'voice-to-text'), label: names.stt },
   ] as const
   return (
     <nav className={`tool-switch tool-switch-${variant}`} aria-label="Tools">

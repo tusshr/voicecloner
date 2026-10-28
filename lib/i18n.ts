@@ -11,6 +11,9 @@ export const ENGINE_LANGUAGE: Record<Locale, string> = {
   en: 'english_2026-04', es: 'spanish', pt: 'portuguese', de: 'german', it: 'italian',
 }
 
+/** Whisper language name for each speech language. */
+export const WHISPER_LANGUAGE: Record<Locale, string> = { en: 'english', es: 'spanish', pt: 'portuguese', de: 'german', it: 'italian' }
+
 export const isLocale = (value: string): value is Locale => (LOCALES as readonly string[]).includes(value)
 
 /** Path for a page in a language: '' is home, otherwise e.g. 'about'. */

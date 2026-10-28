@@ -2,7 +2,6 @@ import type { Locale } from '@/lib/i18n'
 
 type Page = { title: string; description: string; body: string[] }
 export type Chrome = {
-  home: string
   about: string
   contact: string
   privacy: string
@@ -12,9 +11,6 @@ export type Chrome = {
   notFoundTitle: string
   notFoundText: string
   backHome: string
-  errorTitle: string
-  errorText: string
-  tryAgain: string
   cookieText: string
   accept: string
   decline: string
@@ -32,14 +28,11 @@ const credits = {
 
 export const CHROME: Record<Locale, Chrome> = {
   en: {
-    home: 'Home', about: 'About', contact: 'Contact', privacy: 'Privacy', terms: 'Terms', language: 'Language',
+    about: 'About', contact: 'Contact', privacy: 'Privacy', terms: 'Terms', language: 'Language',
     credits: credits.en,
     notFoundTitle: 'Page not found',
     notFoundText: 'No page has this address. Examine the link, or go back to the voice clone tool.',
     backHome: 'Go to the voice clone tool',
-    errorTitle: 'An error occurred',
-    errorText: 'The page has an error. The tool did not upload your recordings, so you did not lose data on a server. Try again, or load the page again.',
-    tryAgain: 'Try again',
     cookieText: 'We use Google Analytics to count visits. It sets cookies only if you accept. It does not record your voice.',
     accept: 'Accept', decline: 'Decline',
     aboutPage: {
@@ -63,14 +56,11 @@ export const CHROME: Record<Locale, Chrome> = {
     },
   },
   es: {
-    home: 'Inicio', about: 'Acerca de', contact: 'Contacto', privacy: 'Privacidad', terms: 'Condiciones', language: 'Idioma',
+    about: 'Acerca de', contact: 'Contacto', privacy: 'Privacidad', terms: 'Condiciones', language: 'Idioma',
     credits: credits.es,
     notFoundTitle: 'Página no encontrada',
     notFoundText: 'Esta dirección no corresponde a ninguna página. Revisa el enlace o vuelve a la herramienta para clonar voz.',
     backHome: 'Ir a la herramienta para clonar voz',
-    errorTitle: 'Algo salió mal',
-    errorText: 'La página tuvo un error. Tus grabaciones nunca se subieron, así que no se perdió nada en nuestro lado. Inténtalo de nuevo o recarga la página.',
-    tryAgain: 'Intentar de nuevo',
     cookieText: 'Usamos Google Analytics para contar visitas. Solo usa cookies si aceptas. Tus grabaciones de voz nunca se rastrean.',
     accept: 'Aceptar', decline: 'Rechazar',
     aboutPage: {
@@ -94,14 +84,11 @@ export const CHROME: Record<Locale, Chrome> = {
     },
   },
   pt: {
-    home: 'Início', about: 'Sobre', contact: 'Contato', privacy: 'Privacidade', terms: 'Termos', language: 'Idioma',
+    about: 'Sobre', contact: 'Contato', privacy: 'Privacidade', terms: 'Termos', language: 'Idioma',
     credits: credits.pt,
     notFoundTitle: 'Página não encontrada',
     notFoundText: 'Este endereço não corresponde a nenhuma página. Confira o link ou volte para a ferramenta de clonar voz.',
     backHome: 'Ir para a ferramenta de clonar voz',
-    errorTitle: 'Algo deu errado',
-    errorText: 'A página encontrou um erro. Suas gravações nunca foram enviadas, então nada se perdeu do nosso lado. Tente de novo ou recarregue a página.',
-    tryAgain: 'Tentar de novo',
     cookieText: 'Usamos o Google Analytics para contar visitas. Ele só usa cookies se você aceitar. Suas gravações de voz nunca são rastreadas.',
     accept: 'Aceitar', decline: 'Recusar',
     aboutPage: {
@@ -125,14 +112,11 @@ export const CHROME: Record<Locale, Chrome> = {
     },
   },
   de: {
-    home: 'Start', about: 'Über uns', contact: 'Kontakt', privacy: 'Datenschutz', terms: 'Nutzungsbedingungen', language: 'Sprache',
+    about: 'Über uns', contact: 'Kontakt', privacy: 'Datenschutz', terms: 'Nutzungsbedingungen', language: 'Sprache',
     credits: credits.de,
     notFoundTitle: 'Seite nicht gefunden',
     notFoundText: 'Zu dieser Adresse gibt es keine Seite. Prüfe den Link oder geh zurück zum Tool zum Stimmen-Klonen.',
     backHome: 'Zum Tool zum Stimmen-Klonen',
-    errorTitle: 'Etwas ist schiefgelaufen',
-    errorText: 'Auf der Seite ist ein Fehler aufgetreten. Deine Aufnahmen wurden nie hochgeladen, bei uns ist also nichts verloren gegangen. Versuch es erneut oder lade die Seite neu.',
-    tryAgain: 'Erneut versuchen',
     cookieText: 'Wir nutzen Google Analytics, um Besuche zu zählen. Cookies werden nur gesetzt, wenn du zustimmst. Deine Sprachaufnahmen werden nie erfasst.',
     accept: 'Zustimmen', decline: 'Ablehnen',
     aboutPage: {
@@ -156,14 +140,11 @@ export const CHROME: Record<Locale, Chrome> = {
     },
   },
   it: {
-    home: 'Home', about: 'Chi siamo', contact: 'Contatti', privacy: 'Privacy', terms: 'Termini', language: 'Lingua',
+    about: 'Chi siamo', contact: 'Contatti', privacy: 'Privacy', terms: 'Termini', language: 'Lingua',
     credits: credits.it,
     notFoundTitle: 'Pagina non trovata',
     notFoundText: 'Questo indirizzo non corrisponde a nessuna pagina. Controlla il link o torna allo strumento per clonare la voce.',
     backHome: 'Vai allo strumento per clonare la voce',
-    errorTitle: 'Qualcosa è andato storto',
-    errorText: 'La pagina ha riscontrato un errore. Le tue registrazioni non sono mai state caricate, quindi da parte nostra non si è perso nulla. Riprova o ricarica la pagina.',
-    tryAgain: 'Riprova',
     cookieText: 'Usiamo Google Analytics per contare le visite. Imposta cookie solo se accetti. Le tue registrazioni vocali non vengono mai tracciate.',
     accept: 'Accetta', decline: 'Rifiuta',
     aboutPage: {

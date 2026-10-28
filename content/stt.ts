@@ -7,7 +7,6 @@ export type SttContent = {
   headline: string
   lede: string
   ui: {
-    toolTts: string; toolStt: string
     upload: string; placeholder: string; record: string; recordMore: string; stop: string
     microphone: string; listening: string; loading: string; finishing: string; transcribing: string
     copy: string; copied: string; readAloud: string; downloadTxt: string; downloadSrt: string; moreActions: string
@@ -25,7 +24,6 @@ const en: SttContent = {
   headline: 'Free voice to text online',
   lede: 'Speak or upload a recording, and get the text in seconds. Copy it, download it as text or subtitles, or have it read aloud.',
   ui: {
-    toolTts: 'Text to voice', toolStt: 'Voice to text',
     upload: 'Upload audio', placeholder: 'Tap Record and start speaking. Your words appear here as you talk.',
     record: 'Record', recordMore: 'Record more', stop: 'Stop',
     microphone: 'Microphone', listening: 'Listening', loading: 'Loading', finishing: 'Finishing', transcribing: 'Transcribing',
@@ -71,7 +69,6 @@ const es: SttContent = {
   headline: 'Voz a texto gratis online',
   lede: 'Habla o sube una grabación y recibe el texto en segundos. Cópialo, descárgalo como texto o subtítulos, o haz que lo lea una voz.',
   ui: {
-    toolTts: 'Texto a voz', toolStt: 'Voz a texto',
     upload: 'Subir audio', placeholder: 'Pulsa Grabar y empieza a hablar. Tus palabras aparecen aquí mientras hablas.',
     record: 'Grabar', recordMore: 'Grabar más', stop: 'Parar',
     microphone: 'Micrófono', listening: 'Escuchando', loading: 'Cargando', finishing: 'Terminando', transcribing: 'Transcribiendo',
@@ -117,7 +114,6 @@ const pt: SttContent = {
   headline: 'Voz para texto grátis online',
   lede: 'Fale ou envie uma gravação e receba o texto em segundos. Copie, baixe como texto ou legendas, ou ouça o texto em voz alta.',
   ui: {
-    toolTts: 'Texto para voz', toolStt: 'Voz para texto',
     upload: 'Enviar áudio', placeholder: 'Toque em Gravar e comece a falar. Suas palavras aparecem aqui enquanto você fala.',
     record: 'Gravar', recordMore: 'Gravar mais', stop: 'Parar',
     microphone: 'Microfone', listening: 'Ouvindo', loading: 'Carregando', finishing: 'Finalizando', transcribing: 'Transcrevendo',
@@ -163,7 +159,6 @@ const de: SttContent = {
   headline: 'Sprache zu Text kostenlos online',
   lede: 'Sprich oder lade eine Aufnahme hoch und erhalte den Text in Sekunden. Kopiere ihn, lade ihn als Text oder Untertitel herunter oder lass ihn vorlesen.',
   ui: {
-    toolTts: 'Text zu Sprache', toolStt: 'Sprache zu Text',
     upload: 'Audio hochladen', placeholder: 'Tippe auf Aufnehmen und sprich los. Deine Wörter erscheinen hier, während du sprichst.',
     record: 'Aufnehmen', recordMore: 'Weiter aufnehmen', stop: 'Stopp',
     microphone: 'Mikrofon', listening: 'Hört zu', loading: 'Lädt', finishing: 'Wird fertig', transcribing: 'Transkribiert',
@@ -209,7 +204,6 @@ const it: SttContent = {
   headline: 'Da voce a testo gratis online',
   lede: 'Parla o carica una registrazione e ricevi il testo in pochi secondi. Copialo, scaricalo come testo o sottotitoli, o fallo leggere ad alta voce.',
   ui: {
-    toolTts: 'Testo a voce', toolStt: 'Voce a testo',
     upload: 'Carica audio', placeholder: 'Tocca Registra e inizia a parlare. Le tue parole appaiono qui mentre parli.',
     record: 'Registra', recordMore: 'Registra ancora', stop: 'Stop',
     microphone: 'Microfono', listening: 'In ascolto', loading: 'Caricamento', finishing: 'Quasi fatto', transcribing: 'Trascrizione',
@@ -250,6 +244,3 @@ const it: SttContent = {
 }
 
 export const STT: Record<Locale, SttContent> = { en, es, pt, de, it }
-
-/** Whisper's names for our languages. */
-export const WHISPER_LANGUAGE: Record<Locale, string> = { en: 'english', es: 'spanish', pt: 'portuguese', de: 'german', it: 'italian' }

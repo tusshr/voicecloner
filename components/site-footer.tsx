@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { InstallButton } from '@/components/install-button'
 import { CHROME } from '@/content/pages'
 import { UI_STRINGS } from '@/content/ui'
-import { STT } from '@/content/stt'
+import { TOOL_NAMES } from '@/content/tools'
 import { LANGUAGE_NAMES, LOCALES, localePath, type Locale } from '@/lib/i18n'
 
 /** `page` is the current page slug when it exists in every language, so the switcher keeps you on it. */
@@ -18,8 +18,8 @@ export function SiteFooter({ lang, page = '' }: { lang: Locale; page?: string })
         <InstallButton ui={UI_STRINGS[lang]} variant="footer" />
       </div>
       <nav className="footer-nav" aria-label="Tools">
-        <Link href={localePath(lang)}>{STT[lang].ui.toolTts}</Link>
-        <Link href={localePath(lang, 'voice-to-text')}>{STT[lang].ui.toolStt}</Link>
+        <Link href={localePath(lang)}>{TOOL_NAMES[lang].tts}</Link>
+        <Link href={localePath(lang, 'voice-to-text')}>{TOOL_NAMES[lang].stt}</Link>
       </nav>
       <nav className="footer-nav" aria-label="Site">
         <Link href={localePath(lang, 'about')}>{chrome.about}</Link>
